@@ -144,6 +144,6 @@ async function submit() {
 
   await updateDoc(doc(db, 'schedules', id), data)
   alert('일정이 수정되었습니다.')
-  router.push(`/schedule/${id}`)
+  router.push('/')
 }
 </script>
