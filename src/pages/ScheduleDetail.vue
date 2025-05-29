@@ -43,7 +43,7 @@
 
     <v-btn color="primary" class="mr-2" @click="goToEdit">수정</v-btn>
     <v-btn color="error" class="mr-2" @click="deleteSchedule">삭제</v-btn>
-    <v-btn color="secondary" class="mr-2" @click="goHome">홈으로</v-btn>
+    <v-btn color="secondary" class="mr-2" @click="goBack">뒤로가기</v-btn>
   </v-container>
 </template>
 
@@ -108,6 +108,10 @@ async function deleteSchedule() {
 
 function goHome() {
   router.push('/')
+}
+
+function goBack() {
+  router.back()
 }
 
 function goToEdit() {
