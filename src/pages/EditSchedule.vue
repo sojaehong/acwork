@@ -1,6 +1,6 @@
 <template>
   <v-container class="pa-4">
-    <h2 class="text-h5 mb-4">✏️ 일정 수정</h2>
+    <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
 
     <!-- 건물 선택 -->
     <div class="mb-4">

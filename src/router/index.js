@@ -4,6 +4,7 @@ import Home from '@/pages/Home.vue'
 import ScheduleAdd from '@/pages/ScheduleAdd.vue'
 import ScheduleList from '@/pages/ScheduleList.vue'
 import ScheduleDetail from '@/pages/ScheduleDetail.vue'
+import SchedulesMeta from '@/pages/SchedulesMeta.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -15,7 +16,8 @@ const routes = [
     path: '/schedule/:id/edit',
     name: 'EditSchedule',
     component: () => import('@/pages/EditSchedule.vue')
-  }
+  },
+  { path: '/meta', component: SchedulesMeta },
 ]
 
 const router = createRouter({

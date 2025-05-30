@@ -24,9 +24,7 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
-
-    <v-btn color="primary" class="mb-4" @click="goToAdd">+ 작업 등록</v-btn>
-
+  
     <v-alert v-if="loading" type="info">불러오는 중...</v-alert>
     <v-alert v-if="error" type="error">{{ error }}</v-alert>
 
@@ -87,10 +85,6 @@ const filterStatus = ref(null)
 const filterBuilding = ref(null)
 const filterInvoice = ref(null)
 const searchText = ref('')
-
-function goToAdd() {
-  router.push('/add')
-}
 
 function goToDetail(id) {
   router.push(`/schedule/${id}`)

@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar color="primary" dark flat>
-      <v-toolbar-title>공조플러스</v-toolbar-title>
+      <v-toolbar-title>공조+</v-toolbar-title>
       <v-spacer />
       <span class="mr-2">{{ userName }}님</span>
       <v-btn icon @click="logout">
@@ -11,12 +11,27 @@
 
     <v-main>
       <v-container class="pa-4">
-        <v-row align="center" justify="space-between">
-          <h2 class="text-h5">📅 오늘의 작업 일정</h2>
-          <v-btn color="primary" :to="'/add'">+ 작업 등록</v-btn>
+        <!-- ✅ 일정 메타 상단 표시 (클릭 시 일정 관리 이동) -->
+        <div class="mb-6" @click="goToMetaEdit" style="cursor: pointer">
+          <v-alert type="info" v-if="scheduleMeta">
+            시작 시간: {{ scheduleMeta.startTime }}<br />
+            작업 인원:
+            <span v-for="(user, i) in scheduleMeta.workerNames" :key="user">
+              {{ user }}<span v-if="i < scheduleMeta.workerNames.length - 1">, </span>
+            </span><br />
+            공지사항: {{ scheduleMeta.notice || '없음' }}<br />
+          </v-alert>
+          <v-alert v-else type="warning">오늘의 일정 메타 정보가 없습니다.</v-alert>
+        </div>
+
+        <!-- 기능 버튼: 우측 상단 플로팅 방식 -->
+        <v-row class="mb-6" justify="end">
+          <v-btn color="info" class="mr-2" :to="'/worker-schedules'">👷 작업자별 일정</v-btn>
+          <v-btn color="success" class="mr-2" :to="'/payroll'">💰 정산 확인</v-btn>
+          <v-btn color="secondary" :to="'/add'">+ 작업 등록</v-btn>
         </v-row>
 
-        <v-divider class="my-4"></v-divider>
+        <v-divider class="my-4" />
 
         <!-- 🔹 진행중 -->
         <div v-if="activeSchedules.length">
@@ -33,9 +48,7 @@
                   📍 {{ item.building }} {{ item.unit }}동 {{ item.room }}호
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  <div v-for="t in item.tasks" :key="t.name">
-                    작업: {{ t.name }} ({{ t.count }}대)
-                  </div>
+                  작업: {{ formatTasks(item.tasks) }}<br />
                   상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
                 </v-list-item-subtitle>
               </v-list-item-content>
@@ -58,9 +71,7 @@
                   ✅ {{ item.building }} {{ item.unit }}동 {{ item.room }}호
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  <div v-for="t in item.tasks" :key="t.name">
-                    작업: {{ t.name }} ({{ t.count }}대)
-                  </div>
+                  작업: {{ formatTasks(item.tasks) }}<br />
                   상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
                 </v-list-item-subtitle>
               </v-list-item-content>
@@ -83,9 +94,7 @@
                   ⏸ {{ item.building }} {{ item.unit }}동 {{ item.room }}호
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  <div v-for="t in item.tasks" :key="t.name">
-                    작업: {{ t.name }} ({{ t.count }}대)
-                  </div>
+                  작업: {{ formatTasks(item.tasks) }}<br />
                   상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
                 </v-list-item-subtitle>
               </v-list-item-content>
@@ -97,7 +106,7 @@
           오늘 등록된 작업 일정이 없습니다.
         </div>
 
-        <v-divider class="my-6"></v-divider>
+        <v-divider class="my-6" />
         <v-btn color="secondary" block @click="goToAll">
           📋 전체 작업 일정 보기
         </v-btn>
@@ -110,10 +119,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 
 const router = useRouter()
 const todaySchedules = ref([])
+const scheduleMeta = ref(null)
 const userName = localStorage.getItem('user_name') || '사용자'
 
 function getTodayKST() {
@@ -129,6 +139,18 @@ async function loadSchedules() {
   todaySchedules.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 }
 
+async function loadScheduleMeta() {
+  const today = getTodayKST()
+  const q = query(collection(db, 'schedulesMeta'), where('date', '==', today))
+  const snap = await getDocs(q)
+  if (!snap.empty) {
+    const data = snap.docs[0].data()
+    const userDocs = await Promise.all(data.workers.map(id => getDoc(doc(db, 'users', id))))
+    data.workerNames = userDocs.map(u => u.exists() ? u.data().name : '알 수 없음')
+    scheduleMeta.value = data
+  }
+}
+
 function logout() {
   localStorage.clear()
   router.push('/login')
@@ -142,19 +164,36 @@ function goToDetail(id) {
   router.push(`/schedule/${id}`)
 }
 
+function goToMetaEdit() {
+  router.push('/meta')
+}
+
+function formatTasks(tasks) {
+  return tasks.map(t => `${t.name}(${t.count})`).join(', ')
+}
+
 const activeSchedules = computed(() =>
-  todaySchedules.value.filter(s =>
-    s.status === '진행' && s.status !== '취소됨'
-  )
+  todaySchedules.value.filter(s => s.status === '진행' && s.status !== '취소됨')
 )
 
 const completedSchedules = computed(() =>
-  todaySchedules.value.filter(s =>
-    (s.status === '완료' || s.status === '보류') && s.status !== '취소됨'
-  )
+  todaySchedules.value.filter(s => (s.status === '완료' || s.status === '보류') && s.status !== '취소됨')
 )
 
 onMounted(() => {
   loadSchedules()
+  loadScheduleMeta()
 })
 </script>
+
+<style scoped>
+.font-weight-bold {
+  font-weight: bold;
+}
+.v-list-item-subtitle {
+  white-space: normal !important;
+  text-overflow: unset !important;
+  overflow: visible !important;
+  word-break: break-word !important;
+}
+</style>
