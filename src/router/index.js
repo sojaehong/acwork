@@ -5,6 +5,10 @@ import ScheduleAdd from '@/pages/ScheduleAdd.vue'
 import ScheduleList from '@/pages/ScheduleList.vue'
 import ScheduleDetail from '@/pages/ScheduleDetail.vue'
 import SchedulesMeta from '@/pages/SchedulesMeta.vue'
+import WorkerSchedules from '@/pages/WorkerSchedules.vue'
+import WorkerPayroll from '@/pages/WorkerPayroll.vue'
+
+
 
 const routes = [
   { path: '/', component: Home },
@@ -18,6 +22,8 @@ const routes = [
     component: () => import('@/pages/EditSchedule.vue')
   },
   { path: '/meta', component: SchedulesMeta },
+  { path: '/worker-schedules', component: WorkerSchedules },
+  { path: '/payroll', component: WorkerPayroll },
 ]
 
 const router = createRouter({

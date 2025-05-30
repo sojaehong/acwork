@@ -17,7 +17,11 @@
             시작 시간: {{ scheduleMeta.startTime }}<br />
             작업 인원:
             <span v-for="(user, i) in scheduleMeta.workerNames" :key="user">
-              {{ user }}<span v-if="i < scheduleMeta.workerNames.length - 1">, </span>
+              <span
+                :style="user === userName ? 'color: #fdd835; font-weight: bold;' : ''"
+              >
+                {{ user }}
+              </span><span v-if="i < scheduleMeta.workerNames.length - 1">, </span>
             </span><br />
             공지사항: {{ scheduleMeta.notice || '없음' }}<br />
           </v-alert>
