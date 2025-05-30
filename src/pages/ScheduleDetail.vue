@@ -1,82 +1,120 @@
 <template>
-  <v-container class="pa-4">
+  <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">📄 작업 상세 보기</h2>
 
     <v-card class="pa-4 mb-4" elevation="2">
-      <v-row class="mb-2">
-        <v-col cols="4" class="font-weight-bold">날짜</v-col>
-        <v-col cols="8">{{ schedule.date }}</v-col>
-      </v-row>
-      <v-row class="mb-2">
-        <v-col cols="4" class="font-weight-bold">건물</v-col>
-        <v-col cols="8">
-          {{ schedule.building }} {{ schedule.unit }}동 {{ schedule.room }}호
+      <v-row class="mb-3">
+        <v-col cols="12" sm="6">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-1">날짜</div>
+            <div>{{ schedule.date }}</div>
+          </v-sheet>
         </v-col>
-      </v-row>
-      <v-row class="mb-2">
-        <v-col cols="4" class="font-weight-bold">작업 내용</v-col>
-        <v-col cols="8">
-          <ul class="pl-2">
-            <li v-for="(task, i) in schedule.tasks" :key="i">
-              {{ task.name }} ({{ task.count }})
-            </li>
-          </ul>
-        </v-col>
-      </v-row>
-      <v-row class="mb-2">
-        <v-col cols="4" class="font-weight-bold">세금계산서</v-col>
-        <v-col cols="8">{{ schedule.invoice ? 'O' : 'X' }}</v-col>
-      </v-row>
-      <v-row class="mb-2">
-        <v-col cols="4" class="font-weight-bold">작업 상태</v-col>
-        <v-col cols="8">
-          <v-btn
-            v-for="s in statusOptions"
-            :key="s"
-            :color="schedule.status === s ? 'primary' : 'grey-lighten-1'"
-            class="mr-2 mb-2"
-            @click="updateStatus(s)"
-          >
-            {{ s }}
-          </v-btn>
+        <v-col cols="12" sm="6">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-1">건물 정보</div>
+            <div>{{ schedule.building }} {{ schedule.unit }}동 {{ schedule.room }}호</div>
+          </v-sheet>
         </v-col>
       </v-row>
 
-      <!-- 연기 상태일 때 날짜 선택 -->
+      <v-divider class="my-3" />
+
+      <v-row class="mb-3">
+        <v-col cols="12">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-2">🛠 작업 내용</div>
+            <v-list dense>
+              <v-list-item v-for="(task, i) in schedule.tasks" :key="i">
+                <v-list-item-content>
+                  {{ task.name }} ({{ task.count }})
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-sheet>
+        </v-col>
+      </v-row>
+
+      <v-row class="mb-3">
+        <v-col cols="6">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-1">세금계산서</div>
+            <div>{{ schedule.invoice ? 'O' : 'X' }}</div>
+          </v-sheet>
+        </v-col>
+        <v-col cols="6">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-1">작업 상태</div>
+            <div>
+              <v-btn
+                v-for="s in statusOptions"
+                :key="s"
+                :color="schedule.status === s ? 'primary' : 'grey-lighten-2'"
+                class="mr-2 mb-2"
+                size="small"
+                @click="updateStatus(s)"
+              >
+                {{ s }}
+              </v-btn>
+            </div>
+          </v-sheet>
+        </v-col>
+      </v-row>
+
       <v-row v-if="schedule.status === '연기'">
-        <v-col cols="4" class="font-weight-bold">변경할 날짜</v-col>
-        <v-col cols="8">
-          <v-dialog v-model="pickerOpen" width="290">
-            <template #activator="{ props }">
-              <v-text-field
-                v-bind="props"
-                v-model="displayDate"
-                label="변경 날짜 선택"
-                readonly
-                prepend-icon="mdi-calendar"
-              />
-            </template>
+        <v-col cols="12">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
+            <v-dialog v-model="pickerOpen" width="290">
+              <template #activator="{ props }">
+                <v-text-field
+                  v-bind="props"
+                  v-model="displayDate"
+                  label="변경 날짜 선택"
+                  readonly
+                  prepend-icon="mdi-calendar"
+                />
+              </template>
 
-            <v-date-picker
-              v-model="newDate"
-              :min="today"
-              @update:modelValue="onDateSelected"
-              scrollable
-              color="primary"
-            />
-          </v-dialog>
+              <v-date-picker
+                v-model="newDate"
+                :min="today"
+                @update:modelValue="onDateSelected"
+                scrollable
+                color="primary"
+              />
+            </v-dialog>
+          </v-sheet>
         </v-col>
       </v-row>
 
       <v-row>
-        <v-col cols="4" class="font-weight-bold">메모</v-col>
-        <v-col cols="8">{{ schedule.memo || '-' }}</v-col>
+        <v-col cols="12">
+          <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+            <div class="font-weight-bold text-subtitle-1 mb-1">🗒 메모</div>
+            <div>{{ schedule.memo || '-' }}</div>
+          </v-sheet>
+        </v-col>
       </v-row>
     </v-card>
+  </v-container>
 
-    <v-btn color="primary" class="mr-2" @click="goToEdit">수정</v-btn>
-    <v-btn color="error" class="mr-2" @click="cancelSchedule">작업취소</v-btn>
-    <v-btn color="secondary" class="mr-2" @click="goBack">뒤로가기</v-btn>
+  <!-- 하단 고정 버튼 영역 -->
+  <v-container
+    class="pa-2"
+    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+  >
+    <v-row dense>
+      <v-col cols="4">
+        <v-btn color="primary" block @click="goToEdit">수정</v-btn>
+      </v-col>
+      <v-col cols="4">
+        <v-btn color="error" block @click="cancelSchedule">작업취소</v-btn>
+      </v-col>
+      <v-col cols="4">
+        <v-btn color="secondary" block @click="goBack">뒤로가기</v-btn>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

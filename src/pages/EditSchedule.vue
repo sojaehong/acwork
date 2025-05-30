@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pa-4">
+  <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
 
     <!-- 건물 선택 -->
@@ -77,7 +77,7 @@
       type="date"
       outlined
       class="mb-4 w-100"
-  style="max-width: 100%; font-size: 16px; font-weight: bold"
+      style="max-width: 100%; font-size: 16px; font-weight: bold"
     />
 
     <v-textarea
@@ -87,10 +87,21 @@
       rows="3"
       class="mb-4"
     />
+  </v-container>
 
-    <v-btn color="primary" block class="mt-4" @click="submit">수정 완료</v-btn>
-    <v-btn color="secondary" block class="mt-2" @click="goBack">돌아가기</v-btn>
-
+  <!-- 하단 고정 버튼 영역 -->
+  <v-container
+    class="pa-2"
+    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+  >
+    <v-row dense>
+      <v-col cols="6">
+        <v-btn color="primary" block @click="submit">수정 완료</v-btn>
+      </v-col>
+      <v-col cols="6">
+        <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

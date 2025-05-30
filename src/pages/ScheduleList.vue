@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pa-4">
+  <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
     <!-- 🔍 필터 패널 -->
@@ -24,7 +24,7 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
-  
+
     <v-alert v-if="loading" type="info">불러오는 중...</v-alert>
     <v-alert v-if="error" type="error">{{ error }}</v-alert>
 
@@ -57,12 +57,18 @@
     </v-row>
 
     <div v-else class="text-grey text-subtitle-1 mt-4">등록된 작업이 없습니다.</div>
+  </v-container>
 
-    <!-- ✅ 하단에 홈으로 이동 버튼 -->
-    <v-divider class="my-6"></v-divider>
-    <v-btn color="secondary" block @click="goHome">
-      홈으로
-    </v-btn>
+  <!-- ✅ 하단 고정 버튼 -->
+  <v-container
+    class="pa-2"
+    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+  >
+    <v-row dense>
+      <v-col cols="12">
+        <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 

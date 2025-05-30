@@ -10,7 +10,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container class="pa-4">
+      <v-container class="pa-4 pb-16">
         <!-- ✅ 일정 메타 상단 표시 (클릭 시 일정 관리 이동) -->
         <div class="mb-6" @click="goToMetaEdit" style="cursor: pointer">
           <v-alert type="info" v-if="scheduleMeta">
@@ -23,13 +23,6 @@
           </v-alert>
           <v-alert v-else type="warning">오늘의 일정 메타 정보가 없습니다.</v-alert>
         </div>
-
-        <!-- 기능 버튼: 우측 상단 플로팅 방식 -->
-        <v-row class="mb-6" justify="end">
-          <v-btn color="info" class="mr-2" :to="'/worker-schedules'">👷 작업자별 일정</v-btn>
-          <v-btn color="success" class="mr-2" :to="'/payroll'">💰 정산 확인</v-btn>
-          <v-btn color="secondary" :to="'/add'">+ 작업 등록</v-btn>
-        </v-row>
 
         <v-divider class="my-4" />
 
@@ -105,9 +98,25 @@
         <div v-if="!activeSchedules.length && !completedSchedules.length" class="text-subtitle-1 mt-4 text-grey">
           오늘 등록된 작업 일정이 없습니다.
         </div>
+      </v-container>
 
-        <v-divider class="my-6" />
-        <v-btn color="secondary" block @click="goToAll">
+      <!-- 🔻 하단 고정 버튼 영역 -->
+      <v-container
+        class="pa-2"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+      >
+        <v-row dense>
+          <v-col cols="4">
+            <v-btn color="info" block @click="goToWorker">👷 작업자별 일정</v-btn>
+          </v-col>
+          <v-col cols="4">
+            <v-btn color="success" block @click="goToPayroll">💰 정산 확인</v-btn>
+          </v-col>
+          <v-col cols="4">
+            <v-btn color="secondary" block @click="goToAdd">+ 작업 등록</v-btn>
+          </v-col>
+        </v-row>
+        <v-btn class="mt-2" block color="grey darken-1" @click="goToAll">
           📋 전체 작업 일정 보기
         </v-btn>
       </v-container>
@@ -166,6 +175,18 @@ function goToDetail(id) {
 
 function goToMetaEdit() {
   router.push('/meta')
+}
+
+function goToWorker() {
+  router.push('/worker-schedules')
+}
+
+function goToPayroll() {
+  router.push('/payroll')
+}
+
+function goToAdd() {
+  router.push('/add')
 }
 
 function formatTasks(tasks) {
