@@ -109,10 +109,10 @@
         <v-btn color="secondary" block @click="goBack">뒤로가기</v-btn>
       </v-col>
       <v-col cols="4">
-        <v-btn color="primary" block @click="goToEdit">수정</v-btn>
+        <v-btn color="error" block @click="cancelSchedule">작업취소</v-btn>
       </v-col>
       <v-col cols="4">
-        <v-btn color="error" block @click="cancelSchedule">작업취소</v-btn>
+        <v-btn color="primary" block @click="goToEdit">수정</v-btn>
       </v-col>
     </v-row>
   </v-container>
