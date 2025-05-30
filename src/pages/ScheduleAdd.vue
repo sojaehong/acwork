@@ -1,105 +1,79 @@
 <template>
   <v-container class="pa-4">
-    <h2 class="text-h5 mb-4">📝 일정 등록</h2>
+    <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
     <!-- 건물 선택 -->
     <div class="mb-4">
       <div class="mb-2">건물 선택</div>
       <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="b in buildings"
-          :key="b"
-          :value="b"
-          class="ma-1"
-          color="primary"
-          variant="tonal"
-        >{{ b }}</v-btn>
+        <v-btn v-for="b in buildings" :key="b" :value="b" class="ma-1" color="primary" variant="tonal">{{ b }}</v-btn>
       </v-btn-toggle>
-      <v-text-field
-        v-if="form.building === '기타'"
-        v-model="form.buildingEtc"
-        label="건물명 직접 입력"
-        outlined
-      />
+      <v-text-field v-if="form.building === '기타'" v-model="form.buildingEtc" label="건물명 직접 입력" outlined />
     </div>
 
     <!-- 동 선택 -->
     <div class="mb-4">
       <div class="mb-2">동 선택</div>
       <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="u in units"
-          :key="u"
-          :value="u"
-          class="ma-1"
-          color="primary"
-          variant="tonal"
-        >{{ u }}</v-btn>
+        <v-btn v-for="u in units" :key="u" :value="u" class="ma-1" color="primary" variant="tonal">{{ u }}</v-btn>
       </v-btn-toggle>
-      <v-text-field
-        v-if="form.unit === '기타'"
-        v-model="form.unitEtc"
-        label="동 직접 입력"
-        outlined
-      />
+      <v-text-field v-if="form.unit === '기타'" v-model="form.unitEtc" label="동 직접 입력" outlined />
     </div>
 
     <!-- 호수 -->
     <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-    <!-- 작업 종류 -->
+    <!-- 작업 내용 및 수량 -->
     <div class="mb-4">
-      <div class="mb-2">작업 종류</div>
-      <v-btn-toggle v-model="form.type" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="t in types"
-          :key="t"
-          :value="t"
-          class="ma-1"
-          color="secondary"
-          variant="tonal"
-        >{{ t }}</v-btn>
-      </v-btn-toggle>
-      <v-text-field
-        v-if="form.type === '기타'"
-        v-model="form.typeEtc"
-        label="작업 종류 직접 입력"
-        outlined
-      />
+      <div class="mb-2">작업 내용 및 수량</div>
+      <div v-for="(task, index) in form.tasks" :key="index" class="d-flex align-center flex-wrap mb-2">
+        <v-btn-toggle v-model="task.name" class="mr-2" mandatory>
+          <v-btn v-for="t in types" :key="t" :value="t" color="secondary" variant="tonal" class="ma-1">{{ t }}</v-btn>
+        </v-btn-toggle>
+        <v-text-field
+          v-if="task.name === '기타'"
+          v-model="task.etc"
+          label="작업 종류 직접 입력"
+          style="max-width: 150px"
+          class="mr-2"
+        />
+        <v-text-field
+          v-model="task.count"
+          label="수량"
+          type="number"
+          min="1"
+          style="max-width: 100px"
+          class="mr-2"
+        />
+        <v-btn icon color="error" @click="removeTask(index)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </div>
+      <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
     </div>
 
     <!-- 작업 상태 -->
     <div class="mb-4">
       <div class="mb-2">작업 상태</div>
       <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="s in statuses"
-          :key="s"
-          :value="s"
-          class="ma-1"
-          color="success"
-          variant="tonal"
-        >{{ s }}</v-btn>
+        <v-btn v-for="s in statuses" :key="s" :value="s" class="ma-1" color="success" variant="tonal">{{ s }}</v-btn>
+      </v-btn-toggle>
+    </div>
+
+    <!-- 세금계산서 발행 여부 -->
+    <div class="mb-4">
+      <div class="mb-2">세금계산서 발행 여부</div>
+      <v-btn-toggle v-model="form.invoice" mandatory>
+        <v-btn value="Y" color="blue" variant="tonal">O</v-btn>
+        <v-btn value="N" color="red" variant="tonal">X</v-btn>
       </v-btn-toggle>
     </div>
 
     <!-- 날짜 -->
-    <v-text-field
-      v-model="form.date"
-      label="날짜"
-      type="date"
-      outlined
-      class="mb-4"
-    />
+    <v-text-field v-model="form.date" label="날짜" type="date" outlined class="mb-4" />
 
     <!-- 메모 -->
-    <v-textarea
-      v-model="form.memo"
-      label="작업 관련 메모 (선택사항)"
-      outlined
-      rows="3"
-      class="mb-4"
-    />
+    <v-textarea v-model="form.memo" label="작업 관련 메모 (선택사항)" outlined rows="3" class="mb-4" />
 
     <v-btn color="primary" block class="mt-4" @click="submit">등록</v-btn>
     <v-btn color="secondary" block class="mt-4" @click="goHome">홈으로</v-btn>
@@ -112,24 +86,12 @@ import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
-// ✅ 한국 시간 기준 오늘 날짜 구하는 함수
-function getTodayKR() {
-  return new Date()
-    .toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-    .replace(/\.\s?/g, '-')
-    .replace(/\.$/, '')
-}
-
 const router = useRouter()
 
 const buildings = ['테라타워', 'SKV1', '현대지식산업', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
 const types = ['설치', '수리', '청소', '기타']
-const statuses = ['예정', '진행중', '완료', '보류']
+const statuses = ['진행', '완료', '보류']
 
 const form = ref({
   building: '',
@@ -137,26 +99,40 @@ const form = ref({
   unit: '',
   unitEtc: '',
   room: '',
-  type: '',
-  typeEtc: '',
-  status: '예정',
-  date: getTodayKR(), // ✅ 오늘 날짜 자동 세팅
-  memo: ''
+  tasks: [{ name: '', count: 1, etc: '' }],
+  status: '진행',
+  date: new Date().toISOString().split('T')[0],
+  memo: '',
+  invoice: 'N'
 })
+
+function addTask() {
+  form.value.tasks.push({ name: '', count: 1, etc: '' })
+}
+
+function removeTask(index) {
+  form.value.tasks.splice(index, 1)
+}
 
 function goHome() {
   router.push('/')
 }
 
 async function submit() {
+  const cleanedTasks = form.value.tasks.map(task => ({
+    name: task.name === '기타' ? task.etc : task.name,
+    count: task.count
+  }))
+
   const data = {
     building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
     room: form.value.room,
-    type: form.value.type === '기타' ? form.value.typeEtc : form.value.type,
+    tasks: cleanedTasks,
     status: form.value.status,
     date: form.value.date,
     memo: form.value.memo,
+    invoice: form.value.invoice === 'Y',
     createdAt: serverTimestamp(),
     createdBy: localStorage.getItem('user_id')
   }

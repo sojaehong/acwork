@@ -32,18 +32,26 @@
 
     <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-    <!-- 작업 종류 -->
+    <!-- 작업 내용 및 수량 -->
     <div class="mb-4">
-      <div class="mb-2">작업 종류</div>
-      <v-btn-toggle v-model="form.type" mandatory class="d-flex flex-wrap">
-        <v-btn v-for="t in types" :key="t" :value="t" class="ma-1" color="secondary" variant="tonal">{{ t }}</v-btn>
-      </v-btn-toggle>
-      <v-text-field
-        v-if="form.type === '기타'"
-        v-model="form.typeEtc"
-        label="작업 종류 직접 입력"
-        outlined
-      />
+      <div class="mb-2">작업 내용 및 수량</div>
+      <div v-for="(task, index) in form.tasks" :key="index" class="d-flex align-center flex-wrap mb-2">
+        <v-btn-toggle v-model="task.name" class="mr-2" mandatory>
+          <v-btn v-for="t in types" :key="t" :value="t" color="secondary" variant="tonal" class="ma-1">{{ t }}</v-btn>
+        </v-btn-toggle>
+        <v-text-field
+          v-if="task.name === '기타'"
+          v-model="task.etc"
+          label="작업 종류 직접 입력"
+          style="max-width: 150px"
+          class="mr-2"
+        />
+        <v-text-field v-model="task.count" label="수량" type="number" min="1" style="max-width: 100px" class="mr-2" />
+        <v-btn icon color="error" @click="removeTask(index)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </div>
+      <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
     </div>
 
     <!-- 작업 상태 -->
@@ -51,6 +59,15 @@
       <div class="mb-2">작업 상태</div>
       <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
         <v-btn v-for="s in statuses" :key="s" :value="s" class="ma-1" color="success" variant="tonal">{{ s }}</v-btn>
+      </v-btn-toggle>
+    </div>
+
+    <!-- 세금계산서 발행 여부 -->
+    <div class="mb-4">
+      <div class="mb-2">세금계산서 발행 여부</div>
+      <v-btn-toggle v-model="form.invoice" mandatory>
+        <v-btn value="Y" color="blue" variant="tonal">O</v-btn>
+        <v-btn value="N" color="red" variant="tonal">X</v-btn>
       </v-btn-toggle>
     </div>
 
@@ -88,7 +105,7 @@ const route = useRoute()
 const buildings = ['테라타워', 'SKV1', '현대지식산업', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
 const types = ['설치', '수리', '청소', '기타']
-const statuses = ['예정', '진행중', '완료', '보류']
+const statuses = ['진행', '완료', '보류']
 
 const form = ref({
   building: '',
@@ -96,18 +113,26 @@ const form = ref({
   unit: '',
   unitEtc: '',
   room: '',
-  type: '',
-  typeEtc: '',
+  tasks: [{ name: '', count: 1, etc: '' }],
   status: '',
   date: '',
-  memo: ''
+  memo: '',
+  invoice: 'N'
 })
+
+function addTask() {
+  form.value.tasks.push({ name: '', count: 1, etc: '' })
+}
+
+function removeTask(index) {
+  form.value.tasks.splice(index, 1)
+}
 
 onMounted(async () => {
   const id = route.params.id
   const snap = await getDoc(doc(db, 'schedules', id))
   if (!snap.exists()) {
-    alert('일정을 찾을 수 없습니다.')
+    alert('작업을 찾을 수 없습니다.')
     router.push('/')
     return
   }
@@ -118,11 +143,15 @@ onMounted(async () => {
     unit: units.includes(data.unit) ? data.unit : '기타',
     unitEtc: units.includes(data.unit) ? '' : data.unit,
     room: data.room,
-    type: types.includes(data.type) ? data.type : '기타',
-    typeEtc: types.includes(data.type) ? '' : data.type,
+    tasks: (data.tasks || [{ name: '', count: 1 }]).map(t => ({
+      name: types.includes(t.name) ? t.name : '기타',
+      etc: types.includes(t.name) ? '' : t.name,
+      count: t.count || 1
+    })),
     status: data.status,
     date: data.date,
-    memo: data.memo || ''
+    memo: data.memo || '',
+    invoice: data.invoice ? 'Y' : 'N'
   }
 })
 
@@ -132,18 +161,23 @@ function goBack() {
 
 async function submit() {
   const id = route.params.id
+  const cleanedTasks = form.value.tasks.map(task => ({
+    name: task.name === '기타' ? task.etc : task.name,
+    count: task.count
+  }))
   const data = {
     building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
     room: form.value.room,
-    type: form.value.type === '기타' ? form.value.typeEtc : form.value.type,
+    tasks: cleanedTasks,
     status: form.value.status,
     date: form.value.date,
-    memo: form.value.memo
+    memo: form.value.memo,
+    invoice: form.value.invoice === 'Y'
   }
 
   await updateDoc(doc(db, 'schedules', id), data)
-  alert('일정이 수정되었습니다.')
-  router.push('/')
+  alert('작업이 수정되었습니다.')
+  router.back()
 }
 </script>
