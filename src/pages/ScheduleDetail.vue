@@ -105,14 +105,14 @@
     style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
   >
     <v-row dense>
+    <v-col cols="4">
+        <v-btn color="secondary" block @click="goBack">뒤로가기</v-btn>
+      </v-col>
       <v-col cols="4">
         <v-btn color="primary" block @click="goToEdit">수정</v-btn>
       </v-col>
       <v-col cols="4">
         <v-btn color="error" block @click="cancelSchedule">작업취소</v-btn>
-      </v-col>
-      <v-col cols="4">
-        <v-btn color="secondary" block @click="goBack">뒤로가기</v-btn>
       </v-col>
     </v-row>
   </v-container>

@@ -95,11 +95,11 @@
     style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
   >
     <v-row dense>
-      <v-col cols="6">
-        <v-btn color="primary" block @click="submit">수정 완료</v-btn>
+     <v-col cols="6">
+        <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
       </v-col>
       <v-col cols="6">
-        <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
+        <v-btn color="primary" block @click="submit">수정 완료</v-btn>
       </v-col>
     </v-row>
   </v-container>
