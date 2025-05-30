@@ -46,14 +46,25 @@
       <v-row v-if="schedule.status === '연기'">
         <v-col cols="4" class="font-weight-bold">변경할 날짜</v-col>
         <v-col cols="8">
-          <v-date-picker
-            v-model="newDate"
-            :min="today"
-            @update:modelValue="applyNewDate"
-            show-adjacent-months
-            color="primary"
-            elevation="2"
-          />
+          <v-dialog v-model="pickerOpen" width="290">
+            <template #activator="{ props }">
+              <v-text-field
+                v-bind="props"
+                v-model="displayDate"
+                label="변경 날짜 선택"
+                readonly
+                prepend-icon="mdi-calendar"
+              />
+            </template>
+
+            <v-date-picker
+              v-model="newDate"
+              :min="today"
+              @update:modelValue="onDateSelected"
+              scrollable
+              color="primary"
+            />
+          </v-dialog>
         </v-col>
       </v-row>
 
@@ -79,6 +90,8 @@ const route = useRoute()
 const router = useRouter()
 const schedule = ref({})
 const newDate = ref('')
+const displayDate = ref('')
+const pickerOpen = ref(false)
 const statusOptions = ['진행', '연기', '보류', '완료']
 const today = new Date().toISOString().split('T')[0]
 
@@ -109,6 +122,12 @@ async function updateStatus(newStatus) {
   if (newStatus !== '연기') {
     router.back()
   }
+}
+
+async function onDateSelected(val) {
+  displayDate.value = formatDateToYYYYMMDD(val)
+  pickerOpen.value = false
+  await applyNewDate()
 }
 
 async function applyNewDate() {

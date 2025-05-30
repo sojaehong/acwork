@@ -76,7 +76,8 @@
       label="날짜"
       type="date"
       outlined
-      class="mb-4"
+      class="mb-4 w-100"
+  style="max-width: 100%; font-size: 16px; font-weight: bold"
     />
 
     <v-textarea

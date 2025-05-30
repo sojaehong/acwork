@@ -70,7 +70,8 @@
     </div>
 
     <!-- 날짜 -->
-    <v-text-field v-model="form.date" label="날짜" type="date" outlined class="mb-4" />
+    <v-text-field v-model="form.date" label="날짜" type="date" outlined cclass="mb-4 w-100"
+  style="max-width: 100%; font-size: 16px; font-weight: bold" />
 
     <!-- 메모 -->
     <v-textarea v-model="form.memo" label="작업 관련 메모 (선택사항)" outlined rows="3" class="mb-4" />
