@@ -60,7 +60,10 @@
         </div>
 
         <!-- 호수 -->
+        <div class="mb-4">
+        <label class="mb-2 font-weight-bold d-block">호수 선택</label>
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
+        </div>
 
         <!-- 작업 내용 및 수량 -->
         <div class="mb-4">
@@ -230,9 +233,9 @@ async function submit() {
 
 <style scoped>
 .custom-date-field-enhanced input {
-  font-size: 20px !important;
-  height: 56px !important;
-  line-height: 56px !important;
+  font-size: 26px !important;
+  height: 72px !important;
+  line-height: 72px !important;
   padding: 12px 14px !important;
 }
 
