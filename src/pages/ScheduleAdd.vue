@@ -2,7 +2,13 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-16">
-        <h2 class="text-h5 mb-4">📝 작업 등록</h2>
+        <!-- 상단 요약 바 -->
+        <div class="top-summary">
+          날짜: {{ formattedDate }} |
+          건물: {{ displayBuilding }} |
+          동: {{ displayUnit }} |
+          호수: {{ form.room || '미입력' }}
+        </div>
 
         <!-- 날짜 선택 -->
         <div class="mb-4">
@@ -59,44 +65,41 @@
         <!-- 호수 -->
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-        <!-- 작업 내용 및 수량 -->
+        <!-- 🔥 빠른 작업 추가 -->
+        <div class="quick-add mb-4">
+          <v-select
+            v-model="quickTask.name"
+            :items="types"
+            label="작업 종류"
+            dense
+            hide-details
+            style="max-width: 120px;"
+          />
+          <v-text-field
+            v-model="quickTask.count"
+            type="number"
+            label="수량"
+            dense
+            hide-details
+            style="max-width: 80px;"
+            @keyup.enter="addQuickTask"
+          />
+          <v-btn @click="addQuickTask" color="success" icon><v-icon>mdi-plus</v-icon></v-btn>
+        </div>
+
+        <!-- 작업 목록 -->
         <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
+          <label class="mb-2 font-weight-bold d-block">작업 목록</label>
           <div
             v-for="(task, index) in form.tasks"
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <div class="button-grid mr-2">
-              <v-btn
-                v-for="t in types"
-                :key="t"
-                :class="[task.name === t ? 'selected-btn' : '', 'grid-btn']"
-                @click="task.name = t"
-                color="secondary"
-                variant="tonal"
-              >{{ t }}</v-btn>
-            </div>
-            <v-text-field
-              v-if="task.name === '기타'"
-              v-model="task.etc"
-              label="작업 종류 직접 입력"
-              style="max-width: 140px"
-              class="mr-2"
-            />
-            <v-text-field
-              v-model="task.count"
-              label="수량"
-              type="number"
-              min="1"
-              style="max-width: 90px"
-              class="mr-2"
-            />
+            <span class="mr-2">{{ task.name }} × {{ task.count }}</span>
             <v-btn icon color="error" @click="removeTask(index)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </div>
-          <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
         </div>
 
         <!-- 작업 상태 -->
@@ -148,21 +151,14 @@
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
-        <v-row dense>
-          <v-col cols="6">
-            <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
-          </v-col>
-          <v-col cols="6">
-            <v-btn color="primary" block @click="submit">등록</v-btn>
-          </v-col>
-        </v-row>
+        <v-btn color="primary" block @click="submit">✅ 등록</v-btn>
       </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
@@ -183,12 +179,24 @@ const form = ref({
   unit: '',
   unitEtc: '',
   room: '',
-  tasks: [{ name: '', count: 1, etc: '' }],
+  tasks: [],
   status: '진행',
   date: new Date().toISOString().split('T')[0],
   memo: '',
   invoice: 'N'
 })
+
+const quickTask = ref({ name: '', count: 1 })
+
+function addQuickTask() {
+  if (!quickTask.value.name || quickTask.value.count < 1) return
+  form.value.tasks.push({ name: quickTask.value.name, count: quickTask.value.count, etc: '' })
+  quickTask.value = { name: '', count: 1 }
+}
+
+function removeTask(index) {
+  form.value.tasks.splice(index, 1)
+}
 
 const dateConfig = {
   locale: Korean,
@@ -207,24 +215,19 @@ const dateConfig = {
   }
 }
 
-function addTask() {
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
-}
+const formattedDate = computed(() => {
+  const date = new Date(form.value.date)
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
+})
 
-function removeTask(index) {
-  form.value.tasks.splice(index, 1)
-}
-
-function goHome() {
-  router.push('/')
-}
+const displayBuilding = computed(() => form.value.building === '기타' ? form.value.buildingEtc : form.value.building)
+const displayUnit = computed(() => form.value.unit === '기타' ? form.value.unitEtc : form.value.unit)
 
 async function submit() {
   const cleanedTasks = form.value.tasks.map(task => ({
     name: task.name === '기타' ? task.etc : task.name,
     count: task.count
   }))
-
   const data = {
     building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
@@ -244,8 +247,16 @@ async function submit() {
 </script>
 
 <style scoped>
-.custom-date-picker {
-  margin-bottom: 12px;
+.top-summary {
+  position: sticky;
+  top: 0;
+  background: #f4f6f9;
+  z-index: 10;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 16px;
 }
 
 .flatpickr-input {
@@ -273,5 +284,11 @@ async function submit() {
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
+}
+
+.quick-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>
