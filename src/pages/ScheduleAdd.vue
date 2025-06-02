@@ -11,9 +11,7 @@
             v-model="form.date"
             type="date"
             outlined
-            dense
-            hide-details
-            class="custom-date-field"
+            class="custom-date-field-enhanced"
           />
         </div>
 
@@ -231,9 +229,11 @@ async function submit() {
 </script>
 
 <style scoped>
-.custom-date-field input {
-  font-size: 28px !important;
-  height: 64px;
+.custom-date-field-enhanced input {
+  font-size: 20px !important;
+  height: 56px !important;
+  line-height: 56px !important;
+  padding: 12px 14px !important;
 }
 
 .button-grid {
