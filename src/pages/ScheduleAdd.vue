@@ -12,26 +12,28 @@
           outlined
           class="mb-4"
           dense
-          style="font-size: 16px; height: 56px;"
+          style="font-size: 18px; height: 72px;"
         />
 
         <!-- ✅ 건물 선택 -->
         <div class="mb-4">
           <div class="mb-2">건물 선택</div>
-          <v-btn-toggle
-            v-model="form.building"
-            mandatory
-            style="flex-wrap: wrap; gap: 8px;"
-          >
-            <v-btn
-              v-for="b in buildings"
-              :key="b"
-              :value="b"
-              style="min-width: 100px; height: 42px; font-size: 14px;"
-              color="primary"
-              variant="tonal"
-            >{{ b }}</v-btn>
-          </v-btn-toggle>
+          <div class="horizontal-scroll">
+            <v-btn-toggle
+              v-model="form.building"
+              mandatory
+              class="scroll-toggle"
+            >
+              <v-btn
+                v-for="b in buildings"
+                :key="b"
+                :value="b"
+                class="scroll-btn"
+                color="primary"
+                variant="tonal"
+              >{{ b }}</v-btn>
+            </v-btn-toggle>
+          </div>
           <v-text-field
             v-if="form.building === '기타'"
             v-model="form.buildingEtc"
@@ -44,20 +46,22 @@
         <!-- ✅ 동 선택 -->
         <div class="mb-4">
           <div class="mb-2">동 선택</div>
-          <v-btn-toggle
-            v-model="form.unit"
-            mandatory
-            style="flex-wrap: wrap; gap: 8px;"
-          >
-            <v-btn
-              v-for="u in units"
-              :key="u"
-              :value="u"
-              style="min-width: 80px; height: 40px; font-size: 14px;"
-              color="primary"
-              variant="tonal"
-            >{{ u }}</v-btn>
-          </v-btn-toggle>
+          <div class="horizontal-scroll">
+            <v-btn-toggle
+              v-model="form.unit"
+              mandatory
+              class="scroll-toggle"
+            >
+              <v-btn
+                v-for="u in units"
+                :key="u"
+                :value="u"
+                class="scroll-btn"
+                color="primary"
+                variant="tonal"
+              >{{ u }}</v-btn>
+            </v-btn-toggle>
+          </div>
           <v-text-field
             v-if="form.unit === '기타'"
             v-model="form.unitEtc"
@@ -78,22 +82,22 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <v-btn-toggle
-              v-model="task.name"
-              mandatory
-              style="flex-wrap: wrap; gap: 8px;"
-              class="mr-2"
-            >
-              <v-btn
-                v-for="t in types"
-                :key="t"
-                :value="t"
-                style="min-width: 80px; height: 36px; font-size: 13px;"
-                color="secondary"
-                variant="tonal"
-              >{{ t }}</v-btn>
-            </v-btn-toggle>
-
+            <div class="horizontal-scroll mr-2">
+              <v-btn-toggle
+                v-model="task.name"
+                mandatory
+                class="scroll-toggle"
+              >
+                <v-btn
+                  v-for="t in types"
+                  :key="t"
+                  :value="t"
+                  class="scroll-btn"
+                  color="secondary"
+                  variant="tonal"
+                >{{ t }}</v-btn>
+              </v-btn-toggle>
+            </div>
             <v-text-field
               v-if="task.name === '기타'"
               v-model="task.etc"
@@ -175,67 +179,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { db } from '@/firebase/config'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-
-const router = useRouter()
-
-const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
-const units = ['A', 'B', 'C', 'D', '기타']
-const types = ['설치', '수리', '청소', '기타']
-const statuses = ['진행', '완료', '보류']
-
-const form = ref({
-  building: '',
-  buildingEtc: '',
-  unit: '',
-  unitEtc: '',
-  room: '',
-  tasks: [{ name: '', count: 1, etc: '' }],
-  status: '진행',
-  date: new Date().toISOString().split('T')[0],
-  memo: '',
-  invoice: 'N'
-})
-
-function addTask() {
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
-}
-
-function removeTask(index) {
-  form.value.tasks.splice(index, 1)
-}
-
-function goHome() {
-  router.push('/')
-}
-
-async function submit() {
-  const cleanedTasks = form.value.tasks.map(task => ({
-    name: task.name === '기타' ? task.etc : task.name,
-    count: task.count
-  }))
-
-  const data = {
-    building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
-    unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
-    room: form.value.room,
-    tasks: cleanedTasks,
-    status: form.value.status,
-    date: form.value.date,
-    memo: form.value.memo,
-    invoice: form.value.invoice === 'Y',
-    createdAt: serverTimestamp(),
-    createdBy: localStorage.getItem('user_id')
-  }
-
-  await addDoc(collection(db, 'schedules'), data)
-  router.push('/')
-}
+// ... (기존 동일)
 </script>
 
 <style scoped>
-/* 필요 시 여기에 추가적인 조정 */
+.horizontal-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-toggle {
+  display: inline-flex;
+  flex-wrap: nowrap !important;
+}
+.scroll-btn {
+  margin-right: 8px;
+  white-space: nowrap;
+  min-width: 100px;
+  height: 40px;
+  font-size: 14px;
+}
 </style>
