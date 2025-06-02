@@ -7,23 +7,11 @@
         <!-- 날짜 선택 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
-          <v-text-field
-            v-model="formattedDate"
-            readonly
-            outlined
-            class="custom-date-picker"
-            @click="dateDialog = true"
+          <flat-pickr
+            v-model="form.date"
+            :config="dateConfig"
+            class="custom-date-picker flatpickr-input"
           />
-          <v-dialog v-model="dateDialog" persistent max-width="320">
-            <v-card>
-              <v-date-picker
-                v-model="internalDate"
-                show-adjacent-months
-                color="primary"
-                @update:model-value="onDateSelected"
-              />
-            </v-card>
-          </v-dialog>
         </div>
 
         <!-- 건물 선택 -->
@@ -174,14 +162,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import FlatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
+import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const router = useRouter()
-const dateDialog = ref(false)
-const internalDate = ref(new Date())
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -196,27 +185,26 @@ const form = ref({
   room: '',
   tasks: [{ name: '', count: 1, etc: '' }],
   status: '진행',
-  date: toLocalDate(new Date()),
+  date: new Date().toISOString().split('T')[0],
   memo: '',
   invoice: 'N'
 })
 
-const formattedDate = computed(() => {
-  const date = new Date(form.value.date)
-  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-})
-
-function onDateSelected(date) {
-  if (!date) return
-  internalDate.value = date
-  form.value.date = toLocalDate(date)
-  dateDialog.value = false
-}
-
-function toLocalDate(date) {
-  const offset = date.getTimezoneOffset()
-  const local = new Date(date.getTime() - offset * 60 * 1000)
-  return local.toISOString().split('T')[0]
+const dateConfig = {
+  locale: Korean,
+  dateFormat: 'Y-m-d',
+  disableMobile: true,
+  inline: true,
+  onDayCreate: function (_, __, fp, dayElem) {
+    const day = new Date(dayElem.dateObj).getDay()
+    if (day === 0) {
+      dayElem.style.color = 'red'
+      dayElem.style.fontWeight = 'bold'
+    } else if (day === 6) {
+      dayElem.style.color = 'blue'
+      dayElem.style.fontWeight = 'bold'
+    }
+  }
 }
 
 function addTask() {
@@ -256,10 +244,16 @@ async function submit() {
 </script>
 
 <style scoped>
-.custom-date-picker input {
-  font-size: 22px !important;
-  height: 58px !important;
-  padding: 10px 12px !important;
+.custom-date-picker {
+  margin-bottom: 12px;
+}
+
+.flatpickr-input {
+  font-size: 18px;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
 }
 
 .button-grid {
@@ -279,18 +273,5 @@ async function submit() {
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
-}
-
-/* 날짜 색상 표시 */
-::v-deep(.v-date-picker-table .v-btn) {
-  color: inherit !important;
-}
-
-::v-deep(.v-date-picker-table .v-btn:nth-child(7n + 1)) {
-  color: red !important; /* 일요일 */
-}
-
-::v-deep(.v-date-picker-table .v-btn:nth-child(7n)) {
-  color: blue !important; /* 토요일 */
 }
 </style>
