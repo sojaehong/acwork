@@ -164,7 +164,6 @@
   </v-app>
 </template>
 
-
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'

@@ -121,9 +121,9 @@
           </v-btn-toggle>
         </v-sheet>
 
-        <!-- 세금계사서 발행 -->
+        <!-- 세금계산서 발행 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
-          <div class="mb-2 font-weight-bold">📟 세금계사서 발행</div>
+          <div class="mb-2 font-weight-bold">📟 세금계산서 발행</div>
           <v-btn-toggle v-model="form.invoice" class="button-grid">
             <v-btn
               value="Y"
@@ -284,13 +284,18 @@ async function submit() {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 8px;
 }
-.grid-btn {
-  min-width: 90px;
-  height: 38px;
-  font-size: 14px;
-  white-space: nowrap;
+.button-grid > .v-btn {
+  flex: 1 1 30%;
+  min-width: 100px;
+  justify-content: center;
+}
+@media (max-width: 600px) {
+  .button-grid > .v-btn {
+    flex: 1 1 45%;
+    font-size: 14px;
+    padding: 8px;
+  }
 }
 .selected-btn {
   font-weight: bold;
