@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4" style="padding-bottom: 240px !important">
+      <v-container class="pa-4 pb-32">
         <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
 
         <!-- 날짜 선택 -->
@@ -106,9 +106,15 @@
         </v-sheet>
 
         <!-- 메모 -->
-        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg" style="scroll-margin-bottom: 120px">
           <div class="mb-2 font-weight-bold">📝 메모</div>
-          <v-textarea v-model="form.memo" rows="3" outlined />
+          <v-textarea
+            v-model="form.memo"
+            rows="3"
+            outlined
+            auto-grow
+            style="min-height: 100px"
+          />
         </v-sheet>
       </v-container>
 

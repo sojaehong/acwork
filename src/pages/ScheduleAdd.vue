@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4 pb-24">
+      <v-container class="pa-4 pb-32">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
         <!-- 날짜 선택 -->
@@ -116,7 +116,15 @@
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">📌 작업 상태</div>
           <v-btn-toggle v-model="form.status">
-            <v-btn v-for="s in statuses" :key="s" :value="s" color="primary" variant="tonal">{{ s }}</v-btn>
+            <v-btn
+              v-for="s in statuses"
+              :key="s"
+              :value="s"
+              color="primary"
+              variant="tonal"
+            >
+              {{ s }}
+            </v-btn>
           </v-btn-toggle>
         </v-sheet>
 
@@ -130,9 +138,15 @@
         </v-sheet>
 
         <!-- 메모 -->
-        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg" style="scroll-margin-bottom: 120px">
           <div class="mb-2 font-weight-bold">📝 메모</div>
-          <v-textarea v-model="form.memo" rows="3" outlined />
+          <v-textarea
+            v-model="form.memo"
+            rows="3"
+            outlined
+            auto-grow
+            style="min-height: 100px"
+          />
         </v-sheet>
       </v-container>
 
