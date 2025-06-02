@@ -2,27 +2,27 @@
   <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
-    <!-- 날짜 -->
+    <!-- 날짜 선택 -->
     <v-text-field
       v-model="form.date"
       label="날짜"
       type="date"
       outlined
       class="mb-4"
-      style="font-size: 18px; height: 56px; padding: 14px; min-height: 56px;"
+      style="font-size: 16px; height: 56px; padding: 14px; min-height: 56px; width: 100%;"
     />
 
     <!-- 건물 선택 -->
     <div class="mb-4">
       <div class="mb-2">건물 선택</div>
-      <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap justify-start gap-2">
+      <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap gap-2">
         <v-btn
           v-for="b in buildings"
           :key="b"
           :value="b"
           color="primary"
           variant="tonal"
-          style="padding: 10px 16px; font-size: 16px; min-height: 48px; min-width: 120px;"
+          style="padding: 10px 16px; font-size: 16px; min-height: 48px; flex: 1 1 auto;"
         >{{ b }}</v-btn>
       </v-btn-toggle>
       <v-text-field
@@ -43,7 +43,7 @@
           :value="u"
           color="primary"
           variant="tonal"
-          style="padding: 10px 16px; font-size: 16px; min-height: 48px; min-width: 100px;"
+          style="padding: 10px 16px; font-size: 16px; min-height: 48px; flex: 1 1 auto;"
         >{{ u }}</v-btn>
       </v-btn-toggle>
       <v-text-field
@@ -106,7 +106,7 @@
           :value="s"
           color="success"
           variant="tonal"
-          style="padding: 10px 16px; font-size: 16px; min-height: 48px; min-width: 100px;"
+          style="padding: 10px 16px; font-size: 16px; min-height: 48px; flex: 1 1 auto;"
         >{{ s }}</v-btn>
       </v-btn-toggle>
     </div>
@@ -170,20 +170,20 @@ const types = ['설치', '수리', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
 
 const form = ref({
-  building: '',
+  building: buildings[0],
   buildingEtc: '',
-  unit: '',
+  unit: units[0],
   unitEtc: '',
   room: '',
-  tasks: [{ name: '', count: 1, etc: '' }],
-  status: '진행',
+  tasks: [{ name: types[0], count: 1, etc: '' }],
+  status: statuses[0],
   date: new Date().toISOString().split('T')[0],
   memo: '',
   invoice: 'N'
 })
 
 function addTask() {
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
+  form.value.tasks.push({ name: types[0], count: 1, etc: '' })
 }
 
 function removeTask(index) {
