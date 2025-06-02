@@ -7,7 +7,15 @@ import '@mdi/font/css/materialdesignicons.css'
 
 import router from './router'
 
-const vuetify = createVuetify()
+// ✅ locale 추가
+import { ko } from 'vuetify/locale'
+
+const vuetify = createVuetify({
+  locale: {
+    locale: 'ko',
+    messages: { ko }
+  }
+})
 
 createApp(App)
   .use(vuetify)
