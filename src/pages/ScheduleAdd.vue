@@ -232,8 +232,8 @@ async function submit() {
 
 <style scoped>
 .custom-date-field input {
-  font-size: 22px !important;
-  height: 58px;
+  font-size: 28px !important;
+  height: 64px;
 }
 
 .button-grid {
