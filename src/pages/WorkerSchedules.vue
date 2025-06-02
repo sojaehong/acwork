@@ -55,7 +55,7 @@
     style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
   >
     <v-row dense>
-      <v-col >
+      <v-col>
         <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
       </v-col>
     </v-row>
@@ -67,17 +67,26 @@ import { ref, computed, onMounted } from 'vue'
 import { db } from '@/firebase/config'
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
 
-const selectedWorker = ref(null)
-const workers = ref([])
-const metaList = ref([])
-const today = new Date().toISOString().split('T')[0]
+// 날짜를 KST 기준으로 반환하는 함수
+function getTodayKST() {
+  const now = new Date()
+  const offset = 9 * 60 * 60 * 1000
+  const kst = new Date(now.getTime() + offset)
+  return kst.toISOString().split('T')[0]
+}
 
+// 날짜 차이 계산
 function dateDiff(from, to) {
-  const fromDate = new Date(from)
-  const toDate = new Date(to)
+  const fromDate = new Date(from + 'T00:00:00+09:00')
+  const toDate = new Date(to + 'T00:00:00+09:00')
   const diff = Math.floor((toDate - fromDate) / (1000 * 60 * 60 * 24))
   return diff
 }
+
+const selectedWorker = ref(null)
+const workers = ref([])
+const metaList = ref([])
+const today = getTodayKST()
 
 onMounted(async () => {
   const snap = await getDocs(collection(db, 'schedulesMeta'))
@@ -104,7 +113,6 @@ onMounted(async () => {
 
   metaList.value = metaItems
 
-  // 작업자 목록 구성
   const allUsersSnap = await getDocs(collection(db, 'users'))
   workers.value = allUsersSnap.docs
     .filter(doc => allUserIds.has(doc.id))
@@ -112,12 +120,14 @@ onMounted(async () => {
 })
 
 const upcomingMeta = computed(() => {
+  if (!selectedWorker.value) return []
   return metaList.value
     .filter(m => m.workers.includes(selectedWorker.value) && m.date >= today)
     .map(m => ({ ...m, dday: dateDiff(today, m.date) }))
 })
 
 const pastMeta = computed(() => {
+  if (!selectedWorker.value) return []
   return metaList.value
     .filter(m => m.workers.includes(selectedWorker.value) && m.date < today)
     .map(m => ({ ...m, dday: dateDiff(m.date, today) }))

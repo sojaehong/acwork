@@ -133,9 +133,10 @@ const scheduleMeta = ref(null)
 const userName = localStorage.getItem('user_name') || '사용자'
 
 function getTodayKST() {
-  const local = new Date()
-  local.setMinutes(local.getMinutes() - local.getTimezoneOffset())
-  return local.toISOString().split('T')[0]
+  const now = new Date()
+  const kstOffset = 9 * 60 * 60 * 1000 // 9시간
+  const kst = new Date(now.getTime() + kstOffset)
+  return kst.toISOString().split('T')[0]
 }
 
 async function loadSchedules() {

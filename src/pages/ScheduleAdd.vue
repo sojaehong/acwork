@@ -1,12 +1,12 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4 pb-16" style="padding-bottom: 240px !important">
+      <v-container class="pa-4" style="padding-bottom: 240px !important">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
         <!-- 날짜 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
-          <div class="mb-2 font-weight-bold">🗕 날짜 선택</div>
+          <div class="mb-2 font-weight-bold">📅 날짜 선택</div>
           <flat-pickr
             v-model="form.date"
             :config="dateConfig"
@@ -17,16 +17,21 @@
         <!-- 건물 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">🏢 건물 선택</div>
-          <v-btn-toggle v-model="form.building" mandatory class="button-grid">
-            <v-btn
+          <v-row dense class="button-grid">
+            <v-col
               v-for="b in buildings"
               :key="b"
-              :value="b"
-              :class="form.building === b ? 'selected-btn' : ''"
-              color="primary"
-              variant="tonal"
-            >{{ b }}</v-btn>
-          </v-btn-toggle>
+              cols="6" sm="4" md="3"
+            >
+              <v-btn
+                :color="form.building === b ? 'primary' : 'grey'"
+                block
+                @click="form.building = b"
+                :class="form.building === b ? 'selected-btn' : ''"
+                variant="tonal"
+              >{{ b }}</v-btn>
+            </v-col>
+          </v-row>
           <v-text-field
             v-if="form.building === '기타'"
             v-model="form.buildingEtc"
@@ -38,16 +43,21 @@
         <!-- 동 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">🏬 동 선택</div>
-          <v-btn-toggle v-model="form.unit" mandatory class="button-grid">
-            <v-btn
+          <v-row dense class="button-grid">
+            <v-col
               v-for="u in units"
               :key="u"
-              :value="u"
-              :class="form.unit === u ? 'selected-btn' : ''"
-              color="primary"
-              variant="tonal"
-            >{{ u }}</v-btn>
-          </v-btn-toggle>
+              cols="6" sm="4" md="3"
+            >
+              <v-btn
+                :color="form.unit === u ? 'primary' : 'grey'"
+                block
+                @click="form.unit = u"
+                :class="form.unit === u ? 'selected-btn' : ''"
+                variant="tonal"
+              >{{ u }}</v-btn>
+            </v-col>
+          </v-row>
           <v-text-field
             v-if="form.unit === '기타'"
             v-model="form.unitEtc"
@@ -74,7 +84,7 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <v-btn-toggle v-model="task.name" class="button-grid mr-2">
+            <v-btn-toggle v-model="task.name" class="mr-2">
               <v-btn
                 v-for="t in types"
                 :key="t"
@@ -123,20 +133,10 @@
 
         <!-- 세금계산서 발행 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
-          <div class="mb-2 font-weight-bold">📟 세금계산서 발행</div>
+          <div class="mb-2 font-weight-bold">🧾 세금계산서 발행</div>
           <v-btn-toggle v-model="form.invoice" class="button-grid">
-            <v-btn
-              value="Y"
-              :class="form.invoice === 'Y' ? 'selected-btn' : ''"
-              color="blue"
-              variant="tonal"
-            >O</v-btn>
-            <v-btn
-              value="N"
-              :class="form.invoice === 'N' ? 'selected-btn' : ''"
-              color="red"
-              variant="tonal"
-            >X</v-btn>
+            <v-btn value="Y" :class="form.invoice === 'Y' ? 'selected-btn' : ''" color="blue" variant="tonal">O</v-btn>
+            <v-btn value="N" :class="form.invoice === 'N' ? 'selected-btn' : ''" color="red" variant="tonal">X</v-btn>
           </v-btn-toggle>
         </v-sheet>
 
@@ -170,7 +170,6 @@
         </v-row>
       </v-container>
 
-      <!-- 등록 완료 Toast -->
       <v-snackbar v-model="toast.show" timeout="2000">
         {{ toast.message }}
       </v-snackbar>
@@ -236,15 +235,12 @@ const summaryText = computed(() => {
 function addTask() {
   form.value.tasks.push({ name: '', count: 1, etc: '' })
 }
-
 function removeTask(index) {
   form.value.tasks.splice(index, 1)
 }
-
 function goHome() {
   router.push('/')
 }
-
 async function submit() {
   const cleanedTasks = form.value.tasks.map(task => ({
     name: task.name === '기타' ? task.etc : task.name,
@@ -281,21 +277,7 @@ async function submit() {
   width: 100%;
 }
 .button-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.button-grid > .v-btn {
-  flex: 1 1 30%;
-  min-width: 100px;
-  justify-content: center;
-}
-@media (max-width: 600px) {
-  .button-grid > .v-btn {
-    flex: 1 1 45%;
-    font-size: 14px;
-    padding: 8px;
-  }
+  margin-bottom: 8px;
 }
 .selected-btn {
   font-weight: bold;

@@ -72,13 +72,13 @@
     </template>
   </v-container>
 
-   <!-- 하단 고정 버튼 -->
+  <!-- 하단 고정 버튼 -->
   <v-container
     class="pa-2"
     style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
   >
     <v-row dense>
-      <v-col >
+      <v-col>
         <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
       </v-col>
     </v-row>
@@ -95,8 +95,24 @@ const selectedWorker = ref(null)
 const workers = ref([])
 const selectedUnpaid = ref([])
 const selectedPaid = ref([])
-const today = new Date().toISOString().split('T')[0]
 
+// ✅ 한국 시간 기준 오늘 날짜 구하기
+function getTodayKST() {
+  const now = new Date()
+  const offset = 9 * 60 * 60 * 1000
+  const kst = new Date(now.getTime() + offset)
+  return kst.toISOString().split('T')[0]
+}
+const todayKST = getTodayKST()
+
+// ✅ 날짜 차이 계산 (KST 기준)
+function calcDday(dateStr) {
+  const from = new Date(dateStr + 'T00:00:00+09:00')
+  const to = new Date(todayKST + 'T00:00:00+09:00')
+  return Math.floor((to - from) / (1000 * 60 * 60 * 24))
+}
+
+// 🔄 데이터 로딩
 onMounted(async () => {
   const snap = await getDocs(query(collection(db, 'schedulesMeta'), orderBy('date')))
   meta.value = await Promise.all(
@@ -118,41 +134,34 @@ onMounted(async () => {
   workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
 })
 
+// 🔄 정산 안된 항목
 const unpaid = computed(() => {
   return meta.value.filter(
-    m => m.workers.includes(selectedWorker.value) && !m.paid && m.date < today
+    m => m.workers.includes(selectedWorker.value) && !m.paid && m.date <= todayKST
   )
 })
 
+// 🔄 정산 완료 항목
 const paid = computed(() => {
   return meta.value.filter(
     m => m.workers.includes(selectedWorker.value) && m.paid
   )
 })
 
-function calcDday(dateStr) {
-  const todayObj = new Date()
-  const target = new Date(dateStr)
-  const diff = Math.floor((todayObj - target) / (1000 * 60 * 60 * 24))
-  return diff
-}
-
+// ✅ 항목 토글
 function toggleUnpaid(id) {
-  if (selectedUnpaid.value.includes(id)) {
-    selectedUnpaid.value = selectedUnpaid.value.filter(i => i !== id)
-  } else {
-    selectedUnpaid.value.push(id)
-  }
+  selectedUnpaid.value.includes(id)
+    ? selectedUnpaid.value = selectedUnpaid.value.filter(i => i !== id)
+    : selectedUnpaid.value.push(id)
 }
 
 function togglePaid(id) {
-  if (selectedPaid.value.includes(id)) {
-    selectedPaid.value = selectedPaid.value.filter(i => i !== id)
-  } else {
-    selectedPaid.value.push(id)
-  }
+  selectedPaid.value.includes(id)
+    ? selectedPaid.value = selectedPaid.value.filter(i => i !== id)
+    : selectedPaid.value.push(id)
 }
 
+// ✅ 정산 처리
 async function markAsPaid() {
   for (const id of selectedUnpaid.value) {
     await updateDoc(doc(db, 'schedulesMeta', id), { paid: true })
@@ -162,6 +171,7 @@ async function markAsPaid() {
   location.reload()
 }
 
+// ✅ 정산 취소
 async function cancelPaid() {
   for (const id of selectedPaid.value) {
     await updateDoc(doc(db, 'schedulesMeta', id), { paid: false })

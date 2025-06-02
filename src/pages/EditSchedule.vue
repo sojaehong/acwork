@@ -17,16 +17,17 @@
         <!-- 건물 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">🏢 건물 선택</div>
-          <v-btn-toggle v-model="form.building" mandatory class="button-grid">
-            <v-btn
-              v-for="b in buildings"
-              :key="b"
-              :value="b"
-              :class="form.building === b ? 'selected-btn' : ''"
-              color="primary"
-              variant="tonal"
-            >{{ b }}</v-btn>
-          </v-btn-toggle>
+          <v-row dense class="mb-2">
+            <v-col v-for="b in buildings" :key="b" cols="6" sm="4" md="3">
+              <v-btn
+                :color="form.building === b ? 'primary' : 'grey'"
+                block
+                @click="form.building = b"
+                :class="form.building === b ? 'selected-btn' : ''"
+                variant="tonal"
+              >{{ b }}</v-btn>
+            </v-col>
+          </v-row>
           <v-text-field
             v-if="form.building === '기타'"
             v-model="form.buildingEtc"
@@ -38,16 +39,17 @@
         <!-- 동 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">🏬 동 선택</div>
-          <v-btn-toggle v-model="form.unit" mandatory class="button-grid">
-            <v-btn
-              v-for="u in units"
-              :key="u"
-              :value="u"
-              :class="form.unit === u ? 'selected-btn' : ''"
-              color="primary"
-              variant="tonal"
-            >{{ u }}</v-btn>
-          </v-btn-toggle>
+          <v-row dense class="mb-2">
+            <v-col v-for="u in units" :key="u" cols="6" sm="4" md="3">
+              <v-btn
+                :color="form.unit === u ? 'primary' : 'grey'"
+                block
+                @click="form.unit = u"
+                :class="form.unit === u ? 'selected-btn' : ''"
+                variant="tonal"
+              >{{ u }}</v-btn>
+            </v-col>
+          </v-row>
           <v-text-field
             v-if="form.unit === '기타'"
             v-model="form.unitEtc"
@@ -74,16 +76,21 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <v-btn-toggle v-model="task.name" class="button-grid mr-2">
-              <v-btn
+            <v-row dense class="mr-2" style="flex: 1">
+              <v-col
                 v-for="t in types"
                 :key="t"
-                :value="t"
-                :class="task.name === t ? 'selected-btn' : ''"
-                color="secondary"
-                variant="tonal"
-              >{{ t }}</v-btn>
-            </v-btn-toggle>
+                cols="6" sm="3"
+              >
+                <v-btn
+                  :color="task.name === t ? 'secondary' : 'grey'"
+                  block
+                  @click="task.name = t"
+                  :class="task.name === t ? 'selected-btn' : ''"
+                  variant="tonal"
+                >{{ t }}</v-btn>
+              </v-col>
+            </v-row>
             <v-text-field
               v-if="task.name === '기타'"
               v-model="task.etc"
@@ -109,25 +116,42 @@
         <!-- 작업 상태 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">📌 작업 상태</div>
-          <v-btn-toggle v-model="form.status" class="button-grid" mandatory>
-            <v-btn
-              v-for="s in statuses"
-              :key="s"
-              :value="s"
-              :class="form.status === s ? 'selected-btn' : ''"
-              color="success"
-              variant="tonal"
-            >{{ s }}</v-btn>
-          </v-btn-toggle>
+          <v-row dense class="mb-2">
+            <v-col v-for="s in statuses" :key="s" cols="6" sm="4">
+              <v-btn
+                :color="form.status === s ? 'success' : 'grey'"
+                block
+                @click="form.status = s"
+                :class="form.status === s ? 'selected-btn' : ''"
+                variant="tonal"
+              >{{ s }}</v-btn>
+            </v-col>
+          </v-row>
         </v-sheet>
 
         <!-- 세금계산서 발행 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">🧾 세금계산서 발행</div>
-          <v-btn-toggle v-model="form.invoice" class="button-grid" mandatory>
-            <v-btn value="Y" :class="form.invoice === 'Y' ? 'selected-btn' : ''" color="blue" variant="tonal">O</v-btn>
-            <v-btn value="N" :class="form.invoice === 'N' ? 'selected-btn' : ''" color="red" variant="tonal">X</v-btn>
-          </v-btn-toggle>
+          <v-row dense class="mb-2">
+            <v-col cols="6">
+              <v-btn
+                :color="form.invoice === 'Y' ? 'blue' : 'grey'"
+                block
+                @click="form.invoice = 'Y'"
+                :class="form.invoice === 'Y' ? 'selected-btn' : ''"
+                variant="tonal"
+              >O</v-btn>
+            </v-col>
+            <v-col cols="6">
+              <v-btn
+                :color="form.invoice === 'N' ? 'red' : 'grey'"
+                block
+                @click="form.invoice = 'N'"
+                :class="form.invoice === 'N' ? 'selected-btn' : ''"
+                variant="tonal"
+              >X</v-btn>
+            </v-col>
+          </v-row>
         </v-sheet>
 
         <!-- 메모 -->
@@ -141,7 +165,7 @@
           />
         </v-sheet>
 
-        <!-- 요약 + 버튼 영역 통합 -->
+        <!-- 요약 + 버튼 영역 -->
         <v-sheet
           style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 200; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
           class="px-4 pt-2 pb-4"
@@ -332,12 +356,6 @@ async function submit() {
   border: 1px solid #ccc;
   border-radius: 6px;
   width: 100%;
-}
-.button-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
 }
 .selected-btn {
   font-weight: bold;
