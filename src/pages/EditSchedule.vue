@@ -7,23 +7,11 @@
         <!-- 날짜 선택 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
-          <v-text-field
-            v-model="formattedDate"
-            readonly
-            outlined
-            class="custom-date-picker"
-            @click="dateDialog = true"
+          <flat-pickr
+            v-model="form.date"
+            :config="dateConfig"
+            class="custom-date-picker flatpickr-input"
           />
-          <v-dialog v-model="dateDialog" persistent max-width="320">
-            <v-card>
-              <v-date-picker
-                v-model="form.date"
-                show-adjacent-months
-                @update:modelValue="onDateSelected"
-                :day-format="formatDay"
-              />
-            </v-card>
-          </v-dialog>
         </div>
 
         <!-- 건물 선택 -->
@@ -174,14 +162,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import FlatPickr from 'vue-flatpickr-component'
+import 'flatpickr/dist/flatpickr.css'
+import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 
 const router = useRouter()
 const route = useRoute()
-const dateDialog = ref(false)
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -201,21 +191,21 @@ const form = ref({
   invoice: 'N'
 })
 
-const formattedDate = computed(() => {
-  const date = new Date(form.value.date)
-  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
-})
-
-function formatDay(date) {
-  const day = new Date(date).getDay()
-  if (day === 0) return `<span style="color:red">${new Date(date).getDate()}</span>`
-  if (day === 6) return `<span style="color:blue">${new Date(date).getDate()}</span>`
-  return new Date(date).getDate()
-}
-
-function onDateSelected(value) {
-  form.value.date = value
-  dateDialog.value = false
+const dateConfig = {
+  locale: Korean,
+  dateFormat: 'Y-m-d',
+  disableMobile: true,
+  inline: true,
+  onDayCreate: function (_, __, fp, dayElem) {
+    const day = new Date(dayElem.dateObj).getDay()
+    if (day === 0) {
+      dayElem.style.color = 'red'
+      dayElem.style.fontWeight = 'bold'
+    } else if (day === 6) {
+      dayElem.style.color = 'blue'
+      dayElem.style.fontWeight = 'bold'
+    }
+  }
 }
 
 function addTask() {
@@ -281,10 +271,16 @@ async function submit() {
 </script>
 
 <style scoped>
-.custom-date-picker input {
-  font-size: 22px !important;
-  height: 58px !important;
-  padding: 10px 12px !important;
+.custom-date-picker {
+  margin-bottom: 12px;
+}
+
+.flatpickr-input {
+  font-size: 18px;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
 }
 
 .button-grid {
