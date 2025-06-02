@@ -19,8 +19,9 @@
               <v-date-picker
                 v-model="internalDate"
                 show-adjacent-months
+                color="primary"
+                :day-style="dayStyle"
                 @update:model-value="onDateSelected"
-                :day-format="formatDay"
               />
             </v-card>
           </v-dialog>
@@ -196,7 +197,7 @@ const form = ref({
   room: '',
   tasks: [{ name: '', count: 1, etc: '' }],
   status: '진행',
-  date: new Date().toISOString().split('T')[0],
+  date: toLocalDate(new Date()),
   memo: '',
   invoice: 'N'
 })
@@ -206,20 +207,24 @@ const formattedDate = computed(() => {
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 })
 
-function onDateSelected(value) {
-  if (!value) return
-  const selectedDate = new Date(value)
-  form.value.date = selectedDate.toISOString().split('T')[0]
+function onDateSelected(date) {
+  if (!date) return
+  internalDate.value = date
+  form.value.date = toLocalDate(date)
   dateDialog.value = false
 }
 
-function formatDay(dateStr) {
-  const date = new Date(dateStr)
-  const day = date.getDay()
-  const dayNum = date.getDate()
-  if (day === 0) return `<span style='color:red'>${dayNum}</span>`
-  if (day === 6) return `<span style='color:blue'>${dayNum}</span>`
-  return String(dayNum)
+function dayStyle(date) {
+  const day = new Date(date).getDay()
+  if (day === 0) return 'color: red; font-weight: bold'
+  if (day === 6) return 'color: blue; font-weight: bold'
+  return ''
+}
+
+function toLocalDate(date) {
+  const offset = date.getTimezoneOffset()
+  const local = new Date(date.getTime() - offset * 60 * 1000)
+  return local.toISOString().split('T')[0]
 }
 
 function addTask() {
@@ -246,7 +251,7 @@ async function submit() {
     room: form.value.room,
     tasks: cleanedTasks,
     status: form.value.status,
-    date: form.value.date, // 문자열 저장
+    date: form.value.date,
     memo: form.value.memo,
     invoice: form.value.invoice === 'Y',
     createdAt: serverTimestamp(),
