@@ -14,15 +14,10 @@
             class="custom-date-picker"
             @click="dateDialog = true"
           />
-          <v-dialog
-            v-model="dateDialog"
-            persistent
-            max-width="320"
-          >
+          <v-dialog v-model="dateDialog" persistent max-width="320">
             <v-card>
               <v-date-picker
                 v-model="form.date"
-                locale="ko"
                 show-adjacent-months
                 @update:modelValue="onDateSelected"
               />
@@ -130,7 +125,7 @@
           </div>
         </div>
 
-        <!-- 세금계산서 -->
+        <!-- 세금계산서 발행 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
           <div class="button-grid">
@@ -184,7 +179,6 @@ import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const router = useRouter()
-
 const dateDialog = ref(false)
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
