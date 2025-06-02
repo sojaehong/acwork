@@ -66,13 +66,13 @@
         />
       </v-container>
 
-      <!-- 하단 고정 버튼 (수정된 방식) -->
+      <!-- 하단 고정 버튼 -->
       <v-container
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
         <v-row dense>
-        <v-col cols="4">
+          <v-col cols="4">
             <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="4" v-if="isEdit">
@@ -92,10 +92,13 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { getTodayDateKST } from '@/utils/date'
 
 const router = useRouter()
+const today = getTodayDateKST()
+
 const form = ref({
-  date: new Date().toISOString().split('T')[0],
+  date: today,
   startTime: '',
   workers: [],
   notice: ''
@@ -134,7 +137,6 @@ async function fetchExistingDates() {
   existingDates.value = Array.from(dates).sort()
   metaMap.value = meta
 
-  const today = new Date().toISOString().split('T')[0]
   if (existingDates.value.includes(today)) {
     selectedDate.value = today
     await handleDateSelect(today)

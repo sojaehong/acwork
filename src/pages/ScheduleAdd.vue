@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4" style="padding-bottom: 240px !important">
+      <v-container class="pa-4 pb-24">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
         <!-- 날짜 선택 -->
@@ -71,7 +71,11 @@
         <!-- 작업 내용 및 수량 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">💪 작업 내용 및 수량</div>
-          <div v-for="(task, index) in form.tasks" :key="index" class="d-flex align-center mb-2">
+          <div
+            v-for="(task, index) in form.tasks"
+            :key="index"
+            class="d-flex align-center mb-2 flex-wrap task-row"
+          >
             <v-btn-toggle v-model="task.name" class="mr-2">
               <v-btn
                 v-for="t in types"
@@ -84,11 +88,12 @@
                 {{ t }}
               </v-btn>
             </v-btn-toggle>
+
             <v-text-field
               v-if="task.name === '기타'"
               v-model="task.etc"
               label="직접입력"
-              style="max-width: 120px"
+              class="mr-2 custom-task-etc"
               dense
             />
             <v-text-field
@@ -96,6 +101,7 @@
               type="number"
               min="1"
               label="수량"
+              class="mr-2"
               style="max-width: 80px"
               dense
             />
@@ -131,7 +137,10 @@
       </v-container>
 
       <!-- 하단 고정 요약 + 버튼 -->
-      <v-container class="pa-2 summary-bar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);">
+      <v-container
+        class="pa-2 summary-bar"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+      >
         <div class="mb-2">📌 요약: {{ summaryText }}</div>
         <v-row dense>
           <v-col cols="6">
@@ -233,5 +242,13 @@ async function submit() {
   border-radius: 8px;
   text-align: center;
   line-height: 1.5;
+}
+.task-row {
+  flex-wrap: wrap;
+}
+.custom-task-etc {
+  min-width: 120px;
+  max-width: 180px;
+  flex-shrink: 1;
 }
 </style>
