@@ -8,8 +8,6 @@ import SchedulesMeta from '@/pages/SchedulesMeta.vue'
 import WorkerSchedules from '@/pages/WorkerSchedules.vue'
 import WorkerPayroll from '@/pages/WorkerPayroll.vue'
 
-
-
 const routes = [
   { path: '/', component: Home },
   { path: '/login', component: LoginView },
@@ -28,7 +26,7 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [ /* ... */ ]
+  routes
 })
 
 router.beforeEach((to, from, next) => {
