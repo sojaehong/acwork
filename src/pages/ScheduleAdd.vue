@@ -20,7 +20,6 @@
                 v-model="internalDate"
                 show-adjacent-months
                 color="primary"
-                :day-style="dayStyle"
                 @update:model-value="onDateSelected"
               />
             </v-card>
@@ -214,13 +213,6 @@ function onDateSelected(date) {
   dateDialog.value = false
 }
 
-function dayStyle(date) {
-  const day = new Date(date).getDay()
-  if (day === 0) return 'color: red; font-weight: bold'
-  if (day === 6) return 'color: blue; font-weight: bold'
-  return ''
-}
-
 function toLocalDate(date) {
   const offset = date.getTimezoneOffset()
   const local = new Date(date.getTime() - offset * 60 * 1000)
@@ -287,5 +279,18 @@ async function submit() {
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
+}
+
+/* 날짜 색상 표시 */
+::v-deep(.v-date-picker-table .v-btn) {
+  color: inherit !important;
+}
+
+::v-deep(.v-date-picker-table .v-btn:nth-child(7n + 1)) {
+  color: red !important; /* 일요일 */
+}
+
+::v-deep(.v-date-picker-table .v-btn:nth-child(7n)) {
+  color: blue !important; /* 토요일 */
 }
 </style>
