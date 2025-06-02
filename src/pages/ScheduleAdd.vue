@@ -64,8 +64,90 @@
         <!-- 호수 -->
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-        <!-- ... (기타 항목은 동일하게 유지) -->
+        <!-- 작업 내용 및 수량 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
+          <div
+            v-for="(task, index) in form.tasks"
+            :key="index"
+            class="d-flex align-center flex-wrap mb-2"
+          >
+            <div class="button-grid mr-2">
+              <v-btn
+                v-for="t in types"
+                :key="t"
+                :value="t"
+                :class="[task.name === t ? 'selected-btn' : '', 'grid-btn']"
+                @click="task.name = t"
+                color="secondary"
+                variant="tonal"
+              >{{ t }}</v-btn>
+            </div>
+            <v-text-field
+              v-if="task.name === '기타'"
+              v-model="task.etc"
+              label="작업 종류 직접 입력"
+              style="max-width: 140px"
+              class="mr-2"
+            />
+            <v-text-field
+              v-model="task.count"
+              label="수량"
+              type="number"
+              min="1"
+              style="max-width: 90px"
+              class="mr-2"
+            />
+            <v-btn icon color="error" @click="removeTask(index)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </div>
+          <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
+        </div>
 
+        <!-- 작업 상태 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">작업 상태</label>
+          <div class="button-grid">
+            <v-btn
+              v-for="s in statuses"
+              :key="s"
+              :value="s"
+              :class="[form.status === s ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.status = s"
+              color="success"
+              variant="tonal"
+            >{{ s }}</v-btn>
+          </div>
+        </div>
+
+        <!-- 세금계산서 발행 여부 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
+          <div class="button-grid">
+            <v-btn
+              :class="[form.invoice === 'Y' ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.invoice = 'Y'"
+              color="blue"
+              variant="tonal"
+            >O</v-btn>
+            <v-btn
+              :class="[form.invoice === 'N' ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.invoice = 'N'"
+              color="red"
+              variant="tonal"
+            >X</v-btn>
+          </div>
+        </div>
+
+        <!-- 메모 -->
+        <v-textarea
+          v-model="form.memo"
+          label="작업 관련 메모 (선택사항)"
+          outlined
+          rows="3"
+          class="mb-4"
+        />
       </v-container>
 
       <!-- 하단 고정 버튼 -->
@@ -96,6 +178,8 @@ const router = useRouter()
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
+const types = ['설치', '수리', '청소', '기타']
+const statuses = ['진행', '완료', '보류']
 
 const form = ref({
   building: '',
@@ -103,19 +187,40 @@ const form = ref({
   unit: '',
   unitEtc: '',
   room: '',
+  tasks: [{ name: '', count: 1, etc: '' }],
+  status: '진행',
   date: new Date().toISOString().split('T')[0],
+  memo: '',
+  invoice: 'N'
 })
+
+function addTask() {
+  form.value.tasks.push({ name: '', count: 1, etc: '' })
+}
+
+function removeTask(index) {
+  form.value.tasks.splice(index, 1)
+}
 
 function goHome() {
   router.push('/')
 }
 
 async function submit() {
+  const cleanedTasks = form.value.tasks.map(task => ({
+    name: task.name === '기타' ? task.etc : task.name,
+    count: task.count
+  }))
+
   const data = {
     building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
     room: form.value.room,
+    tasks: cleanedTasks,
+    status: form.value.status,
     date: form.value.date,
+    memo: form.value.memo,
+    invoice: form.value.invoice === 'Y',
     createdAt: serverTimestamp(),
     createdBy: localStorage.getItem('user_id')
   }
@@ -127,14 +232,15 @@ async function submit() {
 
 <style scoped>
 .custom-date-field input {
-  font-size: 16px !important;
-  height: 50px;
+  font-size: 22px !important;
+  height: 58px;
 }
 
 .button-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 .grid-btn {
