@@ -4,21 +4,29 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
+        <!-- 날짜 -->
+        <v-text-field
+          v-model="form.date"
+          label="날짜"
+          type="date"
+          outlined
+          class="mb-4"
+          style="font-size: 18px; font-weight: bold"
+        />
+
         <!-- 건물 선택 -->
         <div class="mb-4">
           <div class="mb-2">건물 선택</div>
-          <div class="horizontal-scroll">
-            <v-btn-toggle v-model="form.building" mandatory>
-              <v-btn
-                v-for="b in buildings"
-                :key="b"
-                :value="b"
-                class="scroll-btn"
-                color="primary"
-                variant="tonal"
-              >{{ b }}</v-btn>
-            </v-btn-toggle>
-          </div>
+          <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
+            <v-btn
+              v-for="b in buildings"
+              :key="b"
+              :value="b"
+              class="ma-1 bigger-btn"
+              color="primary"
+              variant="tonal"
+            >{{ b }}</v-btn>
+          </v-btn-toggle>
           <v-text-field
             v-if="form.building === '기타'"
             v-model="form.buildingEtc"
@@ -30,18 +38,16 @@
         <!-- 동 선택 -->
         <div class="mb-4">
           <div class="mb-2">동 선택</div>
-          <div class="horizontal-scroll">
-            <v-btn-toggle v-model="form.unit" mandatory>
-              <v-btn
-                v-for="u in units"
-                :key="u"
-                :value="u"
-                class="scroll-btn"
-                color="primary"
-                variant="tonal"
-              >{{ u }}</v-btn>
-            </v-btn-toggle>
-          </div>
+          <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
+            <v-btn
+              v-for="u in units"
+              :key="u"
+              :value="u"
+              class="ma-1 bigger-btn"
+              color="primary"
+              variant="tonal"
+            >{{ u }}</v-btn>
+          </v-btn-toggle>
           <v-text-field
             v-if="form.unit === '기타'"
             v-model="form.unitEtc"
@@ -61,19 +67,16 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <div class="horizontal-scroll mr-2">
-              <v-btn-toggle v-model="task.name" mandatory>
-                <v-btn
-                  v-for="t in types"
-                  :key="t"
-                  :value="t"
-                  class="scroll-btn"
-                  color="secondary"
-                  variant="tonal"
-                >{{ t }}</v-btn>
-              </v-btn-toggle>
-            </div>
-
+            <v-btn-toggle v-model="task.name" mandatory class="mr-2">
+              <v-btn
+                v-for="t in types"
+                :key="t"
+                :value="t"
+                class="ma-1 bigger-btn"
+                color="secondary"
+                variant="tonal"
+              >{{ t }}</v-btn>
+            </v-btn-toggle>
             <v-text-field
               v-if="task.name === '기타'"
               v-model="task.etc"
@@ -104,7 +107,7 @@
               v-for="s in statuses"
               :key="s"
               :value="s"
-              class="ma-1"
+              class="ma-1 bigger-btn"
               color="success"
               variant="tonal"
             >{{ s }}</v-btn>
@@ -115,20 +118,10 @@
         <div class="mb-4">
           <div class="mb-2">세금계산서 발행 여부</div>
           <v-btn-toggle v-model="form.invoice" mandatory>
-            <v-btn value="Y" color="blue" variant="tonal">O</v-btn>
-            <v-btn value="N" color="red" variant="tonal">X</v-btn>
+            <v-btn value="Y" color="blue" variant="tonal" class="bigger-btn">O</v-btn>
+            <v-btn value="N" color="red" variant="tonal" class="bigger-btn">X</v-btn>
           </v-btn-toggle>
         </div>
-
-        <!-- 날짜 -->
-        <v-text-field
-          v-model="form.date"
-          label="날짜"
-          type="date"
-          outlined
-          class="mb-4 w-100"
-          style="font-weight: bold"
-        />
 
         <!-- 메모 -->
         <v-textarea
@@ -221,15 +214,9 @@ async function submit() {
 </script>
 
 <style scoped>
-.horizontal-scroll {
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  padding-bottom: 4px;
-}
-.scroll-btn {
-  min-width: 90px;
-  margin-right: 8px;
-  white-space: nowrap;
+.bigger-btn {
+  min-width: 100px;
+  font-size: 15px;
+  padding: 10px 12px;
 }
 </style>
