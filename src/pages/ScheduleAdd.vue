@@ -18,7 +18,10 @@
             <v-card>
               <v-date-picker
                 v-model="form.date"
+                locale="ko-KR"
                 show-adjacent-months
+                color="primary"
+                :day-format="formatDay"
                 @update:modelValue="onDateSelected"
               />
             </v-card>
@@ -70,7 +73,7 @@
         <!-- 호수 -->
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-        <!-- 작업 내용 및 수량 -->
+        <!-- 작업 내용 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
           <div
@@ -110,7 +113,7 @@
           <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
         </div>
 
-        <!-- 작업 상태 -->
+        <!-- 작업 상황 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">작업 상태</label>
           <div class="button-grid">
@@ -125,7 +128,7 @@
           </div>
         </div>
 
-        <!-- 세금계산서 발행 -->
+        <!-- 세금계사서 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
           <div class="button-grid">
@@ -154,7 +157,7 @@
         />
       </v-container>
 
-      <!-- 하단 고정 버튼 -->
+      <!-- 하단 고정 블랙 -->
       <v-container
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
@@ -177,6 +180,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { format, parseISO } from 'date-fns'
 
 const router = useRouter()
 const dateDialog = ref(false)
@@ -200,13 +204,19 @@ const form = ref({
 })
 
 const formattedDate = computed(() => {
-  const date = new Date(form.value.date)
-  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  return format(parseISO(form.value.date), 'yyyy.MM.dd')
 })
 
 function onDateSelected(value) {
   form.value.date = value
   dateDialog.value = false
+}
+
+function formatDay(date) {
+  const day = new Date(date).getDay()
+  if (day === 0) return `<span style='color:red;'>${new Date(date).getDate()}</span>`
+  if (day === 6) return `<span style='color:blue;'>${new Date(date).getDate()}</span>`
+  return `${new Date(date).getDate()}`
 }
 
 function addTask() {
@@ -251,21 +261,18 @@ async function submit() {
   height: 58px !important;
   padding: 10px 12px !important;
 }
-
 .button-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
 }
-
 .grid-btn {
   min-width: 90px;
   height: 38px;
   font-size: 14px;
   white-space: nowrap;
 }
-
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;

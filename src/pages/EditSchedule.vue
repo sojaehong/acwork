@@ -1,165 +1,187 @@
 <template>
-  <v-container class="pa-4 pb-16">
-    <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
+  <v-app>
+    <v-main>
+      <v-container class="pa-4 pb-16">
+        <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
 
-    <!-- 날짜 필드 최상단으로 이동 -->
-    <v-text-field
-      v-model="form.date"
-      label="날짜"
-      type="date"
-      outlined
-      class="mb-4"
-      style="width: 100%; font-size: 16px; height: 56px; padding: 12px;"
-    />
+        <!-- 날짜 선택 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
+          <v-text-field
+            v-model="formattedDate"
+            readonly
+            outlined
+            class="custom-date-picker"
+            @click="dateDialog = true"
+          />
+          <v-dialog v-model="dateDialog" persistent max-width="320">
+            <v-card>
+              <v-date-picker
+                v-model="form.date"
+                show-adjacent-months
+                @update:modelValue="onDateSelected"
+                :day-format="formatDay"
+              />
+            </v-card>
+          </v-dialog>
+        </div>
 
-    <!-- 건물 선택 -->
-    <div class="mb-4">
-      <div class="mb-2">건물 선택</div>
-      <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="b in buildings"
-          :key="b"
-          :value="b"
-          class="ma-1"
-          color="primary"
-          variant="tonal"
-          style="min-width: 100px; flex-grow: 1;"
-        >{{ b }}</v-btn>
-      </v-btn-toggle>
-      <v-text-field
-        v-if="form.building === '기타'"
-        v-model="form.buildingEtc"
-        label="건물명 직접 입력"
-        outlined
-      />
-    </div>
+        <!-- 건물 선택 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">건물 선택</label>
+          <div class="button-grid">
+            <v-btn
+              v-for="b in buildings"
+              :key="b"
+              :class="[form.building === b ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.building = b"
+              color="primary"
+              variant="tonal"
+            >{{ b }}</v-btn>
+          </div>
+          <v-text-field
+            v-if="form.building === '기타'"
+            v-model="form.buildingEtc"
+            label="건물명 직접 입력"
+            outlined
+          />
+        </div>
 
-    <!-- 동 선택 -->
-    <div class="mb-4">
-      <div class="mb-2">동 선택</div>
-      <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="u in units"
-          :key="u"
-          :value="u"
-          class="ma-1"
-          color="primary"
-          variant="tonal"
-          style="min-width: 100px; flex-grow: 1;"
-        >{{ u }}</v-btn>
-      </v-btn-toggle>
-      <v-text-field
-        v-if="form.unit === '기타'"
-        v-model="form.unitEtc"
-        label="동 직접 입력"
-        outlined
-      />
-    </div>
+        <!-- 동 선택 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">동 선택</label>
+          <div class="button-grid">
+            <v-btn
+              v-for="u in units"
+              :key="u"
+              :class="[form.unit === u ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.unit = u"
+              color="primary"
+              variant="tonal"
+            >{{ u }}</v-btn>
+          </div>
+          <v-text-field
+            v-if="form.unit === '기타'"
+            v-model="form.unitEtc"
+            label="동 직접 입력"
+            outlined
+          />
+        </div>
 
-    <!-- 호수 -->
-    <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
+        <!-- 호수 -->
+        <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-    <!-- 작업 내용 및 수량 -->
-    <div class="mb-4">
-      <div class="mb-2">작업 내용 및 수량</div>
-      <div
-        v-for="(task, index) in form.tasks"
-        :key="index"
-        class="d-flex align-center flex-wrap mb-2"
+        <!-- 작업 내용 및 수량 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
+          <div
+            v-for="(task, index) in form.tasks"
+            :key="index"
+            class="d-flex align-center flex-wrap mb-2"
+          >
+            <div class="button-grid mr-2">
+              <v-btn
+                v-for="t in types"
+                :key="t"
+                :class="[task.name === t ? 'selected-btn' : '', 'grid-btn']"
+                @click="task.name = t"
+                color="secondary"
+                variant="tonal"
+              >{{ t }}</v-btn>
+            </div>
+            <v-text-field
+              v-if="task.name === '기타'"
+              v-model="task.etc"
+              label="작업 종류 직접 입력"
+              style="max-width: 140px"
+              class="mr-2"
+            />
+            <v-text-field
+              v-model="task.count"
+              label="수량"
+              type="number"
+              min="1"
+              style="max-width: 90px"
+              class="mr-2"
+            />
+            <v-btn icon color="error" @click="removeTask(index)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </div>
+          <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
+        </div>
+
+        <!-- 작업 상태 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">작업 상태</label>
+          <div class="button-grid">
+            <v-btn
+              v-for="s in statuses"
+              :key="s"
+              :class="[form.status === s ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.status = s"
+              color="success"
+              variant="tonal"
+            >{{ s }}</v-btn>
+          </div>
+        </div>
+
+        <!-- 세금계산서 발행 -->
+        <div class="mb-4">
+          <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
+          <div class="button-grid">
+            <v-btn
+              :class="[form.invoice === 'Y' ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.invoice = 'Y'"
+              color="blue"
+              variant="tonal"
+            >O</v-btn>
+            <v-btn
+              :class="[form.invoice === 'N' ? 'selected-btn' : '', 'grid-btn']"
+              @click="form.invoice = 'N'"
+              color="red"
+              variant="tonal"
+            >X</v-btn>
+          </div>
+        </div>
+
+        <!-- 메모 -->
+        <v-textarea
+          v-model="form.memo"
+          label="작업 관련 메모 (선택사항)"
+          outlined
+          rows="3"
+          class="mb-4"
+        />
+      </v-container>
+
+      <!-- 하단 버튼 -->
+      <v-container
+        class="pa-2"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
-        <v-btn-toggle v-model="task.name" mandatory class="d-flex flex-wrap mr-2">
-          <v-btn
-            v-for="t in types"
-            :key="t"
-            :value="t"
-            class="ma-1"
-            color="secondary"
-            variant="tonal"
-            style="min-width: 90px; flex-grow: 1;"
-          >{{ t }}</v-btn>
-        </v-btn-toggle>
-
-        <v-text-field
-          v-if="task.name === '기타'"
-          v-model="task.etc"
-          label="작업 종류 직접 입력"
-          class="mr-2"
-          style="max-width: 140px"
-        />
-        <v-text-field
-          v-model="task.count"
-          label="수량"
-          type="number"
-          min="1"
-          class="mr-2"
-          style="max-width: 90px"
-        />
-        <v-btn icon color="error" @click="removeTask(index)">
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-      </div>
-      <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
-    </div>
-
-    <!-- 작업 상태 -->
-    <div class="mb-4">
-      <div class="mb-2">작업 상태</div>
-      <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
-        <v-btn
-          v-for="s in statuses"
-          :key="s"
-          :value="s"
-          class="ma-1"
-          color="success"
-          variant="tonal"
-          style="min-width: 100px; flex-grow: 1;"
-        >{{ s }}</v-btn>
-      </v-btn-toggle>
-    </div>
-
-    <!-- 세금계산서 발행 여부 -->
-    <div class="mb-4">
-      <div class="mb-2">세금계산서 발행 여부</div>
-      <v-btn-toggle v-model="form.invoice" mandatory>
-        <v-btn value="Y" color="blue" variant="tonal">O</v-btn>
-        <v-btn value="N" color="red" variant="tonal">X</v-btn>
-      </v-btn-toggle>
-    </div>
-
-    <!-- 메모 -->
-    <v-textarea
-      v-model="form.memo"
-      label="작업 관련 메모 (선택사항)"
-      outlined
-      rows="3"
-      class="mb-4"
-    />
-  </v-container>
-
-  <!-- 하단 고정 버튼 -->
-  <v-container
-    class="pa-2"
-    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
-  >
-    <v-row dense>
-      <v-col cols="6">
-        <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
-      </v-col>
-      <v-col cols="6">
-        <v-btn color="primary" block @click="submit">수정 완료</v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-row dense>
+          <v-col cols="6">
+            <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
+          </v-col>
+          <v-col cols="6">
+            <v-btn color="primary" block @click="submit">수정 완료</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 
 const router = useRouter()
 const route = useRoute()
+const dateDialog = ref(false)
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -178,6 +200,23 @@ const form = ref({
   memo: '',
   invoice: 'N'
 })
+
+const formattedDate = computed(() => {
+  const date = new Date(form.value.date)
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+})
+
+function formatDay(date) {
+  const day = new Date(date).getDay()
+  if (day === 0) return `<span style="color:red">${new Date(date).getDate()}</span>`
+  if (day === 6) return `<span style="color:blue">${new Date(date).getDate()}</span>`
+  return new Date(date).getDate()
+}
+
+function onDateSelected(value) {
+  form.value.date = value
+  dateDialog.value = false
+}
 
 function addTask() {
   form.value.tasks.push({ name: '', count: 1, etc: '' })
@@ -240,3 +279,30 @@ async function submit() {
   router.back()
 }
 </script>
+
+<style scoped>
+.custom-date-picker input {
+  font-size: 22px !important;
+  height: 58px !important;
+  padding: 10px 12px !important;
+}
+
+.button-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.grid-btn {
+  min-width: 90px;
+  height: 38px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.selected-btn {
+  font-weight: bold;
+  border: 2px solid #1976d2;
+}
+</style>
