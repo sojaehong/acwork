@@ -6,18 +6,29 @@
 
         <!-- 날짜 선택 -->
         <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block" style="font-size: 16px;">날짜 선택</label>
+          <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
           <v-text-field
-            v-model="form.date"
+            v-model="formattedDate"
             readonly
             outlined
             class="custom-date-picker"
             @click="dateDialog = true"
           />
-          <v-dialog v-model="dateDialog" width="290px">
-            <v-card>
-              <v-date-picker v-model="form.date" @update:modelValue="dateDialog = false" />
-            </v-card>
+          <v-dialog
+            v-model="dateDialog"
+            activator="parent"
+            persistent
+            width="320"
+          >
+            <template #default>
+              <v-card>
+                <v-date-picker
+                  v-model="form.date"
+                  :locale="'ko'"
+                  @update:modelValue="onDateSelect"
+                />
+              </v-card>
+            </template>
           </v-dialog>
         </div>
 
@@ -169,10 +180,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 
 const router = useRouter()
 const dateDialog = ref(false)
@@ -194,6 +207,19 @@ const form = ref({
   memo: '',
   invoice: 'N'
 })
+
+const formattedDate = computed(() => {
+  try {
+    return format(new Date(form.value.date), 'yyyy-MM-dd', { locale: ko })
+  } catch {
+    return ''
+  }
+})
+
+function onDateSelect(value) {
+  form.value.date = value
+  dateDialog.value = false
+}
 
 function addTask() {
   form.value.tasks.push({ name: '', count: 1, etc: '' })
@@ -253,7 +279,7 @@ async function submit() {
 
 .custom-date-picker input {
   font-size: 22px !important;
-  height: 56px !important;
+  height: 58px !important;
   padding: 10px 12px !important;
 }
 </style>
