@@ -17,12 +17,10 @@
           <v-dialog v-model="dateDialog" persistent max-width="320">
             <v-card>
               <v-date-picker
-                v-model="form.date"
-                locale="ko-KR"
+                v-model="internalDate"
                 show-adjacent-months
-                color="primary"
+                @update:model-value="onDateSelected"
                 :day-format="formatDay"
-                @update:modelValue="onDateSelected"
               />
             </v-card>
           </v-dialog>
@@ -73,7 +71,7 @@
         <!-- 호수 -->
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-        <!-- 작업 내용 -->
+        <!-- 작업 내용 및 수량 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
           <div
@@ -113,7 +111,7 @@
           <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
         </div>
 
-        <!-- 작업 상황 -->
+        <!-- 작업 상태 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">작업 상태</label>
           <div class="button-grid">
@@ -128,7 +126,7 @@
           </div>
         </div>
 
-        <!-- 세금계사서 -->
+        <!-- 세금계산서 발행 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
           <div class="button-grid">
@@ -157,7 +155,7 @@
         />
       </v-container>
 
-      <!-- 하단 고정 블랙 -->
+      <!-- 하단 고정 버튼 -->
       <v-container
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
@@ -180,10 +178,10 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { format, parseISO } from 'date-fns'
 
 const router = useRouter()
 const dateDialog = ref(false)
+const internalDate = ref(new Date())
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -204,19 +202,24 @@ const form = ref({
 })
 
 const formattedDate = computed(() => {
-  return format(parseISO(form.value.date), 'yyyy.MM.dd')
+  const date = new Date(form.value.date)
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 })
 
 function onDateSelected(value) {
-  form.value.date = value
+  if (!value) return
+  const selectedDate = new Date(value)
+  form.value.date = selectedDate.toISOString().split('T')[0]
   dateDialog.value = false
 }
 
-function formatDay(date) {
-  const day = new Date(date).getDay()
-  if (day === 0) return `<span style='color:red;'>${new Date(date).getDate()}</span>`
-  if (day === 6) return `<span style='color:blue;'>${new Date(date).getDate()}</span>`
-  return `${new Date(date).getDate()}`
+function formatDay(dateStr) {
+  const date = new Date(dateStr)
+  const day = date.getDay()
+  const dayNum = date.getDate()
+  if (day === 0) return `<span style='color:red'>${dayNum}</span>`
+  if (day === 6) return `<span style='color:blue'>${dayNum}</span>`
+  return String(dayNum)
 }
 
 function addTask() {
@@ -243,7 +246,7 @@ async function submit() {
     room: form.value.room,
     tasks: cleanedTasks,
     status: form.value.status,
-    date: form.value.date,
+    date: form.value.date, // 문자열 저장
     memo: form.value.memo,
     invoice: form.value.invoice === 'Y',
     createdAt: serverTimestamp(),
@@ -261,18 +264,21 @@ async function submit() {
   height: 58px !important;
   padding: 10px 12px !important;
 }
+
 .button-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
 }
+
 .grid-btn {
   min-width: 90px;
   height: 38px;
   font-size: 14px;
   white-space: nowrap;
 }
+
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
