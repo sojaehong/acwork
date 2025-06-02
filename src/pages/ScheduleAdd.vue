@@ -4,15 +4,21 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
-        <!-- 날짜 -->
+        <!-- 날짜 선택 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block" style="font-size: 16px;">날짜 선택</label>
           <v-text-field
             v-model="form.date"
-            type="date"
+            readonly
             outlined
-            class="custom-date-field-enhanced"
+            class="custom-date-picker"
+            @click="dateDialog = true"
           />
+          <v-dialog v-model="dateDialog" width="290px">
+            <v-card>
+              <v-date-picker v-model="form.date" @update:modelValue="dateDialog = false" />
+            </v-card>
+          </v-dialog>
         </div>
 
         <!-- 건물 선택 -->
@@ -22,7 +28,6 @@
             <v-btn
               v-for="b in buildings"
               :key="b"
-              :value="b"
               :class="[form.building === b ? 'selected-btn' : '', 'grid-btn']"
               @click="form.building = b"
               color="primary"
@@ -44,7 +49,6 @@
             <v-btn
               v-for="u in units"
               :key="u"
-              :value="u"
               :class="[form.unit === u ? 'selected-btn' : '', 'grid-btn']"
               @click="form.unit = u"
               color="primary"
@@ -60,10 +64,7 @@
         </div>
 
         <!-- 호수 -->
-        <div class="mb-4">
-        <label class="mb-2 font-weight-bold d-block">호수 선택</label>
         <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
-        </div>
 
         <!-- 작업 내용 및 수량 -->
         <div class="mb-4">
@@ -77,7 +78,6 @@
               <v-btn
                 v-for="t in types"
                 :key="t"
-                :value="t"
                 :class="[task.name === t ? 'selected-btn' : '', 'grid-btn']"
                 @click="task.name = t"
                 color="secondary"
@@ -113,7 +113,6 @@
             <v-btn
               v-for="s in statuses"
               :key="s"
-              :value="s"
               :class="[form.status === s ? 'selected-btn' : '', 'grid-btn']"
               @click="form.status = s"
               color="success"
@@ -122,7 +121,7 @@
           </div>
         </div>
 
-        <!-- 세금계산서 발행 여부 -->
+        <!-- 세금계산서 여부 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
           <div class="button-grid">
@@ -176,6 +175,7 @@ import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const router = useRouter()
+const dateDialog = ref(false)
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -232,13 +232,6 @@ async function submit() {
 </script>
 
 <style scoped>
-.custom-date-field-enhanced input {
-  font-size: 26px !important;
-  height: 72px !important;
-  line-height: 72px !important;
-  padding: 12px 14px !important;
-}
-
 .button-grid {
   display: flex;
   flex-wrap: wrap;
@@ -256,5 +249,11 @@ async function submit() {
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
+}
+
+.custom-date-picker input {
+  font-size: 22px !important;
+  height: 56px !important;
+  padding: 10px 12px !important;
 }
 </style>
