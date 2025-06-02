@@ -52,12 +52,12 @@
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-1">🔁 작업 상태</div>
             <v-btn-toggle
-              v-model="schedule.status"
+              v-model="status"
+              @update:modelValue="updateStatus"
               mandatory
               color="primary"
               variant="tonal"
               class="mt-2"
-              @change="updateStatus"
             >
               <v-btn v-for="s in statusOptions" :key="s" :value="s">{{ s }}</v-btn>
             </v-btn-toggle>
@@ -66,7 +66,7 @@
       </v-row>
 
       <!-- 연기 날짜 선택 -->
-      <v-row v-if="schedule.status === '연기'">
+      <v-row v-if="status === '연기'">
         <v-col cols="12">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
@@ -115,7 +115,7 @@
     style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
   >
     <v-row dense>
-    <v-col cols="4">
+      <v-col cols="4">
         <v-btn color="grey-darken-1" block @click="goBack">뒤로가기</v-btn>
       </v-col>
       <v-col cols="4">
@@ -136,10 +136,13 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore'
 
 const route = useRoute()
 const router = useRouter()
+
 const schedule = ref({})
+const status = ref('')
 const newDate = ref('')
 const displayDate = ref('')
 const pickerOpen = ref(false)
+
 const statusOptions = ['진행', '연기', '보류', '완료']
 const today = new Date().toISOString().split('T')[0]
 
@@ -148,8 +151,10 @@ onMounted(async () => {
   const docRef = doc(db, 'schedules', id)
   const snap = await getDoc(docRef)
   if (snap.exists()) {
-    schedule.value = { id: snap.id, ...snap.data() }
-    displayDate.value = schedule.value.date
+    const data = snap.data()
+    schedule.value = { id: snap.id, ...data }
+    status.value = data.status || '진행'
+    displayDate.value = data.date
   } else {
     alert('일정을 찾을 수 없습니다.')
     router.push('/schedules')
@@ -181,6 +186,7 @@ async function applyNewDate() {
   await updateDoc(docRef, { date: formatted, status: '진행' })
   schedule.value.date = formatted
   schedule.value.status = '진행'
+  status.value = '진행'
   alert('일정이 변경됐습니다.')
   router.back()
 }
