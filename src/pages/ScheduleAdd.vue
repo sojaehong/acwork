@@ -1,154 +1,155 @@
 <template>
-  <v-app>
-    <v-main>
-      <v-container class="pa-4 pb-16">
-        <h2 class="text-h5 mb-4">📝 작업 등록</h2>
+  <v-container class="pa-4 pb-16">
+    <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
-        <!-- 날짜 -->
-        <v-text-field
-          v-model="form.date"
-          label="날짜"
-          type="date"
-          outlined
-          class="mb-4"
-          style="font-size: 18px; font-weight: bold"
-        />
+    <!-- 날짜 -->
+    <v-text-field
+      v-model="form.date"
+      label="날짜"
+      type="date"
+      outlined
+      class="mb-4"
+      style="width: 100%; font-size: 16px; height: 56px; padding: 12px;"
+    />
 
-        <!-- 건물 선택 -->
-        <div class="mb-4">
-          <div class="mb-2">건물 선택</div>
-          <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
-            <v-btn
-              v-for="b in buildings"
-              :key="b"
-              :value="b"
-              class="ma-1 bigger-btn"
-              color="primary"
-              variant="tonal"
-            >{{ b }}</v-btn>
-          </v-btn-toggle>
-          <v-text-field
-            v-if="form.building === '기타'"
-            v-model="form.buildingEtc"
-            label="건물명 직접 입력"
-            outlined
-          />
-        </div>
+    <!-- 건물 선택 -->
+    <div class="mb-4">
+      <div class="mb-2">건물 선택</div>
+      <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
+        <v-btn
+          v-for="b in buildings"
+          :key="b"
+          :value="b"
+          class="ma-1"
+          color="primary"
+          variant="tonal"
+          style="min-width: 100px; flex-grow: 1;"
+        >{{ b }}</v-btn>
+      </v-btn-toggle>
+      <v-text-field
+        v-if="form.building === '기타'"
+        v-model="form.buildingEtc"
+        label="건물명 직접 입력"
+        outlined
+      />
+    </div>
 
-        <!-- 동 선택 -->
-        <div class="mb-4">
-          <div class="mb-2">동 선택</div>
-          <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
-            <v-btn
-              v-for="u in units"
-              :key="u"
-              :value="u"
-              class="ma-1 bigger-btn"
-              color="primary"
-              variant="tonal"
-            >{{ u }}</v-btn>
-          </v-btn-toggle>
-          <v-text-field
-            v-if="form.unit === '기타'"
-            v-model="form.unitEtc"
-            label="동 직접 입력"
-            outlined
-          />
-        </div>
+    <!-- 동 선택 -->
+    <div class="mb-4">
+      <div class="mb-2">동 선택</div>
+      <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
+        <v-btn
+          v-for="u in units"
+          :key="u"
+          :value="u"
+          class="ma-1"
+          color="primary"
+          variant="tonal"
+          style="min-width: 100px; flex-grow: 1;"
+        >{{ u }}</v-btn>
+      </v-btn-toggle>
+      <v-text-field
+        v-if="form.unit === '기타'"
+        v-model="form.unitEtc"
+        label="동 직접 입력"
+        outlined
+      />
+    </div>
 
-        <!-- 호수 -->
-        <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
+    <!-- 호수 -->
+    <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
 
-        <!-- 작업 내용 및 수량 -->
-        <div class="mb-4">
-          <div class="mb-2">작업 내용 및 수량</div>
-          <div
-            v-for="(task, index) in form.tasks"
-            :key="index"
-            class="d-flex align-center flex-wrap mb-2"
-          >
-            <v-btn-toggle v-model="task.name" mandatory class="mr-2">
-              <v-btn
-                v-for="t in types"
-                :key="t"
-                :value="t"
-                class="ma-1 bigger-btn"
-                color="secondary"
-                variant="tonal"
-              >{{ t }}</v-btn>
-            </v-btn-toggle>
-            <v-text-field
-              v-if="task.name === '기타'"
-              v-model="task.etc"
-              label="작업 종류 직접 입력"
-              class="mr-2"
-              style="max-width: 140px"
-            />
-            <v-text-field
-              v-model="task.count"
-              label="수량"
-              type="number"
-              min="1"
-              class="mr-2"
-              style="max-width: 90px"
-            />
-            <v-btn icon color="error" @click="removeTask(index)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </div>
-          <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
-        </div>
-
-        <!-- 작업 상태 -->
-        <div class="mb-4">
-          <div class="mb-2">작업 상태</div>
-          <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
-            <v-btn
-              v-for="s in statuses"
-              :key="s"
-              :value="s"
-              class="ma-1 bigger-btn"
-              color="success"
-              variant="tonal"
-            >{{ s }}</v-btn>
-          </v-btn-toggle>
-        </div>
-
-        <!-- 세금계산서 발행 여부 -->
-        <div class="mb-4">
-          <div class="mb-2">세금계산서 발행 여부</div>
-          <v-btn-toggle v-model="form.invoice" mandatory>
-            <v-btn value="Y" color="blue" variant="tonal" class="bigger-btn">O</v-btn>
-            <v-btn value="N" color="red" variant="tonal" class="bigger-btn">X</v-btn>
-          </v-btn-toggle>
-        </div>
-
-        <!-- 메모 -->
-        <v-textarea
-          v-model="form.memo"
-          label="작업 관련 메모 (선택사항)"
-          outlined
-          rows="3"
-          class="mb-4"
-        />
-      </v-container>
-
-      <!-- 하단 고정 버튼 -->
-      <v-container
-        class="pa-2"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+    <!-- 작업 내용 및 수량 -->
+    <div class="mb-4">
+      <div class="mb-2">작업 내용 및 수량</div>
+      <div
+        v-for="(task, index) in form.tasks"
+        :key="index"
+        class="d-flex align-center flex-wrap mb-2"
       >
-        <v-row dense>
-          <v-col cols="6">
-            <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
-          </v-col>
-          <v-col cols="6">
-            <v-btn color="primary" block @click="submit">등록</v-btn>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
-  </v-app>
+        <v-btn-toggle v-model="task.name" mandatory class="d-flex flex-wrap mr-2">
+          <v-btn
+            v-for="t in types"
+            :key="t"
+            :value="t"
+            class="ma-1"
+            color="secondary"
+            variant="tonal"
+            style="min-width: 90px; flex-grow: 1;"
+          >{{ t }}</v-btn>
+        </v-btn-toggle>
+
+        <v-text-field
+          v-if="task.name === '기타'"
+          v-model="task.etc"
+          label="작업 종류 직접 입력"
+          class="mr-2"
+          style="max-width: 140px"
+        />
+        <v-text-field
+          v-model="task.count"
+          label="수량"
+          type="number"
+          min="1"
+          class="mr-2"
+          style="max-width: 90px"
+        />
+        <v-btn icon color="error" @click="removeTask(index)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </div>
+      <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
+    </div>
+
+    <!-- 작업 상태 -->
+    <div class="mb-4">
+      <div class="mb-2">작업 상태</div>
+      <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
+        <v-btn
+          v-for="s in statuses"
+          :key="s"
+          :value="s"
+          class="ma-1"
+          color="success"
+          variant="tonal"
+          style="min-width: 100px; flex-grow: 1;"
+        >{{ s }}</v-btn>
+      </v-btn-toggle>
+    </div>
+
+    <!-- 세금계산서 발행 여부 -->
+    <div class="mb-4">
+      <div class="mb-2">세금계산서 발행 여부</div>
+      <v-btn-toggle v-model="form.invoice" mandatory>
+        <v-btn value="Y" color="blue" variant="tonal">O</v-btn>
+        <v-btn value="N" color="red" variant="tonal">X</v-btn>
+      </v-btn-toggle>
+    </div>
+
+    <!-- 메모 -->
+    <v-textarea
+      v-model="form.memo"
+      label="작업 관련 메모 (선택사항)"
+      outlined
+      rows="3"
+      class="mb-4"
+    />
+
+    <!-- 하단 고정 버튼 -->
+    <v-container
+      class="pa-2"
+      style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+    >
+      <v-row dense>
+        <v-col cols="6">
+          <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
+        </v-col>
+        <v-col cols="6">
+          <v-btn color="primary" block @click="submit">등록</v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-container>
 </template>
 
 <script setup>
@@ -212,11 +213,3 @@ async function submit() {
   router.push('/')
 }
 </script>
-
-<style scoped>
-.bigger-btn {
-  min-width: 100px;
-  font-size: 15px;
-  padding: 10px 12px;
-}
-</style>
