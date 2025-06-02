@@ -10,24 +10,20 @@
           label="날짜"
           type="date"
           outlined
-          class="mb-4 w-100"
-          style="font-size: 18px; height: 72px; font-weight: bold;"
+          class="mb-4"
+          style="font-size: 26px; font-weight: bold; height: 72px;"
         />
 
         <!-- 건물 선택 -->
         <div class="mb-4">
           <div class="mb-2">건물 선택</div>
-          <v-btn-toggle
-            v-model="form.building"
-            mandatory
-            class="d-flex flex-wrap gap-2"
-            style="flex-wrap: wrap"
-          >
+          <v-btn-toggle v-model="form.building" mandatory class="d-flex flex-wrap">
             <v-btn
               v-for="b in buildings"
               :key="b"
               :value="b"
-              style="min-width: 100px; margin-bottom: 6px"
+              class="ma-1"
+              style="min-width: 110px; height: 40px; font-size: 14px"
               color="primary"
               variant="tonal"
             >{{ b }}</v-btn>
@@ -43,17 +39,13 @@
         <!-- 동 선택 -->
         <div class="mb-4">
           <div class="mb-2">동 선택</div>
-          <v-btn-toggle
-            v-model="form.unit"
-            mandatory
-            class="d-flex flex-wrap gap-2"
-            style="flex-wrap: wrap"
-          >
+          <v-btn-toggle v-model="form.unit" mandatory class="d-flex flex-wrap">
             <v-btn
               v-for="u in units"
               :key="u"
               :value="u"
-              style="min-width: 80px; margin-bottom: 6px"
+              class="ma-1"
+              style="min-width: 80px; height: 40px; font-size: 14px"
               color="primary"
               variant="tonal"
             >{{ u }}</v-btn>
@@ -77,16 +69,13 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <v-btn-toggle
-              v-model="task.name"
-              mandatory
-              class="d-flex flex-wrap gap-2 mr-2"
-            >
+            <v-btn-toggle v-model="task.name" mandatory class="d-flex flex-wrap mr-2">
               <v-btn
                 v-for="t in types"
                 :key="t"
                 :value="t"
-                style="min-width: 80px"
+                class="ma-1"
+                style="min-width: 80px; height: 38px; font-size: 13px"
                 color="secondary"
                 variant="tonal"
               >{{ t }}</v-btn>
@@ -95,16 +84,16 @@
               v-if="task.name === '기타'"
               v-model="task.etc"
               label="작업 종류 직접 입력"
-              style="max-width: 140px"
               class="mr-2"
+              style="max-width: 140px"
             />
             <v-text-field
               v-model="task.count"
               label="수량"
               type="number"
               min="1"
-              style="max-width: 90px"
               class="mr-2"
+              style="max-width: 80px"
             />
             <v-btn icon color="error" @click="removeTask(index)">
               <v-icon>mdi-delete</v-icon>
@@ -116,19 +105,20 @@
         <!-- 작업 상태 -->
         <div class="mb-4">
           <div class="mb-2">작업 상태</div>
-          <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap gap-2">
+          <v-btn-toggle v-model="form.status" mandatory class="d-flex flex-wrap">
             <v-btn
               v-for="s in statuses"
               :key="s"
               :value="s"
+              class="ma-1"
+              style="min-width: 80px"
               color="success"
               variant="tonal"
-              style="min-width: 90px"
             >{{ s }}</v-btn>
           </v-btn-toggle>
         </div>
 
-        <!-- 세금계산서 여부 -->
+        <!-- 세금계산서 발행 여부 -->
         <div class="mb-4">
           <div class="mb-2">세금계산서 발행 여부</div>
           <v-btn-toggle v-model="form.invoice" mandatory>
