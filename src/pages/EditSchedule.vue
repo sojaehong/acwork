@@ -17,16 +17,16 @@
         <!-- 건물 선택 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">건물 선택</label>
-          <div class="button-grid">
+          <v-btn-toggle v-model="form.building" class="button-grid" mandatory>
             <v-btn
               v-for="b in buildings"
               :key="b"
-              :class="[form.building === b ? 'selected-btn' : '', 'grid-btn']"
-              @click="form.building = b"
+              :value="b"
+              :class="form.building === b ? 'selected-btn' : ''"
               color="primary"
               variant="tonal"
             >{{ b }}</v-btn>
-          </div>
+          </v-btn-toggle>
           <v-text-field
             v-if="form.building === '기타'"
             v-model="form.buildingEtc"
@@ -38,16 +38,16 @@
         <!-- 동 선택 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">동 선택</label>
-          <div class="button-grid">
+          <v-btn-toggle v-model="form.unit" class="button-grid" mandatory>
             <v-btn
               v-for="u in units"
               :key="u"
-              :class="[form.unit === u ? 'selected-btn' : '', 'grid-btn']"
-              @click="form.unit = u"
+              :value="u"
+              :class="form.unit === u ? 'selected-btn' : ''"
               color="primary"
               variant="tonal"
             >{{ u }}</v-btn>
-          </div>
+          </v-btn-toggle>
           <v-text-field
             v-if="form.unit === '기타'"
             v-model="form.unitEtc"
@@ -57,7 +57,12 @@
         </div>
 
         <!-- 호수 -->
-        <v-text-field v-model="form.room" label="호수" outlined class="mb-4" />
+        <v-text-field
+          v-model="form.room"
+          label="호수"
+          outlined
+          class="mb-4"
+        />
 
         <!-- 작업 내용 및 수량 -->
         <div class="mb-4">
@@ -67,30 +72,31 @@
             :key="index"
             class="d-flex align-center flex-wrap mb-2"
           >
-            <div class="button-grid mr-2">
+            <v-btn-toggle v-model="task.name" class="button-grid mr-2">
               <v-btn
                 v-for="t in types"
                 :key="t"
-                :class="[task.name === t ? 'selected-btn' : '', 'grid-btn']"
-                @click="task.name = t"
+                :value="t"
+                :class="task.name === t ? 'selected-btn' : ''"
                 color="secondary"
                 variant="tonal"
               >{{ t }}</v-btn>
-            </div>
+            </v-btn-toggle>
             <v-text-field
               v-if="task.name === '기타'"
               v-model="task.etc"
               label="작업 종류 직접 입력"
-              style="max-width: 140px"
               class="mr-2"
+              style="max-width: 140px"
             />
             <v-text-field
+              v-if="task.name"
               v-model="task.count"
               label="수량"
               type="number"
               min="1"
-              style="max-width: 90px"
               class="mr-2"
+              style="max-width: 90px"
             />
             <v-btn icon color="error" @click="removeTask(index)">
               <v-icon>mdi-delete</v-icon>
@@ -102,35 +108,25 @@
         <!-- 작업 상태 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">작업 상태</label>
-          <div class="button-grid">
+          <v-btn-toggle v-model="form.status" class="button-grid" mandatory>
             <v-btn
               v-for="s in statuses"
               :key="s"
-              :class="[form.status === s ? 'selected-btn' : '', 'grid-btn']"
-              @click="form.status = s"
+              :value="s"
+              :class="form.status === s ? 'selected-btn' : ''"
               color="success"
               variant="tonal"
             >{{ s }}</v-btn>
-          </div>
+          </v-btn-toggle>
         </div>
 
         <!-- 세금계산서 발행 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
-          <div class="button-grid">
-            <v-btn
-              :class="[form.invoice === 'Y' ? 'selected-btn' : '', 'grid-btn']"
-              @click="form.invoice = 'Y'"
-              color="blue"
-              variant="tonal"
-            >O</v-btn>
-            <v-btn
-              :class="[form.invoice === 'N' ? 'selected-btn' : '', 'grid-btn']"
-              @click="form.invoice = 'N'"
-              color="red"
-              variant="tonal"
-            >X</v-btn>
-          </div>
+          <v-btn-toggle v-model="form.invoice" class="button-grid" mandatory>
+            <v-btn value="Y" :class="form.invoice === 'Y' ? 'selected-btn' : ''" color="blue" variant="tonal">O</v-btn>
+            <v-btn value="N" :class="form.invoice === 'N' ? 'selected-btn' : ''" color="red" variant="tonal">X</v-btn>
+          </v-btn-toggle>
         </div>
 
         <!-- 메모 -->
@@ -143,11 +139,15 @@
         />
       </v-container>
 
-      <!-- 하단 버튼 -->
+      <!-- 요약 + 버튼 영역 통합 -->
       <v-container
-        class="pa-2"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 200; border-top: 1px solid #ccc;"
+        class="px-3 pt-2"
       >
+        <div class="summary-bar mb-2">
+          <div><b>수정 전:</b> {{ originalSummary }}</div>
+          <div><b>수정 후:</b> <span v-html="highlightedSummary"></span></div>
+        </div>
         <v-row dense>
           <v-col cols="6">
             <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
@@ -162,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
@@ -178,6 +178,7 @@ const units = ['A', 'B', 'C', 'D', '기타']
 const types = ['설치', '수리', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
 
+const original = ref({})
 const form = ref({
   building: '',
   buildingEtc: '',
@@ -185,7 +186,7 @@ const form = ref({
   unitEtc: '',
   room: '',
   tasks: [{ name: '', count: 1, etc: '' }],
-  status: '',
+  status: '진행',
   date: '',
   memo: '',
   invoice: 'N'
@@ -196,24 +197,11 @@ const dateConfig = {
   dateFormat: 'Y-m-d',
   disableMobile: true,
   inline: true,
-  onDayCreate: function (_, __, fp, dayElem) {
+  onDayCreate(_, __, fp, dayElem) {
     const day = new Date(dayElem.dateObj).getDay()
-    if (day === 0) {
-      dayElem.style.color = 'red'
-      dayElem.style.fontWeight = 'bold'
-    } else if (day === 6) {
-      dayElem.style.color = 'blue'
-      dayElem.style.fontWeight = 'bold'
-    }
+    if (day === 0) dayElem.style.color = 'red'
+    if (day === 6) dayElem.style.color = 'blue'
   }
-}
-
-function addTask() {
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
-}
-
-function removeTask(index) {
-  form.value.tasks.splice(index, 1)
 }
 
 onMounted(async () => {
@@ -225,45 +213,106 @@ onMounted(async () => {
     return
   }
   const data = snap.data()
+  original.value = { ...data }
   form.value = {
     building: buildings.includes(data.building) ? data.building : '기타',
     buildingEtc: buildings.includes(data.building) ? '' : data.building,
     unit: units.includes(data.unit) ? data.unit : '기타',
     unitEtc: units.includes(data.unit) ? '' : data.unit,
     room: data.room,
-    tasks: (data.tasks || [{ name: '', count: 1 }]).map(t => ({
+    tasks: (data.tasks || []).map(t => ({
       name: types.includes(t.name) ? t.name : '기타',
       etc: types.includes(t.name) ? '' : t.name,
       count: t.count || 1
     })),
-    status: data.status,
+    status: data.status || '진행',
     date: data.date,
     memo: data.memo || '',
     invoice: data.invoice ? 'Y' : 'N'
   }
 })
 
+const originalSummary = computed(() => {
+  const b = original.value.building
+  const u = original.value.unit
+  const tasks = (original.value.tasks || []).map(t => `${t.name}(${t.count})`).join(', ')
+  const invoice = original.value.invoice ? '세금계산서 발행' : '계산서 없음'
+  return `${original.value.date} / ${b} ${u} ${original.value.room}호 / ${tasks} / ${original.value.status || '진행'} / ${invoice}`
+})
+
+const highlightedSummary = computed(() => {
+  const b = form.value.building === '기타' ? form.value.buildingEtc : form.value.building
+  const u = form.value.unit === '기타' ? form.value.unitEtc : form.value.unit
+  const invoice = form.value.invoice === 'Y' ? '세금계산서 발행' : '계산서 없음'
+
+  const newTasks = form.value.tasks.map(t => ({
+    label: t.name === '기타' ? t.etc : t.name,
+    count: t.count
+  }))
+  const originalTasks = (original.value.tasks || []).map(t => ({
+    label: t.name,
+    count: t.count || 1
+  }))
+
+  const taskDiffs = []
+  const maxLength = Math.max(newTasks.length, originalTasks.length)
+
+  for (let i = 0; i < maxLength; i++) {
+    const t = newTasks[i]
+    const o = originalTasks[i]
+    if (!t || !t.label) continue
+    const changed = !o || t.label !== o.label || t.count !== o.count
+    taskDiffs.push(
+      changed
+        ? `<b style="color:#d32f2f">${t.label}(${t.count})</b>`
+        : `${t.label}(${t.count})`
+    )
+  }
+
+  const fields = [
+    { label: form.value.date, original: original.value.date },
+    { label: b, original: original.value.building },
+    { label: u, original: original.value.unit },
+    { label: form.value.room + '호', original: original.value.room + '호' },
+    { label: taskDiffs.join(', '), original: originalTasks.map(t => `${t.label}(${t.count})`).join(', ') },
+    { label: form.value.status, original: original.value.status || '진행' },
+    { label: invoice, original: original.value.invoice ? '세금계산서 발행' : '계산서 없음' }
+  ]
+
+  return fields.map(f =>
+    f.label !== f.original
+      ? `<b style="color:#d32f2f">${f.label}</b>`
+      : f.label
+  ).join(' / ')
+})
+
+function addTask() {
+  form.value.tasks.push({ name: '', count: 1, etc: '' })
+}
+function removeTask(index) {
+  form.value.tasks.splice(index, 1)
+}
 function goBack() {
   router.back()
 }
-
 async function submit() {
   const id = route.params.id
-  const cleanedTasks = form.value.tasks.map(task => ({
-    name: task.name === '기타' ? task.etc : task.name,
-    count: task.count
-  }))
+  const cleanedTasks = form.value.tasks
+    .filter(task => task.name)
+    .map(task => ({
+      name: task.name === '기타' ? task.etc : task.name,
+      count: task.count
+    }))
   const data = {
     building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
     room: form.value.room,
     tasks: cleanedTasks,
-    status: form.value.status,
+    status: form.value.status || '진행',
     date: form.value.date,
     memo: form.value.memo,
     invoice: form.value.invoice === 'Y'
   }
-
   await updateDoc(doc(db, 'schedules', id), data)
   alert('작업이 수정되었습니다.')
   router.back()
@@ -274,7 +323,6 @@ async function submit() {
 .custom-date-picker {
   margin-bottom: 12px;
 }
-
 .flatpickr-input {
   font-size: 18px;
   padding: 10px 12px;
@@ -282,23 +330,20 @@ async function submit() {
   border-radius: 6px;
   width: 100%;
 }
-
 .button-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
 }
-
-.grid-btn {
-  min-width: 90px;
-  height: 38px;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
+}
+.summary-bar {
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: keep-all;
+  white-space: normal;
 }
 </style>
