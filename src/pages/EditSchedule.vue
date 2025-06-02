@@ -116,6 +116,9 @@
             style="min-height: 100px"
           />
         </v-sheet>
+
+        <!-- 👇 Dummy Spacer -->
+        <div style="height: 200px;"></div>
       </v-container>
 
       <!-- 하단 고정 요약 + 버튼 -->
