@@ -16,19 +16,17 @@
           />
           <v-dialog
             v-model="dateDialog"
-            activator="parent"
             persistent
-            width="320"
+            max-width="320"
           >
-            <template #default>
-              <v-card>
-                <v-date-picker
-                  v-model="form.date"
-                  :locale="'ko'"
-                  @update:modelValue="onDateSelect"
-                />
-              </v-card>
-            </template>
+            <v-card>
+              <v-date-picker
+                v-model="form.date"
+                locale="ko"
+                show-adjacent-months
+                @update:modelValue="onDateSelected"
+              />
+            </v-card>
           </v-dialog>
         </div>
 
@@ -132,7 +130,7 @@
           </div>
         </div>
 
-        <!-- 세금계산서 여부 -->
+        <!-- 세금계산서 -->
         <div class="mb-4">
           <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
           <div class="button-grid">
@@ -184,10 +182,9 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
 
 const router = useRouter()
+
 const dateDialog = ref(false)
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
@@ -209,14 +206,11 @@ const form = ref({
 })
 
 const formattedDate = computed(() => {
-  try {
-    return format(new Date(form.value.date), 'yyyy-MM-dd', { locale: ko })
-  } catch {
-    return ''
-  }
+  const date = new Date(form.value.date)
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
 })
 
-function onDateSelect(value) {
+function onDateSelected(value) {
   form.value.date = value
   dateDialog.value = false
 }
@@ -258,6 +252,12 @@ async function submit() {
 </script>
 
 <style scoped>
+.custom-date-picker input {
+  font-size: 22px !important;
+  height: 58px !important;
+  padding: 10px 12px !important;
+}
+
 .button-grid {
   display: flex;
   flex-wrap: wrap;
@@ -275,11 +275,5 @@ async function submit() {
 .selected-btn {
   font-weight: bold;
   border: 2px solid #1976d2;
-}
-
-.custom-date-picker input {
-  font-size: 22px !important;
-  height: 58px !important;
-  padding: 10px 12px !important;
 }
 </style>
