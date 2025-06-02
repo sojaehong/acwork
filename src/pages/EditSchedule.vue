@@ -1,23 +1,23 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4 pb-16">
+      <v-container class="pa-4 pb-16" style="padding-bottom: 240px !important">
         <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
 
         <!-- 날짜 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">📅 날짜 선택</div>
           <flat-pickr
             v-model="form.date"
             :config="dateConfig"
             class="custom-date-picker flatpickr-input"
           />
-        </div>
+        </v-sheet>
 
         <!-- 건물 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">건물 선택</label>
-          <v-btn-toggle v-model="form.building" class="button-grid" mandatory>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏢 건물 선택</div>
+          <v-btn-toggle v-model="form.building" mandatory class="button-grid">
             <v-btn
               v-for="b in buildings"
               :key="b"
@@ -33,12 +33,12 @@
             label="건물명 직접 입력"
             outlined
           />
-        </div>
+        </v-sheet>
 
         <!-- 동 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">동 선택</label>
-          <v-btn-toggle v-model="form.unit" class="button-grid" mandatory>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏬 동 선택</div>
+          <v-btn-toggle v-model="form.unit" mandatory class="button-grid">
             <v-btn
               v-for="u in units"
               :key="u"
@@ -54,19 +54,21 @@
             label="동 직접 입력"
             outlined
           />
-        </div>
+        </v-sheet>
 
         <!-- 호수 -->
-        <v-text-field
-          v-model="form.room"
-          label="호수"
-          outlined
-          class="mb-4"
-        />
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏠 호수</div>
+          <v-text-field
+            v-model="form.room"
+            label="호수"
+            outlined
+          />
+        </v-sheet>
 
         <!-- 작업 내용 및 수량 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🛠 작업 내용 및 수량</div>
           <div
             v-for="(task, index) in form.tasks"
             :key="index"
@@ -90,7 +92,6 @@
               style="max-width: 140px"
             />
             <v-text-field
-              v-if="task.name"
               v-model="task.count"
               label="수량"
               type="number"
@@ -103,11 +104,11 @@
             </v-btn>
           </div>
           <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
-        </div>
+        </v-sheet>
 
         <!-- 작업 상태 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">작업 상태</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">📌 작업 상태</div>
           <v-btn-toggle v-model="form.status" class="button-grid" mandatory>
             <v-btn
               v-for="s in statuses"
@@ -118,48 +119,51 @@
               variant="tonal"
             >{{ s }}</v-btn>
           </v-btn-toggle>
-        </div>
+        </v-sheet>
 
         <!-- 세금계산서 발행 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🧾 세금계산서 발행</div>
           <v-btn-toggle v-model="form.invoice" class="button-grid" mandatory>
             <v-btn value="Y" :class="form.invoice === 'Y' ? 'selected-btn' : ''" color="blue" variant="tonal">O</v-btn>
             <v-btn value="N" :class="form.invoice === 'N' ? 'selected-btn' : ''" color="red" variant="tonal">X</v-btn>
           </v-btn-toggle>
-        </div>
+        </v-sheet>
 
         <!-- 메모 -->
-        <v-textarea
-          v-model="form.memo"
-          label="작업 관련 메모 (선택사항)"
-          outlined
-          rows="3"
-          class="mb-4"
-        />
-      </v-container>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🗒 메모 (선택사항)</div>
+          <v-textarea
+            v-model="form.memo"
+            label="작업 관련 메모"
+            outlined
+            rows="3"
+          />
+        </v-sheet>
 
-      <!-- 요약 + 버튼 영역 통합 -->
-      <v-container
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 200; border-top: 1px solid #ccc;"
-        class="px-3 pt-2"
-      >
-        <div class="summary-bar mb-2">
-          <div><b>수정 전:</b> {{ originalSummary }}</div>
-          <div><b>수정 후:</b> <span v-html="highlightedSummary"></span></div>
-        </div>
-        <v-row dense>
-          <v-col cols="6">
-            <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
-          </v-col>
-          <v-col cols="6">
-            <v-btn color="primary" block @click="submit">수정 완료</v-btn>
-          </v-col>
-        </v-row>
+        <!-- 요약 + 버튼 영역 통합 -->
+        <v-sheet
+          style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 200; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+          class="px-4 pt-2 pb-4"
+        >
+          <div class="summary-bar mb-2">
+            <div><b>수정 전:</b> {{ originalSummary }}</div>
+            <div><b>수정 후:</b> <span v-html="highlightedSummary"></span></div>
+          </div>
+          <v-row dense>
+            <v-col cols="6">
+              <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
+            </v-col>
+            <v-col cols="6">
+              <v-btn color="primary" block @click="submit">수정 완료</v-btn>
+            </v-col>
+          </v-row>
+        </v-sheet>
       </v-container>
     </v-main>
   </v-app>
 </template>
+
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'

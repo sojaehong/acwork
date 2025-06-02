@@ -1,120 +1,112 @@
 <template>
   <v-app>
+    <!-- 상단바 -->
     <v-app-bar color="primary" dark flat>
       <v-toolbar-title>공조+</v-toolbar-title>
       <v-spacer />
-      <span class="mr-2">{{ userName }}님</span>
+      <span class="mr-2 font-weight-medium">{{ userName }}님</span>
       <v-btn icon @click="logout">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
 
+    <!-- 본문 -->
     <v-main>
-      <v-container class="pa-4 pb-16">
-        <!-- ✅ 일정 메타 상단 표시 (클릭 시 일정 관리 이동) -->
-        <div class="mb-6" @click="goToMetaEdit" style="cursor: pointer">
-          <v-alert type="info" v-if="scheduleMeta">
-            시작 시간: {{ scheduleMeta.startTime }}<br />
-            작업 인원:
-            <span v-for="(user, i) in scheduleMeta.workerNames" :key="user">
-              <span
-                :style="user === userName ? 'color: #fdd835; font-weight: bold;' : ''"
-              >
-                {{ user }}
-              </span><span v-if="i < scheduleMeta.workerNames.length - 1">, </span>
-            </span><br />
-            공지사항: {{ scheduleMeta.notice || '없음' }}<br />
-          </v-alert>
-          <v-alert v-else type="warning">오늘의 일정 메타 정보가 없습니다.</v-alert>
-        </div>
+      <v-container class="pa-4" style="padding-bottom: 180px !important">
+        <!-- 일정 메타 정보 카드 -->
+        <v-card
+          class="mb-6 elevation-0 meta-info-card"
+          outlined
+          @click="goToMetaEdit"
+          style="cursor: pointer"
+        >
+          <v-row align="center" class="mb-2">
+            <v-col>
+              <v-icon color="primary" left>mdi-calendar-clock</v-icon>
+              <span class="meta-title">오늘 작업 일정 요약</span>
+            </v-col>
+          </v-row>
+          <v-divider class="mb-3"></v-divider>
 
-        <v-divider class="my-4" />
+          <v-row>
+            <v-col cols="12" md="4">
+              <div class="meta-label">🕒 시작 시간</div>
+              <div class="meta-value">{{ scheduleMeta?.startTime || '없음' }}</div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="meta-label">👷 작업 인원</div>
+              <div class="meta-value">
+                <template v-if="scheduleMeta">
+                  <v-chip
+                    v-for="(user, i) in scheduleMeta.workerNames"
+                    :key="user"
+                    :color="user === userName ? 'warning' : 'grey lighten-2'"
+                    small
+                    class="ma-1"
+                  >
+                    {{ user }}
+                  </v-chip>
+                </template>
+                <template v-else>없음</template>
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="meta-label">📢 공지사항</div>
+              <div class="meta-value">{{ scheduleMeta?.notice || '없음' }}</div>
+            </v-col>
+          </v-row>
+        </v-card>
 
-        <!-- 🔹 진행중 -->
+        <!-- 작업 리스트: 진행 중 -->
         <div v-if="activeSchedules.length">
-          <h3 class="text-subtitle-1 mb-2">🛠 진행 중인 작업</h3>
-          <v-list two-line>
-            <v-list-item
-              v-for="item in activeSchedules"
-              :key="item.id"
-              style="cursor: pointer"
-              @click="goToDetail(item.id)"
-            >
-              <v-list-item-content>
-                <v-list-item-title class="font-weight-bold">
-                  📍 {{ item.building }} {{ item.unit }}동 {{ item.room }}호
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  작업: {{ formatTasks(item.tasks) }}<br />
-                  상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+          <h3 class="section-title">🛠 진행 중</h3>
+          <TaskCard
+            v-for="item in activeSchedules"
+            :key="item.id"
+            :item="item"
+            @click="goToDetail(item.id)"
+          />
         </div>
 
-        <!-- 🔹 완료 일정 -->
+        <!-- 작업 리스트: 완료 -->
         <div v-if="completedSchedules.filter(s => s.status === '완료').length">
-          <h3 class="text-subtitle-1 mt-6 mb-2">✅ 완료 작업</h3>
-          <v-list two-line>
-            <v-list-item
-              v-for="item in completedSchedules.filter(s => s.status === '완료')"
-              :key="item.id"
-              style="cursor: pointer"
-              @click="goToDetail(item.id)"
-            >
-              <v-list-item-content>
-                <v-list-item-title class="font-weight-bold">
-                  ✅ {{ item.building }} {{ item.unit }}동 {{ item.room }}호
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  작업: {{ formatTasks(item.tasks) }}<br />
-                  상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+          <h3 class="section-title">✅ 완료</h3>
+          <TaskCard
+            v-for="item in completedSchedules.filter(s => s.status === '완료')"
+            :key="item.id"
+            :item="item"
+            @click="goToDetail(item.id)"
+          />
         </div>
 
-        <!-- 🔹 보류 일정 -->
+        <!-- 작업 리스트: 보류 -->
         <div v-if="completedSchedules.filter(s => s.status === '보류').length">
-          <h3 class="text-subtitle-1 mt-6 mb-2">⏸ 보류 작업</h3>
-          <v-list two-line>
-            <v-list-item
-              v-for="item in completedSchedules.filter(s => s.status === '보류')"
-              :key="item.id"
-              style="cursor: pointer"
-              @click="goToDetail(item.id)"
-            >
-              <v-list-item-content>
-                <v-list-item-title class="font-weight-bold">
-                  ⏸ {{ item.building }} {{ item.unit }}동 {{ item.room }}호
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  작업: {{ formatTasks(item.tasks) }}<br />
-                  상태: {{ item.status }} / 세금계산서: {{ item.invoice ? 'O' : 'X' }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+          <h3 class="section-title">⏸ 보류</h3>
+          <TaskCard
+            v-for="item in completedSchedules.filter(s => s.status === '보류')"
+            :key="item.id"
+            :item="item"
+            @click="goToDetail(item.id)"
+          />
         </div>
 
-        <div v-if="!activeSchedules.length && !completedSchedules.length" class="text-subtitle-1 mt-4 text-grey">
-          오늘 등록된 작업 일정이 없습니다.
-        </div>
+        <!-- 아무 작업도 없을 때 -->
+        <v-alert v-if="!activeSchedules.length && !completedSchedules.length" type="info" class="mt-4">
+          오늘 등록된 작업이 없습니다.
+        </v-alert>
       </v-container>
 
-      <!-- 🔻 하단 고정 버튼 영역 -->
+      <!-- 하단 버튼 (고정) -->
       <v-container
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
         <v-row dense>
           <v-col cols="4">
-            <v-btn color="info" block @click="goToWorker">👷 작업자별 일정</v-btn>
+            <v-btn color="info" block @click="goToWorker">👷 작업자별</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="success" block @click="goToPayroll">💰 정산 확인</v-btn>
+            <v-btn color="success" block @click="goToPayroll">💰 정산</v-btn>
           </v-col>
           <v-col cols="4">
             <v-btn color="secondary" block @click="goToAdd">+ 작업 등록</v-btn>
@@ -133,6 +125,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import TaskCard from '@/components/TaskCard.vue'
 
 const router = useRouter()
 const todaySchedules = ref([])
@@ -164,46 +157,16 @@ async function loadScheduleMeta() {
   }
 }
 
-function logout() {
-  localStorage.clear()
-  router.push('/login')
-}
+function logout() { localStorage.clear(); router.push('/login') }
+function goToAll() { router.push('/schedules') }
+function goToDetail(id) { router.push(`/schedule/${id}`) }
+function goToMetaEdit() { router.push('/meta') }
+function goToWorker() { router.push('/worker-schedules') }
+function goToPayroll() { router.push('/payroll') }
+function goToAdd() { router.push('/add') }
 
-function goToAll() {
-  router.push('/schedules')
-}
-
-function goToDetail(id) {
-  router.push(`/schedule/${id}`)
-}
-
-function goToMetaEdit() {
-  router.push('/meta')
-}
-
-function goToWorker() {
-  router.push('/worker-schedules')
-}
-
-function goToPayroll() {
-  router.push('/payroll')
-}
-
-function goToAdd() {
-  router.push('/add')
-}
-
-function formatTasks(tasks) {
-  return tasks.map(t => `${t.name}(${t.count})`).join(', ')
-}
-
-const activeSchedules = computed(() =>
-  todaySchedules.value.filter(s => s.status === '진행' && s.status !== '취소됨')
-)
-
-const completedSchedules = computed(() =>
-  todaySchedules.value.filter(s => (s.status === '완료' || s.status === '보류') && s.status !== '취소됨')
-)
+const activeSchedules = computed(() => todaySchedules.value.filter(s => s.status === '진행'))
+const completedSchedules = computed(() => todaySchedules.value.filter(s => s.status !== '진행' && s.status !== '취소됨'))
 
 onMounted(() => {
   loadSchedules()
@@ -212,13 +175,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.font-weight-bold {
-  font-weight: bold;
+.meta-info-card {
+  background-color: #f0f4ff;
+  border-left: 5px solid #2196f3;
+  transition: background 0.2s;
 }
-.v-list-item-subtitle {
-  white-space: normal !important;
-  text-overflow: unset !important;
-  overflow: visible !important;
-  word-break: break-word !important;
+.meta-info-card:hover {
+  background-color: #e3edff;
+}
+.meta-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #616161;
+  margin-bottom: 4px;
+}
+.meta-value {
+  font-size: 15px;
+}
+.meta-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+.section-title {
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 16px;
+  margin-bottom: 10px;
 }
 </style>

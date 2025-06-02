@@ -1,22 +1,22 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4 pb-16">
+      <v-container class="pa-4 pb-16" style="padding-bottom: 240px !important">
         <h2 class="text-h5 mb-4">📝 작업 등록</h2>
 
         <!-- 날짜 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">날짜 선택</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🗕 날짜 선택</div>
           <flat-pickr
             v-model="form.date"
             :config="dateConfig"
             class="custom-date-picker flatpickr-input"
           />
-        </div>
+        </v-sheet>
 
         <!-- 건물 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">건물 선택</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏢 건물 선택</div>
           <v-btn-toggle v-model="form.building" mandatory class="button-grid">
             <v-btn
               v-for="b in buildings"
@@ -33,11 +33,11 @@
             label="건물명 직접 입력"
             outlined
           />
-        </div>
+        </v-sheet>
 
         <!-- 동 선택 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">동 선택</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏬 동 선택</div>
           <v-btn-toggle v-model="form.unit" mandatory class="button-grid">
             <v-btn
               v-for="u in units"
@@ -54,19 +54,21 @@
             label="동 직접 입력"
             outlined
           />
-        </div>
+        </v-sheet>
 
         <!-- 호수 -->
-        <v-text-field
-          v-model="form.room"
-          label="호수"
-          outlined
-          class="mb-4"
-        />
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">🏠 호수</div>
+          <v-text-field
+            v-model="form.room"
+            label="호수"
+            outlined
+          />
+        </v-sheet>
 
         <!-- 작업 내용 및 수량 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">작업 내용 및 수량</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">💪 작업 내용 및 수량</div>
           <div
             v-for="(task, index) in form.tasks"
             :key="index"
@@ -102,11 +104,11 @@
             </v-btn>
           </div>
           <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
-        </div>
+        </v-sheet>
 
         <!-- 작업 상태 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">작업 상태</label>
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">📌 작업 상태</div>
           <v-btn-toggle v-model="form.status" class="button-grid">
             <v-btn
               v-for="s in statuses"
@@ -117,11 +119,11 @@
               variant="tonal"
             >{{ s }}</v-btn>
           </v-btn-toggle>
-        </div>
+        </v-sheet>
 
-        <!-- 세금계산서 발행 -->
-        <div class="mb-4">
-          <label class="mb-2 font-weight-bold d-block">세금계산서 발행</label>
+        <!-- 세금계사서 발행 -->
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">📟 세금계사서 발행</div>
           <v-btn-toggle v-model="form.invoice" class="button-grid">
             <v-btn
               value="Y"
@@ -136,16 +138,18 @@
               variant="tonal"
             >X</v-btn>
           </v-btn-toggle>
-        </div>
+        </v-sheet>
 
         <!-- 메모 -->
-        <v-textarea
-          v-model="form.memo"
-          label="작업 관련 메모 (선택사항)"
-          outlined
-          rows="3"
-          class="mb-4"
-        />
+        <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
+          <div class="mb-2 font-weight-bold">📒 메모 (선택사항)</div>
+          <v-textarea
+            v-model="form.memo"
+            label="작업 관련 메모"
+            outlined
+            rows="3"
+          />
+        </v-sheet>
       </v-container>
 
       <!-- 하단 고정 요약 + 버튼 -->
