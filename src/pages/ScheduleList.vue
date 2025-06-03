@@ -125,7 +125,7 @@ const loading = ref(true)
 const error = ref('')
 
 const statuses = ['진행', '보류', '완료']
-const buildings = ['테라타워', 'SKV1', '현대지식산업']
+const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온']
 const invoiceOptions = ['O', 'X']
 
 const filterStatus = ref(null)
