@@ -65,8 +65,8 @@
         </v-col>
       </v-row>
 
-      <!-- 연기 날짜 선택 -->
-      <v-row v-if="status === '연기'">
+      <!-- 보류 상태일 때 날짜 변경 -->
+      <v-row v-if="status === '보류'">
         <v-col cols="12">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
@@ -148,7 +148,7 @@ const newDate = ref('')
 const displayDate = ref('')
 const pickerOpen = ref(false)
 
-const statusOptions = ['진행', '연기', '보류', '완료']
+const statusOptions = ['진행', '보류', '완료']
 const today = new Date().toISOString().split('T')[0]
 
 onMounted(async () => {
@@ -177,7 +177,6 @@ async function updateStatus(newStatus) {
   const docRef = doc(db, 'schedules', schedule.value.id)
   await updateDoc(docRef, { status: newStatus })
   schedule.value.status = newStatus
-  if (newStatus !== '연기') router.back()
 }
 
 async function applyNewDate() {
@@ -188,12 +187,10 @@ async function applyNewDate() {
     return
   }
   const docRef = doc(db, 'schedules', schedule.value.id)
-  await updateDoc(docRef, { date: formatted, status: '진행' })
+  await updateDoc(docRef, { date: formatted })
   schedule.value.date = formatted
-  schedule.value.status = '진행'
-  status.value = '진행'
+  displayDate.value = formatted
   alert('일정이 변경됐습니다.')
-  router.back()
 }
 
 async function cancelSchedule() {
