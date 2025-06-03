@@ -57,9 +57,9 @@
               mandatory
               color="primary"
               variant="tonal"
-              class="mt-2"
+              class="mt-2 d-flex flex-wrap"
             >
-              <v-btn v-for="s in statusOptions" :key="s" :value="s">{{ s }}</v-btn>
+              <v-btn v-for="s in statusOptions" :key="s" :value="s" class="ma-1">{{ s }}</v-btn>
             </v-btn-toggle>
           </v-sheet>
         </v-col>
@@ -70,7 +70,7 @@
         <v-col cols="12">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
-            <v-dialog v-model="pickerOpen" width="290">
+            <v-dialog v-model="pickerOpen" fullscreen scrollable>
               <template #activator="{ props }">
                 <v-text-field
                   v-bind="props"
