@@ -42,13 +42,13 @@
 
       <!-- 세금계산서 & 작업 상태 -->
       <v-row class="mb-3">
-        <v-col cols="6">
+        <v-col cols="12" md="6">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-1">📄 세금계산서</div>
             <div>{{ schedule.invoice ? 'O' : 'X' }}</div>
           </v-sheet>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="12" md="6">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-1">🔁 작업 상태</div>
             <v-btn-toggle
@@ -57,7 +57,7 @@
               mandatory
               color="primary"
               variant="tonal"
-              class="mt-2 d-flex flex-wrap"
+              class="mt-2 flex-wrap"
             >
               <v-btn v-for="s in statusOptions" :key="s" :value="s" class="ma-1">{{ s }}</v-btn>
             </v-btn-toggle>
@@ -70,7 +70,12 @@
         <v-col cols="12">
           <v-sheet class="pa-3 rounded bg-grey-lighten-4">
             <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
-            <v-dialog v-model="pickerOpen" fullscreen scrollable>
+            <v-dialog
+              v-model="pickerOpen"
+              scrollable
+              persistent
+              max-width="95vw"
+            >
               <template #activator="{ props }">
                 <v-text-field
                   v-bind="props"
@@ -80,7 +85,7 @@
                   prepend-icon="mdi-calendar"
                 />
               </template>
-              <v-card>
+              <v-card style="max-height: 90vh; overflow-y: auto;">
                 <v-date-picker
                   v-model="newDate"
                   :min="today"
