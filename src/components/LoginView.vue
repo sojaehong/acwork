@@ -16,6 +16,7 @@
         density="comfortable"
         class="mb-3"
         hide-details
+        @keyup.enter="handleLogin"
       />
 
       <v-text-field
@@ -27,6 +28,7 @@
         density="comfortable"
         class="mb-4"
         hide-details
+        @keyup.enter="handleLogin"
       />
 
       <v-btn
@@ -70,34 +72,44 @@ async function handleLogin() {
     return
   }
 
-  const userRef = doc(db, 'users', inputId.value)
-  const userSnap = await getDoc(userRef)
+  try {
+    const userRef = doc(db, 'users', inputId.value)
+    const userSnap = await getDoc(userRef)
 
-  if (!userSnap.exists()) {
-    error.value = '등록되지 않은 사용자입니다.'
-    return
+    if (!userSnap.exists()) {
+      error.value = '등록되지 않은 사용자입니다.'
+      return
+    }
+
+    const user = userSnap.data()
+
+    if (user.password !== inputPw.value) {
+      error.value = '비밀번호가 일치하지 않습니다.'
+      return
+    }
+
+    // ✅ localStorage 저장
+    localStorage.setItem('user_id', inputId.value)
+    localStorage.setItem('user_name', user.name)
+    localStorage.setItem('user_role', user.role)
+
+    // ✅ userStore 에도 setUser 전체 적용
+    userStore.setUser({
+      id: inputId.value,
+      name: user.name,
+      role: user.role
+    })
+
+    // ✅ 입력 초기화
+    inputId.value = ''
+    inputPw.value = ''
+    error.value = ''
+
+    // ✅ 이동
+    router.push('/')
+  } catch (err) {
+    console.error('로그인 중 오류:', err)
+    error.value = '로그인 처리 중 오류가 발생했습니다.'
   }
-
-  const user = userSnap.data()
-
-  if (user.password !== inputPw.value) {
-    error.value = '비밀번호가 일치하지 않습니다.'
-    return
-  }
-
-  // ✅ localStorage 저장
-  localStorage.setItem('user_id', inputId.value)
-  localStorage.setItem('user_name', user.name)
-  localStorage.setItem('user_role', user.role)
-
-  // ✅ userStore 에도 setUser 전체 적용
-  userStore.setUser({
-    id: inputId.value,
-    name: user.name,
-    role: user.role
-  })
-
-  // ✅ 이동
-  router.push('/')
 }
 </script>

@@ -4,7 +4,10 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">💰 정산 확인</h2>
 
-        <!-- 중앙 로딩 circular -->
+        <!-- 에러 표시 -->
+        <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
+
+        <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="loadingMeta"
           indeterminate
@@ -36,7 +39,7 @@
           <transition-group name="fade-stagger" tag="div">
             <v-card
               v-for="(item, index) in unpaid"
-              :key="item.id"
+              :key="`${item.id}-${item.dday}`"
               class="mb-3 pa-3"
               outlined
               :color="selectedUnpaid.includes(item.id) ? 'blue lighten-4' : ''"
@@ -67,7 +70,7 @@
           <transition-group name="fade-stagger" tag="div">
             <v-card
               v-for="(item, index) in paid"
-              :key="item.id"
+              :key="`${item.id}-${item.dday}`"
               class="mb-3 pa-3"
               outlined
               :color="selectedPaid.includes(item.id) ? 'red lighten-4' : ''"
@@ -118,8 +121,10 @@ const workers = ref([])
 const selectedUnpaid = ref([])
 const selectedPaid = ref([])
 const userMap = ref({})
+
 const loadingMeta = ref(false)
 const updating = ref(false)
+const error = ref('')
 
 function getTodayKST() {
   const now = new Date()
@@ -146,7 +151,7 @@ async function fetchUsers() {
 
 async function fetchMeta() {
   loadingMeta.value = true
-  const snap = await getDocs(query(collection(db, 'schedulesMeta'), orderBy('date')))
+  const snap = await getDocs(query(collection(db, 'schedulesMeta'), orderBy('date', 'desc')))
   meta.value = snap.docs.map(d => {
     const data = d.data()
     return {
@@ -190,37 +195,53 @@ function togglePaid(id) {
 }
 
 async function markAsPaid() {
+  if (updating.value) return
   updating.value = true
-  for (const id of selectedUnpaid.value) {
-    const docRef = doc(db, 'schedulesMeta', id)
-    const snap = await getDoc(docRef)
-    const data = snap.data()
-    const paidMap = data.paidMap || {}
-    paidMap[selectedWorker.value] = true
-    await updateDoc(docRef, { paidMap })
-    const metaItem = meta.value.find(m => m.id === id)
-    if (metaItem) metaItem.paidMap[selectedWorker.value] = true
+  error.value = ''
+  try {
+    for (const id of selectedUnpaid.value) {
+      const docRef = doc(db, 'schedulesMeta', id)
+      const snap = await getDoc(docRef)
+      const data = snap.data()
+      const paidMap = data.paidMap || {}
+      paidMap[selectedWorker.value] = true
+      await updateDoc(docRef, { paidMap })
+      const metaItem = meta.value.find(m => m.id === id)
+      if (metaItem) metaItem.paidMap[selectedWorker.value] = true
+    }
+    selectedUnpaid.value = []
+    alert('정산 처리되었습니다.')
+  } catch (err) {
+    console.error('정산 처리 중 오류:', err)
+    error.value = '정산 처리 중 오류가 발생했습니다.'
+  } finally {
+    updating.value = false
   }
-  selectedUnpaid.value = []
-  alert('정산 처리되었습니다.')
-  updating.value = false
 }
 
 async function cancelPaid() {
+  if (updating.value) return
   updating.value = true
-  for (const id of selectedPaid.value) {
-    const docRef = doc(db, 'schedulesMeta', id)
-    const snap = await getDoc(docRef)
-    const data = snap.data()
-    const paidMap = data.paidMap || {}
-    paidMap[selectedWorker.value] = false
-    await updateDoc(docRef, { paidMap })
-    const metaItem = meta.value.find(m => m.id === id)
-    if (metaItem) metaItem.paidMap[selectedWorker.value] = false
+  error.value = ''
+  try {
+    for (const id of selectedPaid.value) {
+      const docRef = doc(db, 'schedulesMeta', id)
+      const snap = await getDoc(docRef)
+      const data = snap.data()
+      const paidMap = data.paidMap || {}
+      paidMap[selectedWorker.value] = false
+      await updateDoc(docRef, { paidMap })
+      const metaItem = meta.value.find(m => m.id === id)
+      if (metaItem) metaItem.paidMap[selectedWorker.value] = false
+    }
+    selectedPaid.value = []
+    alert('정산이 취소되었습니다.')
+  } catch (err) {
+    console.error('정산 취소 중 오류:', err)
+    error.value = '정산 취소 중 오류가 발생했습니다.'
+  } finally {
+    updating.value = false
   }
-  selectedPaid.value = []
-  alert('정산이 취소되었습니다.')
-  updating.value = false
 }
 
 onMounted(async () => {

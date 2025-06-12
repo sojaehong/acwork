@@ -73,8 +73,8 @@
           <div class="mb-2 font-weight-bold">💪 작업 내용 및 수량</div>
           <transition-group name="fade-stagger" tag="div">
             <div
-              v-for="(task, index) in form.tasks"
-              :key="index"
+              v-for="task in form.tasks"
+              :key="task.id"
               class="d-flex align-center mb-2 flex-wrap task-row"
             >
               <v-btn-toggle v-model="task.name" class="mr-2">
@@ -90,13 +90,16 @@
                 </v-btn>
               </v-btn-toggle>
 
-              <v-text-field
-                v-if="task.name === '기타'"
-                v-model="task.etc"
-                label="직접입력"
-                class="mr-2 custom-task-etc"
-                dense
-              />
+              <transition name="fade-stagger">
+                <v-text-field
+                  v-if="task.name === '기타'"
+                  v-model="task.etc"
+                  label="직접입력"
+                  class="mr-2 custom-task-etc"
+                  dense
+                />
+              </transition>
+
               <v-text-field
                 v-model.number="task.count"
                 type="number"
@@ -106,7 +109,7 @@
                 style="max-width: 80px"
                 dense
               />
-              <v-btn icon color="error" @click="removeTask(index)">
+              <v-btn icon color="error" @click="removeTask(task.id)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
@@ -198,7 +201,7 @@ const form = ref({
   unit: '',
   unitEtc: '',
   room: '',
-  tasks: [{ name: '', count: 1, etc: '' }],
+  tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
   status: '진행',
   date: new Date().toISOString().split('T')[0],
   memo: '',
@@ -223,15 +226,15 @@ const summaryText = computed(() => {
 
 function addTask() {
   if (isSaving.value) return
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
+  form.value.tasks.push({ id: Date.now() + Math.random(), name: '', count: 1, etc: '' })
 }
 
-function removeTask(index) {
+function removeTask(id) {
   if (form.value.tasks.length === 1) {
     alert('최소 1개의 작업은 입력해야 합니다.')
     return
   }
-  form.value.tasks.splice(index, 1)
+  form.value.tasks = form.value.tasks.filter(t => t.id !== id)
 }
 
 function goHome() {
@@ -303,13 +306,13 @@ async function submit() {
 }
 .task-row {
   flex-wrap: wrap;
+  overflow-x: hidden;
 }
 .custom-task-etc {
   min-width: 120px;
   max-width: 180px;
   flex-shrink: 1;
 }
-
 /* fade-stagger 효과 */
 .fade-stagger-enter-active {
   transition: all 0.3s ease;

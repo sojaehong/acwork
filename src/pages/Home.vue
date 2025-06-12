@@ -91,11 +91,11 @@
           </transition-group>
         </div>
 
-        <div v-if="completedSchedules.filter(s => s.status === '완료').length">
+        <div v-if="completedDoneSchedules.length">
           <h3 class="section-title">✅ 완료</h3>
           <transition-group name="fade-stagger" tag="div" appear>
             <TaskCard
-              v-for="item in completedSchedules.filter(s => s.status === '완료')"
+              v-for="item in completedDoneSchedules"
               :key="item.id + '-done'"
               :item="item"
               @click="goToDetail(item.id)"
@@ -103,11 +103,11 @@
           </transition-group>
         </div>
 
-        <div v-if="completedSchedules.filter(s => s.status === '보류').length">
+        <div v-if="completedHoldSchedules.length">
           <h3 class="section-title">⏸ 보류</h3>
           <transition-group name="fade-stagger" tag="div" appear>
             <TaskCard
-              v-for="item in completedSchedules.filter(s => s.status === '보류')"
+              v-for="item in completedHoldSchedules"
               :key="item.id + '-hold'"
               :item="item"
               @click="goToDetail(item.id)"
@@ -124,7 +124,7 @@
       <!-- 하단 버튼 -->
       <v-container
         class="pa-2"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1); pointer-events: auto;"
       >
         <v-row dense>
           <v-col cols="4">
@@ -147,7 +147,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/firestore'
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
@@ -156,23 +156,23 @@ import debounce from 'lodash/debounce'
 const router = useRouter()
 const scheduleStore = useScheduleStore()
 const userStore = useUserStore()
-
 const scheduleMeta = ref(null)
-const selectedDate = ref(getTodayKST())
+
 const loading = ref(false)
 
-function getTodayKST() {
+const todayKST = computed(() => {
   const now = new Date()
   const kstOffset = 9 * 60 * 60 * 1000
   const kst = new Date(now.getTime() + kstOffset)
   return kst.toISOString().split('T')[0]
-}
+})
+
+const selectedDate = ref(todayKST.value)
 
 function formatDateWithDay(dateStr) {
-  const todayStr = getTodayKST()
   const date = new Date(dateStr)
   const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
-  if (dateStr === todayStr) {
+  if (dateStr === todayKST.value) {
     return `오늘`
   } else {
     return `${dateStr} (${day})`
@@ -182,13 +182,10 @@ function formatDateWithDay(dateStr) {
 const displayDate = computed(() => formatDateWithDay(selectedDate.value))
 
 const displayDday = computed(() => {
-  const todayStr = getTodayKST()
-  if (selectedDate.value === todayStr) {
-    const date = new Date(selectedDate.value)
-    const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
-    return `${selectedDate.value} (${day})`
+  if (selectedDate.value === todayKST.value) {
+    return '오늘'
   } else {
-    const today = new Date(todayStr)
+    const today = new Date(todayKST.value)
     const target = new Date(selectedDate.value)
     const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
     return diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
@@ -203,7 +200,7 @@ async function loadSchedules(date) {
 }
 
 async function loadScheduleMeta(date) {
-  const q = query(collection(db, 'schedulesMeta'), where('date', '==', date))
+  const q = query(collection(db, 'schedulesMeta'), where('date', '==', date), limit(1))
   const snap = await getDocs(q)
   if (!snap.empty) {
     const data = snap.docs[0].data()
@@ -244,6 +241,13 @@ function goToAdd() { router.push('/add') }
 const activeSchedules = computed(() => scheduleStore.schedules.filter(s => s.status === '진행'))
 const completedSchedules = computed(() => scheduleStore.schedules.filter(s => s.status !== '진행' && s.status !== '취소됨'))
 
+const completedDoneSchedules = computed(() =>
+  completedSchedules.value.filter(s => s.status === '완료')
+)
+const completedHoldSchedules = computed(() =>
+  completedSchedules.value.filter(s => s.status === '보류')
+)
+
 onMounted(async () => {
   // 유저 정보 복원
   if (!userStore.userId) {
@@ -259,7 +263,7 @@ onMounted(async () => {
     }
   }
 
-  // 최초 로딩은 debounce 없이 즉시 실행
+  // 최초 로딩
   loading.value = true
   await Promise.all([loadSchedules(selectedDate.value), loadScheduleMeta(selectedDate.value)])
   loading.value = false
@@ -294,8 +298,6 @@ onMounted(async () => {
   margin-top: 16px;
   margin-bottom: 10px;
 }
-
-/* fade-stagger 효과 */
 .fade-stagger-enter-active {
   transition: all 0.3s ease;
 }

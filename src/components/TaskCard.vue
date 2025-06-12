@@ -28,7 +28,7 @@
         <template v-if="item.tasks && item.tasks.length">
           <v-chip
             v-for="(task, i) in item.tasks"
-            :key="i"
+            :key="`${task.name}-${task.count}-${i}`"
             size="small"
             class="me-1 mt-1"
             color="secondary"
@@ -76,24 +76,26 @@ const displayStatus = computed(() => {
   return props.item.status
 })
 
-// 상태별 색상 적용 (예정 포함)
+// 상태별 색상 적용 (예정 포함, 취소됨 추가)
 const statusColor = computed(() => {
   switch (displayStatus.value) {
     case '완료': return 'green'
     case '보류': return 'red'
     case '진행': return 'orange'
-    case '예정': return 'purple' // 예정 강조 색상
+    case '예정': return 'purple'
+    case '취소됨': return 'grey'
     default: return 'grey'
   }
 })
 
-// 상태별 border-left color class 적용
+// 상태별 border-left color class 적용 (취소됨 추가)
 const statusClass = computed(() => {
   switch (displayStatus.value) {
     case '완료': return 'status-complete'
     case '보류': return 'status-hold'
     case '진행': return 'status-active'
     case '예정': return 'status-planned'
+    case '취소됨': return 'status-canceled'
     default: return 'status-default'
   }
 })
@@ -125,6 +127,10 @@ const statusClass = computed(() => {
 
 .status-planned {
   border-left-color: #9c27b0; /* 예정 → purple 계열 */
+}
+
+.status-canceled {
+  border-left-color: #bdbdbd; /* 취소됨 → light grey */
 }
 
 .status-default {

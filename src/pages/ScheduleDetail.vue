@@ -40,7 +40,7 @@
                   <div>
                     <v-chip
                       v-for="(task, i) in schedule?.tasks || []"
-                      :key="i"
+                      :key="`${task.name}-${i}`"
                       class="ma-1"
                       color="secondary"
                       variant="tonal"
@@ -148,6 +148,7 @@
     </v-main>
   </v-app>
 </template>
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -204,7 +205,7 @@ function formatDateToYYYYMMDD(date) {
 }
 
 async function updateStatus(newStatus) {
-  if (!schedule.value.id) return
+  if (isSaving.value || !schedule.value.id) return
   isSaving.value = true
   try {
     const docRef = doc(db, 'schedules', schedule.value.id)
@@ -246,6 +247,7 @@ async function applyNewDate() {
 }
 
 async function cancelSchedule() {
+  if (isSaving.value) return
   const ok = confirm('정말 이 작업을 취소하시겠습니까?')
   if (!ok) return
   isSaving.value = true
@@ -269,6 +271,7 @@ function goBack() {
   router.back()
 }
 </script>
+
 <style scoped>
 .font-weight-bold {
   font-weight: bold;

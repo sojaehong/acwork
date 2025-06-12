@@ -4,6 +4,9 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
+        <!-- 에러 표시 -->
+        <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
+
         <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="isLoading"
@@ -86,7 +89,7 @@
                       <template v-if="item.tasks && item.tasks.length">
                         <v-chip
                           v-for="(task, i) in item.tasks"
-                          :key="i"
+                          :key="`${task.name}-${i}`"
                           size="small"
                           class="me-1 mt-1"
                           color="secondary"

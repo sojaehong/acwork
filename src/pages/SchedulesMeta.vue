@@ -4,7 +4,10 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">일정 관리</h2>
 
-        <!-- 중앙 로딩 (circular 적용) -->
+        <!-- 에러 표시 -->
+        <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
+
+        <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="isLoading"
           indeterminate
@@ -25,7 +28,7 @@
           >
             <v-slide-group-item
               v-for="item in existingDatesDisplay"
-              :key="item.date"
+              :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
               :value="item.date"
             >
               <v-card
@@ -101,7 +104,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
-import { collection, addDoc, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  collection, addDoc, getDocs, query, where, doc, getDoc,
+  updateDoc, deleteDoc, serverTimestamp
+} from 'firebase/firestore'
 import { getTodayDateKST } from '@/utils/date'
 
 const router = useRouter()
@@ -122,11 +128,13 @@ const existingDates = ref([])
 const existingDatesDisplay = ref([])
 const selectedDate = ref('')
 const metaMap = ref({})
-let editDocId = null
+
 const isEdit = ref(false)
+let editDocId = null
 
 const isLoading = ref(false)
 const isSaving = ref(false)
+const error = ref('')
 
 async function fetchUsers() {
   const snap = await getDocs(collection(db, 'users'))
@@ -158,13 +166,8 @@ async function fetchExistingDates() {
   const sortedDates = Array.from(dates).sort((a, b) => {
     const isAFuture = new Date(a) >= new Date(todayDateStr)
     const isBFuture = new Date(b) >= new Date(todayDateStr)
-
-    if (isAFuture && isBFuture) {
-      return new Date(a) - new Date(b)
-    }
-    if (!isAFuture && !isBFuture) {
-      return new Date(b) - new Date(a)
-    }
+    if (isAFuture && isBFuture) return new Date(a) - new Date(b)
+    if (!isAFuture && !isBFuture) return new Date(b) - new Date(a)
     return isAFuture ? -1 : 1
   })
 
@@ -229,42 +232,45 @@ async function handleDateSelect(date) {
 }
 
 async function submit() {
+  if (isSaving.value) return
   isSaving.value = true
+  error.value = ''
   try {
     if (isEdit.value && editDocId) {
       await updateDoc(doc(db, 'schedulesMeta', editDocId), {
         ...form.value,
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       })
       alert('일정이 수정되었습니다.')
     } else {
       await addDoc(collection(db, 'schedulesMeta'), {
         ...form.value,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
         paidMap: {}
       })
       alert('일정이 등록되었습니다.')
     }
-
     await fetchExistingDates()
   } catch (err) {
     console.error('저장 중 오류:', err)
-    alert('저장 중 오류가 발생했습니다.')
+    error.value = '저장 중 오류가 발생했습니다.'
   } finally {
     isSaving.value = false
   }
 }
 
 async function cancelSchedule() {
+  if (isSaving.value) return
   if (editDocId && confirm('정말 이 일정을 취소하시겠습니까?')) {
     isSaving.value = true
+    error.value = ''
     try {
       await deleteDoc(doc(db, 'schedulesMeta', editDocId))
       alert('일정이 취소되었습니다.')
       await fetchExistingDates()
     } catch (err) {
       console.error('삭제 중 오류:', err)
-      alert('삭제 중 오류가 발생했습니다.')
+      error.value = '삭제 중 오류가 발생했습니다.'
     } finally {
       isSaving.value = false
     }

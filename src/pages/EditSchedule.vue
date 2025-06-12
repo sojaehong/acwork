@@ -47,8 +47,8 @@
           <div class="mb-2 font-weight-bold">💪 작업 내용 및 수량</div>
           <transition-group name="fade-stagger" tag="div">
             <div
-              v-for="(task, index) in form.tasks"
-              :key="index"
+              v-for="task in form.tasks"
+              :key="task.id"
               class="d-flex align-start mb-2 flex-wrap task-row"
             >
               <v-btn-toggle v-model="task.name" class="mr-2">
@@ -64,13 +64,15 @@
                 </v-btn>
               </v-btn-toggle>
 
-              <v-text-field
-                v-if="task.name === '기타'"
-                v-model="task.etc"
-                label="직접입력"
-                class="mr-2 custom-task-etc"
-                dense
-              />
+              <transition name="fade-stagger">
+                <v-text-field
+                  v-if="task.name === '기타'"
+                  v-model="task.etc"
+                  label="직접입력"
+                  class="mr-2 custom-task-etc"
+                  dense
+                />
+              </transition>
 
               <v-text-field
                 v-model.number="task.count"
@@ -82,7 +84,7 @@
                 dense
               />
 
-              <v-btn icon color="error" @click="removeTask(index)">
+              <v-btn icon color="error" @click="removeTask(task.id)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
@@ -162,7 +164,7 @@ const statuses = ['진행', '완료', '보류']
 
 const form = ref({
   building: '', buildingEtc: '', unit: '', unitEtc: '', room: '',
-  tasks: [{ name: '', count: 1, etc: '' }],
+  tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
   status: '진행', date: '', memo: '', invoice: 'N'
 })
 
@@ -197,6 +199,7 @@ function initializeForm() {
     unitEtc: units.includes(original.value.unit) ? '' : original.value.unit,
     room: original.value.room,
     tasks: (original.value.tasks || []).map(t => ({
+      id: Date.now() + Math.random(),
       name: types.includes(t.name) ? t.name : '기타',
       etc: types.includes(t.name) ? '' : t.name,
       count: t.count || 1
@@ -213,15 +216,15 @@ const dateConfig = {
 }
 
 function addTask() {
-  form.value.tasks.push({ name: '', count: 1, etc: '' })
+  form.value.tasks.push({ id: Date.now() + Math.random(), name: '', count: 1, etc: '' })
 }
 
-function removeTask(index) {
+function removeTask(id) {
   if (form.value.tasks.length === 1) {
-    alert('최소 1개의 작업은 입력해야 합니다.')
+    alert('최소 1개의 작업은 입력해야 합니다.')  // 여긴 Snackbar 연결 가능
     return
   }
-  form.value.tasks.splice(index, 1)
+  form.value.tasks = form.value.tasks.filter(t => t.id !== id)
 }
 
 function goBack() {
@@ -232,6 +235,13 @@ async function submit() {
   if (isSaving.value) return
   isSaving.value = true
   try {
+    // 필수 검증 추가
+    if (!form.value.building || !form.value.unit || !form.value.room || !form.value.status || !form.value.date) {
+      alert('필수 항목을 모두 입력해주세요.')
+      isSaving.value = false
+      return
+    }
+
     const cleanedTasks = form.value.tasks
       .filter(task => task.name)
       .map(task => ({
@@ -276,13 +286,13 @@ async function submit() {
 }
 .task-row {
   flex-wrap: wrap;
+  overflow-x: hidden;
 }
 .custom-task-etc {
   min-width: 120px;
   max-width: 180px;
   flex-shrink: 1;
 }
-
 /* fade-stagger 효과 */
 .fade-stagger-enter-active {
   transition: all 0.3s ease;
@@ -297,6 +307,12 @@ async function submit() {
 }
 .fade-stagger-leave-active {
   transition: all 0.2s ease;
+}
+.fade-stagger-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-to {
   opacity: 0;
   transform: translateY(8px);
 }

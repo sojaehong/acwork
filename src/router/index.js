@@ -13,15 +13,15 @@ const WorkerSchedules = () => import('@/pages/WorkerSchedules.vue')
 const WorkerPayroll = () => import('@/pages/WorkerPayroll.vue')
 
 const routes = [
-  { path: '/', component: Home },
-  { path: '/login', component: LoginView },
-  { path: '/add', component: ScheduleAdd },
-  { path: '/schedules', component: ScheduleList },
-  { path: '/schedule/:id', component: ScheduleDetail },
+  { path: '/', name: 'Home', component: Home },
+  { path: '/login', name: 'Login', component: LoginView },
+  { path: '/add', name: 'ScheduleAdd', component: ScheduleAdd },
+  { path: '/schedules', name: 'ScheduleList', component: ScheduleList },
+  { path: '/schedule/:id', name: 'ScheduleDetail', component: ScheduleDetail },
   { path: '/schedule/:id/edit', name: 'EditSchedule', component: EditSchedule },
-  { path: '/meta', component: SchedulesMeta },
-  { path: '/worker-schedules', component: WorkerSchedules },
-  { path: '/payroll', component: WorkerPayroll }
+  { path: '/meta', name: 'SchedulesMeta', component: SchedulesMeta },
+  { path: '/worker-schedules', name: 'WorkerSchedules', component: WorkerSchedules },
+  { path: '/payroll', name: 'WorkerPayroll', component: WorkerPayroll }
 ]
 
 const router = createRouter({
@@ -33,8 +33,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   const isLoggedIn = !!userStore.userId || !!localStorage.getItem('user_id')
+
   if (!isLoggedIn && to.path !== '/login') {
     next('/login')
+  } else if (isLoggedIn && to.path === '/login') {
+    next('/') // 이미 로그인 시 /login 접근 시 홈으로
   } else {
     next()
   }

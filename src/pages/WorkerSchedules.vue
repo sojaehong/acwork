@@ -4,7 +4,10 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">👷 작업자별 일정</h2>
 
-        <!-- 중앙 로딩 circular -->
+        <!-- 에러 표시 -->
+        <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
+
+        <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="loadingMeta"
           indeterminate
@@ -36,7 +39,7 @@
           <transition-group name="fade-stagger" tag="div">
             <v-card
               v-for="(item, index) in upcomingMeta"
-              :key="item.id"
+              :key="`${item.id}-${item.dday}`"
               class="mb-3 pa-3"
               outlined
             >
@@ -54,7 +57,7 @@
           <transition-group name="fade-stagger" tag="div">
             <v-card
               v-for="(item, index) in pastMeta"
-              :key="item.id"
+              :key="`${item.id}-${item.dday}`"
               class="mb-3 pa-3"
               outlined
             >
@@ -106,6 +109,7 @@ const workers = ref([])
 const metaList = ref([])
 const userMap = ref({})
 const loadingMeta = ref(false)
+const error = ref('')
 
 const today = getTodayKST()
 
@@ -120,42 +124,41 @@ async function fetchUsers() {
 
 async function fetchMeta() {
   loadingMeta.value = true
-  const snap = await getDocs(collection(db, 'schedulesMeta'))
-  const metaItems = []
-  const allUserIds = new Set()
+  error.value = ''
+  try {
+    const snap = await getDocs(collection(db, 'schedulesMeta'))
+    const metaItems = []
+    const allUserIds = new Set()
 
-  for (const docSnap of snap.docs) {
-    const data = docSnap.data()
-    if (!data.date || !Array.isArray(data.workers)) continue
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data()
+      if (!data.date || !Array.isArray(data.workers)) continue
 
-    const workerNames = (data.workers || []).map(id => userMap.value[id] || '알 수 없음')
-    data.workers.forEach(id => allUserIds.add(id))
+      const workerNames = (data.workers || []).map(id => userMap.value[id] || '알 수 없음')
+      data.workers.forEach(id => allUserIds.add(id))
 
-    metaItems.push({
-      id: docSnap.id,
-      date: data.date,
-      startTime: data.startTime || '',
-      workers: data.workers,
-      notice: data.notice || '',
-      workerNames
-    })
+      metaItems.push({
+        id: docSnap.id,
+        date: data.date,
+        startTime: data.startTime || '',
+        workers: data.workers,
+        notice: data.notice || '',
+        workerNames
+      })
+    }
+
+    metaList.value = metaItems
+  } catch (err) {
+    console.error('Meta 조회 중 오류:', err)
+    error.value = '작업자별 일정 조회 중 오류가 발생했습니다.'
+  } finally {
+    loadingMeta.value = false
   }
-
-  metaList.value = metaItems
-
-  const userSnap = await getDocs(collection(db, 'users'))
-  workers.value = userSnap.docs
-    .filter(doc => allUserIds.has(doc.id))
-    .map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-
-  loadingMeta.value = false
 }
 
 onMounted(async () => {
-  loadingMeta.value = true
   await fetchUsers()
   await fetchMeta()
-  loadingMeta.value = false
 })
 
 const upcomingMeta = computed(() => {
