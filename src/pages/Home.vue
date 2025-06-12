@@ -10,14 +10,32 @@
       </v-btn>
     </v-app-bar>
 
-    <!-- 복무미니 -->
+    <!-- 본문 -->
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
 
         <!-- 일정 메타 정보 카드 + 날짜 이동 버튼 -->
         <v-card class="mb-6 elevation-0 meta-info-card" outlined>
 
-          <!-- 상단 날짜 표시 + 오늘로 / 일정 등록 -->
+          <!-- 오늘로 / 일정 등록 텍스트 영역 -->
+          <div class="d-flex justify-end align-center pa-2" style="font-size: 14px;">
+            <span
+              class="text-primary me-3"
+              style="cursor: pointer; text-decoration: underline;"
+              @click="goToday"
+            >
+              오늘로
+            </span>
+            <span
+              class="text-primary"
+              style="cursor: pointer; text-decoration: underline;"
+              @click="goToMetaEdit"
+            >
+              일정 등록
+            </span>
+          </div>
+
+          <!-- 날짜 이동 영역 -->
           <v-row align="center" class="pa-3 pb-1">
             <v-col cols="auto">
               <v-btn icon @click="changeDate(-1)">
@@ -35,17 +53,11 @@
                 <v-icon>mdi-chevron-right-circle</v-icon>
               </v-btn>
             </v-col>
-
-            <!-- 오늘로 / 일정 등록 텍스트 버튼 우측 끝 -->
-            <v-col cols="auto" class="d-flex align-center justify-end">
-              <v-btn text small class="me-2" @click.stop="goToday">오늘로</v-btn>
-              <v-btn text small color="primary" @click.stop="goToMetaEdit">일정 등록</v-btn>
-            </v-col>
           </v-row>
 
           <v-divider></v-divider>
 
-          <!-- 일정 메타 정보 내용 (card click X) -->
+          <!-- 일정 메타 정보 내용 -->
           <v-card-text>
             <v-row>
               <v-col cols="12" md="4">
