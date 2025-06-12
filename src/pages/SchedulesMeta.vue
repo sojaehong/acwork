@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-16">
-        <h2 class="text-h5 mb-4">일정 관리</h2>
+        <h2 class="text-h5 mb-4 responsive-title">일정 관리</h2>
 
         <!-- 에러 표시 -->
         <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
@@ -86,13 +86,13 @@
       >
         <v-row dense>
           <v-col cols="4">
-            <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
+            <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="4" v-if="isEdit">
-            <v-btn color="error" block :loading="isSaving" @click="cancelSchedule">일정 취소</v-btn>
+            <v-btn color="error" block :loading="isSaving" class="responsive-btn" @click="cancelSchedule">일정 취소</v-btn>
           </v-col>
           <v-col :cols="isEdit ? 4 : 8">
-            <v-btn color="primary" block :loading="isSaving" @click="submit">저장</v-btn>
+            <v-btn color="primary" block :loading="isSaving" class="responsive-btn" @click="submit">저장</v-btn>
           </v-col>
         </v-row>
       </v-container>

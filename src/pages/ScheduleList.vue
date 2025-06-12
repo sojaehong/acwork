@@ -261,4 +261,44 @@ onMounted(async () => {
   border-radius: 6px;
   width: 100%;
 }
+
+.responsive-title {
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 16px;
+  margin-bottom: 10px;
+}
+
+.responsive-btn {
+  font-size: 15px;
+  padding: 10px 0;
+}
+
+.responsive-card {
+  transition: box-shadow 0.2s, transform 0.2s;
+  border-left: 5px solid #2196f3;
+}
+
+.responsive-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* fade-stagger 애니메이션 */
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
+}
 </style>

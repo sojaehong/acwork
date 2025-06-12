@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-32">
-        <h2 class="text-h5 mb-4">📝 작업 등록</h2>
+        <h2 class="text-h5 mb-4 responsive-title">📝 작업 등록</h2>
 
         <!-- 날짜 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
@@ -166,10 +166,10 @@
         <div class="mb-2">📌 요약: {{ summaryText }}</div>
         <v-row dense>
           <v-col cols="6">
-            <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
+            <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block :loading="isSaving" @click="submit">등록</v-btn>
+            <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="submit">등록</v-btn>
           </v-col>
         </v-row>
       </v-container>

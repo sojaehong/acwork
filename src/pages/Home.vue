@@ -4,7 +4,7 @@
     <v-app-bar color="primary" dark flat>
       <v-toolbar-title>공조+</v-toolbar-title>
       <v-spacer />
-      <span class="mr-2 font-weight-medium">{{ userStore.userName }}님</span>
+      <span v-if="userStore.userId" class="mr-2 font-weight-medium">{{ userStore.userName }}님</span>
       <v-btn icon :ripple="false" @click="logout">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
@@ -25,7 +25,7 @@
         ></v-progress-circular>
 
         <!-- 일정 메타 정보 카드 -->
-        <v-card class="mb-6 elevation-0 meta-info-card" outlined>
+        <v-card class="mb-6 elevation-0 meta-info-card responsive-card" outlined>
           <!-- 날짜 이동 영역 -->
           <v-row align="center" class="pa-3 pb-1">
             <v-col cols="auto">
@@ -80,37 +80,40 @@
 
         <!-- 작업 리스트 -->
         <div v-if="activeSchedules.length">
-          <h3 class="section-title">🛠 진행 중</h3>
+          <h3 class="section-title responsive-title">🛠 진행 중</h3>
           <transition-group name="fade-stagger" tag="div" appear>
             <TaskCard
               v-for="item in activeSchedules"
               :key="item.id + '-active'"
               :item="item"
               @click="goToDetail(item.id)"
+              class="responsive-card"
             />
           </transition-group>
         </div>
 
         <div v-if="completedDoneSchedules.length">
-          <h3 class="section-title">✅ 완료</h3>
+          <h3 class="section-title responsive-title">✅ 완료</h3>
           <transition-group name="fade-stagger" tag="div" appear>
             <TaskCard
               v-for="item in completedDoneSchedules"
               :key="item.id + '-done'"
               :item="item"
               @click="goToDetail(item.id)"
+              class="responsive-card"
             />
           </transition-group>
         </div>
 
         <div v-if="completedHoldSchedules.length">
-          <h3 class="section-title">⏸ 보류</h3>
+          <h3 class="section-title responsive-title">⏸ 보류</h3>
           <transition-group name="fade-stagger" tag="div" appear>
             <TaskCard
               v-for="item in completedHoldSchedules"
               :key="item.id + '-hold'"
               :item="item"
               @click="goToDetail(item.id)"
+              class="responsive-card"
             />
           </transition-group>
         </div>
@@ -128,20 +131,21 @@
       >
         <v-row dense>
           <v-col cols="4">
-            <v-btn color="info" block @click="goToWorker">👷 작업자별</v-btn>
+            <v-btn color="info" block @click="goToWorker" class="responsive-btn">👷 작업자별</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="success" block @click="goToPayroll">💰 정산</v-btn>
+            <v-btn color="success" block @click="goToPayroll" class="responsive-btn">💰 정산</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="secondary" block @click="goToAdd">+ 작업 등록</v-btn>
+            <v-btn color="secondary" block @click="goToAdd" class="responsive-btn">+ 작업 등록</v-btn>
           </v-col>
         </v-row>
-        <v-btn class="mt-2" block color="grey darken-1" @click="goToAll">📋 전체 작업 일정 보기</v-btn>
+        <v-btn class="mt-2 responsive-btn" block color="grey darken-1" @click="goToAll">📋 전체 작업 일정 보기</v-btn>
       </v-container>
     </v-main>
   </v-app>
 </template>
+
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'

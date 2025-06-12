@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-16">
-        <h2 class="text-h5 mb-4">📄 작업 상세 보기</h2>
+        <h2 class="text-h5 mb-4 responsive-title">📄 작업 상세 보기</h2>
 
         <!-- 중앙 로딩 circular -->
         <v-progress-circular
@@ -135,13 +135,13 @@
       >
         <v-row dense>
           <v-col cols="4">
-            <v-btn color="grey-darken-1" block @click="goBack">뒤로가기</v-btn>
+            <v-btn color="grey-darken-1" block class="responsive-btn" @click="goBack">뒤로가기</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="error" block :loading="isSaving" @click="cancelSchedule">작업취소</v-btn>
+            <v-btn color="error" block class="responsive-btn" :loading="isSaving" @click="cancelSchedule">작업취소</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="primary" block :loading="isSaving" @click="goToEdit">수정</v-btn>
+            <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="goToEdit">수정</v-btn>
           </v-col>
         </v-row>
       </v-container>

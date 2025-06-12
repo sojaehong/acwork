@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-32">
-        <h2 class="text-h5 mb-4">✏️ 작업 수정</h2>
+        <h2 class="text-h5 mb-4 responsive-title">✏️ 작업 수정</h2>
 
         <!-- 날짜 선택 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
@@ -132,10 +132,10 @@
       >
         <v-row dense>
           <v-col cols="6">
-            <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
+            <v-btn color="secondary" block class="responsive-btn" @click="goBack">돌아가기</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block :loading="isSaving" @click="submit">수정 완료</v-btn>
+            <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="submit">수정 완료</v-btn>
           </v-col>
         </v-row>
       </v-container>

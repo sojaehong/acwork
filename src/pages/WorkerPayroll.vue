@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container class="pa-4 pb-16">
-        <h2 class="text-h5 mb-4">💰 정산 확인</h2>
+        <h2 class="text-h5 mb-4 responsive-title">💰 정산 확인</h2>
 
         <!-- 에러 표시 -->
         <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
@@ -102,7 +102,7 @@
       >
         <v-row dense>
           <v-col>
-            <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
+            <v-btn color="primary" block class="responsive-btn" @click="$router.push('/')">홈으로</v-btn>
           </v-col>
         </v-row>
       </v-container>
