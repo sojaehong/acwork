@@ -5,7 +5,7 @@
       <v-toolbar-title>공조+</v-toolbar-title>
       <v-spacer />
       <span class="mr-2 font-weight-medium">{{ userStore.userName }}님</span>
-      <v-btn icon @click="logout">
+      <v-btn icon :ripple="false" @click="logout">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
@@ -13,13 +13,12 @@
     <!-- 본문 -->
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
-
-        <!-- 일정 메타 정보 카드 (카드 클릭 → 메타 등록) -->
-        <v-card class="mb-6 elevation-0 meta-info-card" outlined @click="goToMetaEdit" style="cursor: pointer;">
+        <!-- 일정 메타 정보 카드 + 날짜 이동 버튼 -->
+        <v-card class="mb-6 elevation-0 meta-info-card" outlined>
           <!-- 날짜 이동 영역 -->
-          <v-row align="center" class="pa-3 pb-1">
+          <v-row align="center" class="pa-3 pb-1" @click="goToMetaEdit" style="cursor: pointer;">
             <v-col cols="auto">
-              <v-btn icon @click.stop="changeDate(-1)">
+              <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
                 <v-icon>mdi-chevron-left-circle</v-icon>
               </v-btn>
             </v-col>
@@ -30,7 +29,7 @@
             </v-col>
 
             <v-col cols="auto">
-              <v-btn icon @click.stop="changeDate(1)">
+              <v-btn icon :ripple="false" @click.stop="changeDate(1)">
                 <v-icon>mdi-chevron-right-circle</v-icon>
               </v-btn>
             </v-col>
@@ -101,7 +100,6 @@
           />
         </div>
 
-        <!-- 없을 때 -->
         <v-alert v-if="!activeSchedules.length && !completedSchedules.length" type="info" class="mt-4">
           등록된 작업이 없습니다.
         </v-alert>
@@ -125,7 +123,6 @@
         </v-row>
         <v-btn class="mt-2" block color="grey darken-1" @click="goToAll">📋 전체 작업 일정 보기</v-btn>
       </v-container>
-
     </v-main>
   </v-app>
 </template>
@@ -138,6 +135,7 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
+import debounce from 'lodash/debounce'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
@@ -145,6 +143,8 @@ const userStore = useUserStore()
 
 const scheduleMeta = ref(null)
 const selectedDate = ref(getTodayKST())
+
+const scheduleCache = new Map()
 
 function getTodayKST() {
   const now = new Date()
@@ -181,10 +181,16 @@ const displayDday = computed(() => {
 })
 
 async function loadSchedules(date) {
+  if (scheduleCache.has(date)) {
+    scheduleStore.setSchedules(scheduleCache.get(date))
+    return
+  }
+
   const q = query(collection(db, 'schedules'), where('date', '==', date))
   const snap = await getDocs(q)
   const schedules = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
   scheduleStore.setSchedules(schedules)
+  scheduleCache.set(date, schedules)
 }
 
 async function loadScheduleMeta(date) {
@@ -200,6 +206,25 @@ async function loadScheduleMeta(date) {
   }
 }
 
+const debouncedLoadData = debounce((date) => {
+  loadSchedules(date)
+  loadScheduleMeta(date)
+}, 200)
+
+function changeDate(offset) {
+  const current = new Date(selectedDate.value)
+  current.setDate(current.getDate() + offset)
+  const newDateStr = current.toISOString().split('T')[0]
+  selectedDate.value = newDateStr
+  debouncedLoadData(newDateStr)
+}
+
+function goToday() {
+  selectedDate.value = getTodayKST()
+  loadSchedules(selectedDate.value)
+  loadScheduleMeta(selectedDate.value)
+}
+
 function logout() {
   userStore.logout()
   router.push('/login')
@@ -213,21 +238,6 @@ function goToAdd() { router.push('/add') }
 
 const activeSchedules = computed(() => scheduleStore.schedules.filter(s => s.status === '진행'))
 const completedSchedules = computed(() => scheduleStore.schedules.filter(s => s.status !== '진행' && s.status !== '취소됨'))
-
-function changeDate(offset) {
-  const current = new Date(selectedDate.value)
-  current.setDate(current.getDate() + offset)
-  const newDateStr = current.toISOString().split('T')[0]
-  selectedDate.value = newDateStr
-  loadSchedules(newDateStr)
-  loadScheduleMeta(newDateStr)
-}
-
-function goToday() {
-  selectedDate.value = getTodayKST()
-  loadSchedules(selectedDate.value)
-  loadScheduleMeta(selectedDate.value)
-}
 
 onMounted(() => {
   if (!userStore.userId) {
