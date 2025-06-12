@@ -4,7 +4,16 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">일정 관리</h2>
 
-        <!-- 이미 존재하는 날짜 목록 스크롤로 표시 -->
+        <!-- 로딩 Progress -->
+        <v-progress-linear
+          v-if="isLoading"
+          indeterminate
+          color="primary"
+          height="4"
+          class="mb-4"
+        ></v-progress-linear>
+
+        <!-- 기존 날짜 목록 -->
         <div v-if="existingDatesDisplay.length" class="mb-4">
           <v-slide-group
             v-model="selectedDate"
@@ -38,7 +47,7 @@
         <!-- 날짜 선택 -->
         <v-text-field v-model="form.date" label="작업 날짜" type="date" outlined class="mb-4" @change="handleDateChange" />
 
-        <!-- 시작 시간 선택 -->
+        <!-- 시작 시간 -->
         <v-text-field v-model="form.startTime" label="시작 시간 (예: 09:00)" type="time" outlined class="mb-4" />
 
         <!-- 작업자 선택 -->
@@ -79,7 +88,7 @@
             <v-btn color="error" block @click="cancelSchedule">일정 취소</v-btn>
           </v-col>
           <v-col :cols="isEdit ? 4 : 8">
-            <v-btn color="primary" block @click="submit">저장</v-btn>
+            <v-btn color="primary" block :loading="isSaving" @click="submit">저장</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -109,11 +118,14 @@ const userOptions = ref([])
 const userMap = ref({})
 
 const existingDates = ref([])
-const existingDatesDisplay = ref([]) // date + 요일 표시용
+const existingDatesDisplay = ref([])
 const selectedDate = ref('')
 const metaMap = ref({})
 let editDocId = null
 const isEdit = ref(false)
+
+const isLoading = ref(false)
+const isSaving = ref(false)
 
 async function fetchUsers() {
   const snap = await getDocs(collection(db, 'users'))
@@ -125,6 +137,7 @@ async function fetchUsers() {
 }
 
 async function fetchExistingDates() {
+  isLoading.value = true
   const snap = await getDocs(collection(db, 'schedulesMeta'))
   const dates = new Set()
   const meta = {}
@@ -173,6 +186,7 @@ async function fetchExistingDates() {
     selectedDate.value = ''
     clearForm()
   }
+  isLoading.value = false
 }
 
 function formatDateWithDay(dateStr) {
@@ -214,29 +228,45 @@ async function handleDateSelect(date) {
 }
 
 async function submit() {
-  if (isEdit.value && editDocId) {
-    await updateDoc(doc(db, 'schedulesMeta', editDocId), {
-      ...form.value,
-      updatedAt: new Date()
-    })
-    alert('일정이 수정되었습니다.')
-  } else {
-    await addDoc(collection(db, 'schedulesMeta'), {
-      ...form.value,
-      createdAt: new Date(),
-      paidMap: {}
-    })
-    alert('일정이 등록되었습니다.')
-  }
+  isSaving.value = true
+  try {
+    if (isEdit.value && editDocId) {
+      await updateDoc(doc(db, 'schedulesMeta', editDocId), {
+        ...form.value,
+        updatedAt: new Date()
+      })
+      alert('일정이 수정되었습니다.')
+    } else {
+      await addDoc(collection(db, 'schedulesMeta'), {
+        ...form.value,
+        createdAt: new Date(),
+        paidMap: {}
+      })
+      alert('일정이 등록되었습니다.')
+    }
 
-  await fetchExistingDates()
+    await fetchExistingDates()
+  } catch (err) {
+    console.error('저장 중 오류:', err)
+    alert('저장 중 오류가 발생했습니다.')
+  } finally {
+    isSaving.value = false
+  }
 }
 
 async function cancelSchedule() {
   if (editDocId && confirm('정말 이 일정을 취소하시겠습니까?')) {
-    await deleteDoc(doc(db, 'schedulesMeta', editDocId))
-    alert('일정이 취소되었습니다.')
-    await fetchExistingDates()
+    isSaving.value = true
+    try {
+      await deleteDoc(doc(db, 'schedulesMeta', editDocId))
+      alert('일정이 취소되었습니다.')
+      await fetchExistingDates()
+    } catch (err) {
+      console.error('삭제 중 오류:', err)
+      alert('삭제 중 오류가 발생했습니다.')
+    } finally {
+      isSaving.value = false
+    }
   }
 }
 

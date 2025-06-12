@@ -164,7 +164,7 @@
             <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block @click="submit">등록</v-btn>
+            <v-btn color="primary" block :loading="isSaving" @click="submit">등록</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -203,11 +203,12 @@ const form = ref({
   invoice: 'N'
 })
 
+const isSaving = ref(false)
+
 const dateConfig = {
   locale: Korean,
   dateFormat: 'Y-m-d',
-  disableMobile: true,
-  inline: true
+  disableMobile: true
 }
 
 const summaryText = computed(() => {
@@ -219,10 +220,15 @@ const summaryText = computed(() => {
 })
 
 function addTask() {
+  if (isSaving.value) return
   form.value.tasks.push({ name: '', count: 1, etc: '' })
 }
 
 function removeTask(index) {
+  if (form.value.tasks.length === 1) {
+    alert('최소 1개의 작업은 입력해야 합니다.')
+    return
+  }
   form.value.tasks.splice(index, 1)
 }
 
@@ -231,40 +237,54 @@ function goHome() {
 }
 
 async function submit() {
-  const cleanedTasks = form.value.tasks.map(task => ({
-    name: task.name === '기타' ? task.etc : task.name,
-    count: task.count
-  }))
-
-  const data = {
-    building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
-    unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
-    room: form.value.room,
-    tasks: cleanedTasks,
-    status: form.value.status,
-    date: form.value.date,
-    memo: form.value.memo,
-    invoice: form.value.invoice === 'Y',
-    createdAt: serverTimestamp(),
-    createdBy: localStorage.getItem('user_id')
+  if (!form.value.date || !form.value.building || !form.value.unit || !form.value.room.trim()) {
+    alert('날짜 / 건물 / 동 / 호수는 필수 입력입니다.')
+    return
   }
 
-  const docRef = await addDoc(collection(db, 'schedules'), data)
+  if (isSaving.value) return
+  isSaving.value = true
 
-  // ✅ scheduleStore 에 새로 등록한 schedule push
-  scheduleStore.setSchedules([
-    ...scheduleStore.schedules,
-    {
-      id: docRef.id,
-      ...data,
-      createdAt: new Date() // serverTimestamp() 반영 전 임시로 현재 시각 넣어줌 (UI 반영용)
+  try {
+    const cleanedTasks = form.value.tasks.map(task => ({
+      name: task.name === '기타' ? task.etc : task.name,
+      count: task.count
+    }))
+
+    const data = {
+      building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
+      unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
+      room: form.value.room,
+      tasks: cleanedTasks,
+      status: form.value.status,
+      date: form.value.date,
+      memo: form.value.memo,
+      invoice: form.value.invoice === 'Y',
+      createdAt: serverTimestamp(),
+      createdBy: localStorage.getItem('user_id')
     }
-  ])
 
-  router.push('/')
+    const docRef = await addDoc(collection(db, 'schedules'), data)
+
+    scheduleStore.setSchedules([
+      ...scheduleStore.schedules,
+      {
+        id: docRef.id,
+        ...data,
+        createdAt: new Date()
+      }
+    ])
+
+    alert('작업이 등록되었습니다.')
+    router.push('/')
+  } catch (err) {
+    console.error(err)
+    alert('작업 등록 중 오류가 발생했습니다.')
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
-
 
 <style scoped>
 .selected-btn {

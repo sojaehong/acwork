@@ -4,6 +4,15 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
+        <!-- 로딩 인디케이터 -->
+        <v-progress-linear
+          v-if="isLoading"
+          indeterminate
+          color="primary"
+          height="4"
+          class="mb-4"
+        ></v-progress-linear>
+
         <!-- 🔍 필터 및 검색 -->
         <v-expansion-panels flat class="mb-4">
           <v-expansion-panel>
@@ -11,22 +20,22 @@
             <v-expansion-panel-text>
               <v-row dense>
                 <v-col cols="6" sm="4" md="2">
-                  <v-select v-model="filterStatus" :items="statuses" label="작업 상태" clearable outlined dense />
+                  <v-select v-model="filterStatus" :items="statuses" label="작업 상태" clearable outlined dense @change="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="6" sm="4" md="2">
-                  <v-select v-model="filterBuilding" :items="buildings" label="건물" clearable outlined dense />
+                  <v-select v-model="filterBuilding" :items="buildings" label="건물" clearable outlined dense @change="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="6" sm="4" md="2">
-                  <v-select v-model="filterInvoice" :items="invoiceOptions" label="세금계산서" clearable outlined dense />
+                  <v-select v-model="filterInvoice" :items="invoiceOptions" label="세금계산서" clearable outlined dense @change="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field v-model="searchText" label="호수 또는 메모" clearable outlined dense />
+                  <v-text-field v-model="searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="6" sm="3" md="1">
-                  <flat-pickr v-model="filterStartDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" />
+                  <flat-pickr v-model="filterStartDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" @change="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="6" sm="3" md="1">
-                  <flat-pickr v-model="filterEndDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" />
+                  <flat-pickr v-model="filterEndDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" @change="applyFiltersDebounced"/>
                 </v-col>
                 <v-col cols="6" sm="3" md="1">
                   <v-btn color="primary" block @click="applyFilters" size="small">적용</v-btn>
@@ -127,12 +136,14 @@ import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import { useScheduleStore } from '@/stores/schedule'
+import debounce from 'lodash/debounce'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
 
 const loading = ref(true)
 const error = ref('')
+const isLoading = ref(false)
 
 const statuses = ['진행', '보류', '완료']
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온']
@@ -151,11 +162,17 @@ const dateConfig = {
   disableMobile: true
 }
 
-function applyFilters() {}
+function applyFilters() {
+  isLoading.value = true
+  // 여긴 실제 서버 필터링이 아니라 client computed 사용이므로 바로 끝남
+  setTimeout(() => { isLoading.value = false }, 200)
+}
+const applyFiltersDebounced = debounce(applyFilters, 200)
 
 function clearDateFilter() {
   filterStartDate.value = null
   filterEndDate.value = null
+  applyFilters()
 }
 
 function goToDetail(id) {
@@ -231,6 +248,7 @@ onMounted(async () => {
     error.value = '작업을 불러오지 못했습니다.'
   } finally {
     loading.value = false
+    isLoading.value = false
   }
 })
 </script>

@@ -2,6 +2,15 @@
   <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">👷 작업자별 일정</h2>
 
+    <!-- 로딩 인디케이터 -->
+    <v-progress-linear
+      v-if="loadingMeta"
+      indeterminate
+      color="primary"
+      height="4"
+      class="mb-4"
+    ></v-progress-linear>
+
     <!-- 작업자 선택 -->
     <v-select
       v-model="selectedWorker"
@@ -67,7 +76,6 @@ import { ref, computed, onMounted } from 'vue'
 import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
 
-// 날짜를 KST 기준으로 반환하는 함수
 function getTodayKST() {
   const now = new Date()
   const offset = 9 * 60 * 60 * 1000
@@ -75,7 +83,6 @@ function getTodayKST() {
   return kst.toISOString().split('T')[0]
 }
 
-// 날짜 차이 계산
 function dateDiff(from, to) {
   const fromDate = new Date(from + 'T00:00:00+09:00')
   const toDate = new Date(to + 'T00:00:00+09:00')
@@ -86,16 +93,14 @@ function dateDiff(from, to) {
 const selectedWorker = ref(null)
 const workers = ref([])
 const metaList = ref([])
-const userMap = ref({}) // ✅ userMap 캐싱 적용
-const loading = ref(true) // ✅ loading 상태 추가
+const userMap = ref({})
+const loadingMeta = ref(false)
 
 const today = getTodayKST()
 
 async function fetchUsers() {
   const userSnap = await getDocs(collection(db, 'users'))
   workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-
-  // ✅ userMap 구축
   userMap.value = {}
   for (const user of workers.value) {
     userMap.value[user.id] = user.name
@@ -103,6 +108,7 @@ async function fetchUsers() {
 }
 
 async function fetchMeta() {
+  loadingMeta.value = true
   const snap = await getDocs(collection(db, 'schedulesMeta'))
   const metaItems = []
   const allUserIds = new Set()
@@ -111,7 +117,6 @@ async function fetchMeta() {
     const data = docSnap.data()
     if (!data.date || !Array.isArray(data.workers)) continue
 
-    // ✅ userMap 기반으로 workerNames resolve (getDoc 제거)
     const workerNames = (data.workers || []).map(id => userMap.value[id] || '알 수 없음')
     data.workers.forEach(id => allUserIds.add(id))
 
@@ -127,18 +132,19 @@ async function fetchMeta() {
 
   metaList.value = metaItems
 
-  // ✅ workers 목록은 전체 users 중 meta 에 포함된 users 만 표시
   const userSnap = await getDocs(collection(db, 'users'))
   workers.value = userSnap.docs
     .filter(doc => allUserIds.has(doc.id))
     .map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
+
+  loadingMeta.value = false
 }
 
 onMounted(async () => {
-  loading.value = true
+  loadingMeta.value = true
   await fetchUsers()
   await fetchMeta()
-  loading.value = false
+  loadingMeta.value = false
 })
 
 const upcomingMeta = computed(() => {
@@ -146,6 +152,7 @@ const upcomingMeta = computed(() => {
   return metaList.value
     .filter(m => m.workers.includes(selectedWorker.value) && m.date >= today)
     .map(m => ({ ...m, dday: dateDiff(today, m.date) }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date)) // D- 정렬 추가
 })
 
 const pastMeta = computed(() => {
@@ -153,9 +160,9 @@ const pastMeta = computed(() => {
   return metaList.value
     .filter(m => m.workers.includes(selectedWorker.value) && m.date < today)
     .map(m => ({ ...m, dday: dateDiff(m.date, today) }))
+    .sort((a, b) => new Date(b.date) - new Date(a.date)) // D+ 정렬 추가
 })
 </script>
-
 
 <style scoped>
 .font-weight-bold {

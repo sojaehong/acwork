@@ -117,7 +117,7 @@
           />
         </v-sheet>
 
-        <!-- 👇 Dummy Spacer -->
+        <!-- Dummy Spacer -->
         <div style="height: 200px;"></div>
       </v-container>
 
@@ -126,16 +126,12 @@
         class="pa-2 summary-bar"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
-        <div class="mb-2 text-left">
-          <div>📌 <b>수정 전:</b> {{ originalSummary }}</div>
-          <div>📌 <b>수정 후:</b> <span v-html="highlightedSummary"></span></div>
-        </div>
         <v-row dense>
           <v-col cols="6">
             <v-btn color="secondary" block @click="goBack">돌아가기</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block @click="submit">수정 완료</v-btn>
+            <v-btn color="primary" block :loading="isSaving" @click="submit">수정 완료</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -144,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
@@ -168,6 +164,7 @@ const form = ref({
   status: '진행', date: '', memo: '', invoice: 'N'
 })
 
+const isSaving = ref(false)
 const original = ref({})
 
 onMounted(async () => {
@@ -213,58 +210,15 @@ const dateConfig = {
   locale: Korean, dateFormat: 'Y-m-d', disableMobile: true, inline: true
 }
 
-const originalSummary = computed(() => {
-  const b = original.value.building
-  const u = original.value.unit
-  const tasks = (original.value.tasks || []).map(t => `${t.name}(${t.count})`).join(', ')
-  const invoice = original.value.invoice ? '세금계산서 O' : '세금계산서 X'
-  return `${original.value.date} / ${b} ${u} ${original.value.room}호 / ${tasks} / ${original.value.status} / ${invoice}`
-})
-
-const highlightedSummary = computed(() => {
-  const b = form.value.building === '기타' ? form.value.buildingEtc : form.value.building
-  const u = form.value.unit === '기타' ? form.value.unitEtc : form.value.unit
-  const tasksNew = form.value.tasks.map(t => ({
-    label: t.name === '기타' ? t.etc : t.name,
-    count: t.count
-  }))
-  const tasksOld = (original.value.tasks || []).map(t => ({
-    label: t.name,
-    count: t.count || 1
-  }))
-
-  const taskDiffs = []
-  const maxLen = Math.max(tasksNew.length, tasksOld.length)
-  for (let i = 0; i < maxLen; i++) {
-    const n = tasksNew[i]
-    const o = tasksOld[i]
-    if (!n) continue
-    const changed = !o || n.label !== o.label || n.count !== o.count
-    taskDiffs.push(
-      changed ? `<b style="color:#d32f2f">${n.label}(${n.count})</b>` : `${n.label}(${n.count})`
-    )
-  }
-
-  const fields = [
-    { value: form.value.date, original: original.value.date },
-    { value: b, original: original.value.building },
-    { value: u, original: original.value.unit },
-    { value: form.value.room + '호', original: original.value.room + '호' },
-    { value: taskDiffs.join(', '), original: tasksOld.map(t => `${t.label}(${t.count})`).join(', ') },
-    { value: form.value.status, original: original.value.status },
-    { value: form.value.invoice === 'Y' ? '세금계산서 O' : '세금계산서 X', original: original.value.invoice ? '세금계산서 O' : '세금계산서 X' }
-  ]
-
-  return fields.map(f =>
-    f.value !== f.original ? `<b style="color:#d32f2f">${f.value}</b>` : f.value
-  ).join(' / ')
-})
-
 function addTask() {
   form.value.tasks.push({ name: '', count: 1, etc: '' })
 }
 
 function removeTask(index) {
+  if (form.value.tasks.length === 1) {
+    alert('최소 1개의 작업은 입력해야 합니다.')
+    return
+  }
   form.value.tasks.splice(index, 1)
 }
 
@@ -273,34 +227,42 @@ function goBack() {
 }
 
 async function submit() {
-  const cleanedTasks = form.value.tasks
-    .filter(task => task.name)
-    .map(task => ({
-      name: task.name === '기타' ? task.etc : task.name,
-      count: task.count
-    }))
-  const data = {
-    building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
-    unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
-    room: form.value.room,
-    tasks: cleanedTasks,
-    status: form.value.status,
-    date: form.value.date,
-    memo: form.value.memo,
-    invoice: form.value.invoice === 'Y'
-  }
-  await updateDoc(doc(db, 'schedules', route.params.id), data)
-  alert('작업이 수정되었습니다.')
-
-  // store 업데이트
-  const index = scheduleStore.schedules.findIndex(s => s.id === original.value.id)
-  if (index !== -1) {
-    scheduleStore.schedules[index] = {
-      ...scheduleStore.schedules[index],
-      ...data
+  if (isSaving.value) return
+  isSaving.value = true
+  try {
+    const cleanedTasks = form.value.tasks
+      .filter(task => task.name)
+      .map(task => ({
+        name: task.name === '기타' ? task.etc : task.name,
+        count: task.count
+      }))
+    const data = {
+      building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
+      unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
+      room: form.value.room,
+      tasks: cleanedTasks,
+      status: form.value.status,
+      date: form.value.date,
+      memo: form.value.memo,
+      invoice: form.value.invoice === 'Y'
     }
-  }
+    await updateDoc(doc(db, 'schedules', route.params.id), data)
+    alert('작업이 수정되었습니다.')
 
-  router.back()
+    const index = scheduleStore.schedules.findIndex(s => s.id === original.value.id)
+    if (index !== -1) {
+      scheduleStore.schedules[index] = {
+        ...scheduleStore.schedules[index],
+        ...data
+      }
+    }
+
+    router.back()
+  } catch (err) {
+    console.error(err)
+    alert('수정 중 오류가 발생했습니다.')
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>

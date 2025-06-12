@@ -13,9 +13,39 @@
     <!-- 본문 -->
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
+
+        <!-- 로딩 인디케이터 -->
+        <v-progress-linear
+          v-if="isLoading"
+          indeterminate
+          color="primary"
+          height="4"
+          class="mb-4"
+        ></v-progress-linear>
+
         <!-- 일정 메타 정보 카드 -->
         <v-card class="mb-6 elevation-0 meta-info-card" outlined>
-          <!-- 일정 메타 정보 내용 (👉 여기만 클릭 시 goToMetaEdit) -->
+         <!-- 날짜 이동 영역 -->
+          <v-row align="center" class="pa-3 pb-1">
+            <v-col cols="auto">
+              <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
+                <v-icon>mdi-chevron-left-circle</v-icon>
+              </v-btn>
+            </v-col>
+
+            <v-col class="text-center text-h6 font-weight-bold">
+              {{ displayDate }}
+              <div class="text-caption mt-1 text-grey-darken-1">{{ displayDday }}</div>
+            </v-col>
+
+            <v-col cols="auto">
+              <v-btn icon :ripple="false" @click.stop="changeDate(1)">
+                <v-icon>mdi-chevron-right-circle</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
+          <v-divider></v-divider>
+             <!-- 일정 메타 정보 내용 (👉 여기만 클릭 시 goToMetaEdit) -->
           <v-card-text @click="goToMetaEdit" style="cursor: pointer;">
             <v-row>
               <v-col cols="12" md="4">
@@ -45,26 +75,6 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-divider></v-divider>
-            <!-- 날짜 이동 영역 -->
-          <v-row align="center" class="pa-3 pb-1">
-            <v-col cols="auto">
-              <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
-                <v-icon>mdi-chevron-left-circle</v-icon>
-              </v-btn>
-            </v-col>
-
-            <v-col class="text-center text-h6 font-weight-bold">
-              {{ displayDate }}
-              <div class="text-caption mt-1 text-grey-darken-1">{{ displayDday }}</div>
-            </v-col>
-
-            <v-col cols="auto">
-              <v-btn icon :ripple="false" @click.stop="changeDate(1)">
-                <v-icon>mdi-chevron-right-circle</v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
         </v-card>
 
         <!-- 작업 리스트 -->
@@ -134,6 +144,7 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
+import debounce from 'lodash/debounce'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
@@ -141,6 +152,7 @@ const userStore = useUserStore()
 
 const scheduleMeta = ref(null)
 const selectedDate = ref(getTodayKST())
+const isLoading = ref(false)
 
 function getTodayKST() {
   const now = new Date()
@@ -196,19 +208,26 @@ async function loadScheduleMeta(date) {
   }
 }
 
+const debouncedLoadData = debounce(async (date) => {
+  isLoading.value = true
+  await Promise.all([
+    loadSchedules(date),
+    loadScheduleMeta(date)
+  ])
+  isLoading.value = false
+}, 300)
+
 function changeDate(offset) {
   const current = new Date(selectedDate.value)
   current.setDate(current.getDate() + offset)
   const newDateStr = current.toISOString().split('T')[0]
   selectedDate.value = newDateStr
-  loadSchedules(newDateStr)
-  loadScheduleMeta(newDateStr)
+  debouncedLoadData(newDateStr)
 }
 
 function goToday() {
   selectedDate.value = getTodayKST()
-  loadSchedules(selectedDate.value)
-  loadScheduleMeta(selectedDate.value)
+  debouncedLoadData(selectedDate.value)
 }
 
 function logout() {
@@ -239,8 +258,7 @@ onMounted(() => {
     }
   }
 
-  loadSchedules(selectedDate.value)
-  loadScheduleMeta(selectedDate.value)
+  debouncedLoadData(selectedDate.value)
 })
 </script>
 

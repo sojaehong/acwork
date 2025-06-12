@@ -2,6 +2,15 @@
   <v-container class="pa-4 pb-16">
     <h2 class="text-h5 mb-4">💰 정산 확인</h2>
 
+    <!-- 로딩 인디케이터 -->
+    <v-progress-linear
+      v-if="loadingMeta"
+      indeterminate
+      color="primary"
+      height="4"
+      class="mb-4"
+    ></v-progress-linear>
+
     <!-- 작업자 선택 -->
     <v-select
       v-model="selectedWorker"
@@ -38,6 +47,7 @@
 
       <v-btn
         v-if="selectedUnpaid.length > 0"
+        :loading="updating"
         color="primary"
         block
         class="mb-6"
@@ -65,6 +75,7 @@
 
       <v-btn
         v-if="selectedPaid.length > 0"
+        :loading="updating"
         color="error"
         block
         @click="cancelPaid"
@@ -86,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { db } from '@/firebase/config'
 import { collection, getDocs, query, orderBy, updateDoc, doc, getDoc } from 'firebase/firestore'
 
@@ -95,9 +106,10 @@ const selectedWorker = ref(null)
 const workers = ref([])
 const selectedUnpaid = ref([])
 const selectedPaid = ref([])
-const userMap = ref({}) // ✅ userMap 캐싱 적용
+const userMap = ref({})
+const loadingMeta = ref(false)
+const updating = ref(false)
 
-// ✅ 한국 시간 기준 오늘 날짜 구하기
 function getTodayKST() {
   const now = new Date()
   const offset = 9 * 60 * 60 * 1000
@@ -106,7 +118,6 @@ function getTodayKST() {
 }
 const todayKST = getTodayKST()
 
-// ✅ 날짜 차이 계산 (KST 기준)
 function calcDday(dateStr) {
   const from = new Date(dateStr + 'T00:00:00+09:00')
   const to = new Date(todayKST + 'T00:00:00+09:00')
@@ -116,8 +127,6 @@ function calcDday(dateStr) {
 async function fetchUsers() {
   const userSnap = await getDocs(collection(db, 'users'))
   workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-
-  // ✅ userMap 구축
   userMap.value = {}
   for (const user of workers.value) {
     userMap.value[user.id] = user.name
@@ -125,20 +134,21 @@ async function fetchUsers() {
 }
 
 async function fetchMeta() {
+  loadingMeta.value = true
   const snap = await getDocs(query(collection(db, 'schedulesMeta'), orderBy('date')))
   meta.value = snap.docs.map(d => {
     const data = d.data()
     return {
       id: d.id,
       ...data,
-      paidMap: data.paidMap || {}, // ✅ paidMap 기본 처리
+      paidMap: data.paidMap || {},
       workerNames: (data.workers || []).map(uid => userMap.value[uid] || '알 수 없음'),
       dday: calcDday(data.date)
     }
   })
+  loadingMeta.value = false
 }
 
-// 🔄 정산 안된 항목
 const unpaid = computed(() => {
   return meta.value.filter(
     m =>
@@ -148,7 +158,6 @@ const unpaid = computed(() => {
   )
 })
 
-// 🔄 정산 완료 항목
 const paid = computed(() => {
   return meta.value.filter(
     m =>
@@ -157,7 +166,6 @@ const paid = computed(() => {
   )
 })
 
-// ✅ 항목 토글
 function toggleUnpaid(id) {
   selectedUnpaid.value.includes(id)
     ? selectedUnpaid.value = selectedUnpaid.value.filter(i => i !== id)
@@ -170,8 +178,8 @@ function togglePaid(id) {
     : selectedPaid.value.push(id)
 }
 
-// ✅ 정산 처리
 async function markAsPaid() {
+  updating.value = true
   for (const id of selectedUnpaid.value) {
     const docRef = doc(db, 'schedulesMeta', id)
     const snap = await getDoc(docRef)
@@ -179,14 +187,16 @@ async function markAsPaid() {
     const paidMap = data.paidMap || {}
     paidMap[selectedWorker.value] = true
     await updateDoc(docRef, { paidMap })
+    const metaItem = meta.value.find(m => m.id === id)
+    if (metaItem) metaItem.paidMap[selectedWorker.value] = true
   }
   selectedUnpaid.value = []
   alert('정산 처리되었습니다.')
-  await fetchMeta()
+  updating.value = false
 }
 
-// ✅ 정산 취소
 async function cancelPaid() {
+  updating.value = true
   for (const id of selectedPaid.value) {
     const docRef = doc(db, 'schedulesMeta', id)
     const snap = await getDoc(docRef)
@@ -194,15 +204,22 @@ async function cancelPaid() {
     const paidMap = data.paidMap || {}
     paidMap[selectedWorker.value] = false
     await updateDoc(docRef, { paidMap })
+    const metaItem = meta.value.find(m => m.id === id)
+    if (metaItem) metaItem.paidMap[selectedWorker.value] = false
   }
   selectedPaid.value = []
   alert('정산이 취소되었습니다.')
-  await fetchMeta()
+  updating.value = false
 }
 
 onMounted(async () => {
   await fetchUsers()
   await fetchMeta()
+})
+
+watch(selectedWorker, () => {
+  selectedUnpaid.value = []
+  selectedPaid.value = []
 })
 </script>
 
