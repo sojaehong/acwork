@@ -13,32 +13,10 @@
     <!-- 본문 -->
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
-        <!-- 일정 메타 정보 카드 + 날짜 이동 버튼 -->
+        <!-- 일정 메타 정보 카드 -->
         <v-card class="mb-6 elevation-0 meta-info-card" outlined>
-          <!-- 날짜 이동 영역 -->
-          <v-row align="center" class="pa-3 pb-1" @click="goToMetaEdit" style="cursor: pointer;">
-            <v-col cols="auto">
-              <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
-                <v-icon>mdi-chevron-left-circle</v-icon>
-              </v-btn>
-            </v-col>
-
-            <v-col class="text-center text-h6 font-weight-bold">
-              {{ displayDate }}
-              <div class="text-caption mt-1 text-grey-darken-1">{{ displayDday }}</div>
-            </v-col>
-
-            <v-col cols="auto">
-              <v-btn icon :ripple="false" @click.stop="changeDate(1)">
-                <v-icon>mdi-chevron-right-circle</v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
-
-          <v-divider></v-divider>
-
-          <!-- 일정 메타 정보 내용 -->
-          <v-card-text>
+          <!-- 일정 메타 정보 내용 (👉 여기만 클릭 시 goToMetaEdit) -->
+          <v-card-text @click="goToMetaEdit" style="cursor: pointer;">
             <v-row>
               <v-col cols="12" md="4">
                 <div class="meta-label">🕒 시작 시간</div>
@@ -67,6 +45,26 @@
               </v-col>
             </v-row>
           </v-card-text>
+          <v-divider></v-divider>
+            <!-- 날짜 이동 영역 -->
+          <v-row align="center" class="pa-3 pb-1">
+            <v-col cols="auto">
+              <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
+                <v-icon>mdi-chevron-left-circle</v-icon>
+              </v-btn>
+            </v-col>
+
+            <v-col class="text-center text-h6 font-weight-bold">
+              {{ displayDate }}
+              <div class="text-caption mt-1 text-grey-darken-1">{{ displayDday }}</div>
+            </v-col>
+
+            <v-col cols="auto">
+              <v-btn icon :ripple="false" @click.stop="changeDate(1)">
+                <v-icon>mdi-chevron-right-circle</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
         </v-card>
 
         <!-- 작업 리스트 -->
@@ -100,6 +98,7 @@
           />
         </div>
 
+        <!-- 없을 때 -->
         <v-alert v-if="!activeSchedules.length && !completedSchedules.length" type="info" class="mt-4">
           등록된 작업이 없습니다.
         </v-alert>
@@ -135,7 +134,6 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
-import debounce from 'lodash/debounce'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
@@ -143,8 +141,6 @@ const userStore = useUserStore()
 
 const scheduleMeta = ref(null)
 const selectedDate = ref(getTodayKST())
-
-const scheduleCache = new Map()
 
 function getTodayKST() {
   const now = new Date()
@@ -181,16 +177,10 @@ const displayDday = computed(() => {
 })
 
 async function loadSchedules(date) {
-  if (scheduleCache.has(date)) {
-    scheduleStore.setSchedules(scheduleCache.get(date))
-    return
-  }
-
   const q = query(collection(db, 'schedules'), where('date', '==', date))
   const snap = await getDocs(q)
   const schedules = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
   scheduleStore.setSchedules(schedules)
-  scheduleCache.set(date, schedules)
 }
 
 async function loadScheduleMeta(date) {
@@ -206,17 +196,13 @@ async function loadScheduleMeta(date) {
   }
 }
 
-const debouncedLoadData = debounce((date) => {
-  loadSchedules(date)
-  loadScheduleMeta(date)
-}, 200)
-
 function changeDate(offset) {
   const current = new Date(selectedDate.value)
   current.setDate(current.getDate() + offset)
   const newDateStr = current.toISOString().split('T')[0]
   selectedDate.value = newDateStr
-  debouncedLoadData(newDateStr)
+  loadSchedules(newDateStr)
+  loadScheduleMeta(newDateStr)
 }
 
 function goToday() {
