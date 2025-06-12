@@ -14,31 +14,12 @@
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
 
-        <!-- 일정 메타 정보 카드 + 날짜 이동 버튼 -->
-        <v-card class="mb-6 elevation-0 meta-info-card" outlined>
-
-          <!-- 오늘로 / 일정 등록 텍스트 영역 -->
-          <div class="d-flex justify-end align-center pa-2" style="font-size: 14px;">
-            <span
-              class="text-primary me-3"
-              style="cursor: pointer; text-decoration: underline;"
-              @click="goToday"
-            >
-              오늘로
-            </span>
-            <span
-              class="text-primary"
-              style="cursor: pointer; text-decoration: underline;"
-              @click="goToMetaEdit"
-            >
-              일정 등록
-            </span>
-          </div>
-
+        <!-- 일정 메타 정보 카드 (카드 클릭 → 메타 등록) -->
+        <v-card class="mb-6 elevation-0 meta-info-card" outlined @click="goToMetaEdit" style="cursor: pointer;">
           <!-- 날짜 이동 영역 -->
           <v-row align="center" class="pa-3 pb-1">
             <v-col cols="auto">
-              <v-btn icon @click="changeDate(-1)">
+              <v-btn icon @click.stop="changeDate(-1)">
                 <v-icon>mdi-chevron-left-circle</v-icon>
               </v-btn>
             </v-col>
@@ -49,7 +30,7 @@
             </v-col>
 
             <v-col cols="auto">
-              <v-btn icon @click="changeDate(1)">
+              <v-btn icon @click.stop="changeDate(1)">
                 <v-icon>mdi-chevron-right-circle</v-icon>
               </v-btn>
             </v-col>
@@ -87,7 +68,6 @@
               </v-col>
             </v-row>
           </v-card-text>
-
         </v-card>
 
         <!-- 작업 리스트 -->
