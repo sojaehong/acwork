@@ -4,125 +4,128 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📄 작업 상세 보기</h2>
 
-        <!-- 로딩 Progress -->
-        <v-progress-linear
+        <!-- 중앙 로딩 circular -->
+        <v-progress-circular
           v-if="isLoading"
           indeterminate
           color="primary"
-          height="4"
-          class="mb-4"
-        ></v-progress-linear>
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
-        <v-card v-if="!isLoading" class="pa-4 mb-4" elevation="2">
-          <!-- 날짜 & 위치 -->
-          <v-row class="mb-3">
-            <v-col cols="12" sm="6">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-1">📅 날짜</div>
-                <div>{{ schedule?.date }}</div>
-              </v-sheet>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-1">🏢 건물 정보</div>
-                <div>{{ schedule?.building }} {{ schedule?.unit }}동 {{ schedule?.room }}호</div>
-              </v-sheet>
-            </v-col>
-          </v-row>
+        <transition name="fade-stagger">
+          <v-card v-if="!isLoading" class="pa-4 mb-4" elevation="2">
+            <!-- 날짜 & 위치 -->
+            <v-row class="mb-3">
+              <v-col cols="12" sm="6">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-1">📅 날짜</div>
+                  <div>{{ schedule?.date }}</div>
+                </v-sheet>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-1">🏢 건물 정보</div>
+                  <div>{{ schedule?.building }} {{ schedule?.unit }}동 {{ schedule?.room }}호</div>
+                </v-sheet>
+              </v-col>
+            </v-row>
 
-          <!-- 작업 내용 -->
-          <v-row class="mb-3">
-            <v-col cols="12">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-2">🛠 작업 내용</div>
-                <div>
-                  <v-chip
-                    v-for="(task, i) in schedule?.tasks || []"
-                    :key="i"
-                    class="ma-1"
-                    color="secondary"
+            <!-- 작업 내용 -->
+            <v-row class="mb-3">
+              <v-col cols="12">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-2">🛠 작업 내용</div>
+                  <div>
+                    <v-chip
+                      v-for="(task, i) in schedule?.tasks || []"
+                      :key="i"
+                      class="ma-1"
+                      color="secondary"
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ task.name }} ({{ task.count }})
+                    </v-chip>
+                  </div>
+                </v-sheet>
+              </v-col>
+            </v-row>
+
+            <!-- 세금계산서 & 작업 상태 -->
+            <v-row class="mb-3">
+              <v-col cols="12" md="6">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-1">📄 세금계산서</div>
+                  <div>{{ schedule?.invoice ? 'O' : 'X' }}</div>
+                </v-sheet>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-1">🔁 작업 상태</div>
+                  <v-btn-toggle
+                    v-model="status"
+                    @update:modelValue="updateStatus"
+                    mandatory
+                    color="primary"
                     variant="tonal"
-                    size="small"
+                    class="mt-2 flex-wrap"
                   >
-                    {{ task.name }} ({{ task.count }})
-                  </v-chip>
-                </div>
-              </v-sheet>
-            </v-col>
-          </v-row>
+                    <v-btn v-for="s in statusOptions" :key="s" :value="s" class="ma-1">{{ s }}</v-btn>
+                  </v-btn-toggle>
+                </v-sheet>
+              </v-col>
+            </v-row>
 
-          <!-- 세금계산서 & 작업 상태 -->
-          <v-row class="mb-3">
-            <v-col cols="12" md="6">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-1">📄 세금계산서</div>
-                <div>{{ schedule?.invoice ? 'O' : 'X' }}</div>
-              </v-sheet>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-1">🔁 작업 상태</div>
-                <v-btn-toggle
-                  v-model="status"
-                  @update:modelValue="updateStatus"
-                  mandatory
-                  color="primary"
-                  variant="tonal"
-                  class="mt-2 flex-wrap"
-                >
-                  <v-btn v-for="s in statusOptions" :key="s" :value="s" class="ma-1">{{ s }}</v-btn>
-                </v-btn-toggle>
-              </v-sheet>
-            </v-col>
-          </v-row>
+            <!-- 보류 상태에서 날짜 변경 -->
+            <v-row v-if="status === '보류'">
+              <v-col cols="12">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
+                  <v-dialog
+                    v-model="pickerOpen"
+                    scrollable
+                    persistent
+                    max-width="95vw"
+                  >
+                    <template #activator="{ props }">
+                      <v-text-field
+                        v-bind="props"
+                        v-model="displayDate"
+                        label="변경 날짜 선택"
+                        readonly
+                        prepend-icon="mdi-calendar"
+                      />
+                    </template>
+                    <v-card style="max-height: 90vh; overflow-y: auto;">
+                      <v-date-picker
+                        v-model="newDate"
+                        :min="today"
+                        scrollable
+                        color="primary"
+                      />
+                      <v-card-actions class="justify-end">
+                        <v-btn text @click="pickerOpen = false">닫기</v-btn>
+                        <v-btn color="primary" :loading="isSaving" @click="applyNewDate">적용</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-dialog>
+                </v-sheet>
+              </v-col>
+            </v-row>
 
-          <!-- 보류 상태에서 날짜 변경 -->
-          <v-row v-if="status === '보류'">
-            <v-col cols="12">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
-                <v-dialog
-                  v-model="pickerOpen"
-                  scrollable
-                  persistent
-                  max-width="95vw"
-                >
-                  <template #activator="{ props }">
-                    <v-text-field
-                      v-bind="props"
-                      v-model="displayDate"
-                      label="변경 날짜 선택"
-                      readonly
-                      prepend-icon="mdi-calendar"
-                    />
-                  </template>
-                  <v-card style="max-height: 90vh; overflow-y: auto;">
-                    <v-date-picker
-                      v-model="newDate"
-                      :min="today"
-                      scrollable
-                      color="primary"
-                    />
-                    <v-card-actions class="justify-end">
-                      <v-btn text @click="pickerOpen = false">닫기</v-btn>
-                      <v-btn color="primary" :loading="isSaving" @click="applyNewDate">적용</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-              </v-sheet>
-            </v-col>
-          </v-row>
-
-          <!-- 메모 -->
-          <v-row>
-            <v-col cols="12">
-              <v-sheet class="pa-3 rounded bg-grey-lighten-4">
-                <div class="font-weight-bold text-subtitle-1 mb-1">🗒 메모</div>
-                <div class="text-grey-darken-1 text-body-2">{{ schedule?.memo || '-' }}</div>
-              </v-sheet>
-            </v-col>
-          </v-row>
-        </v-card>
+            <!-- 메모 -->
+            <v-row>
+              <v-col cols="12">
+                <v-sheet class="pa-3 rounded bg-grey-lighten-4">
+                  <div class="font-weight-bold text-subtitle-1 mb-1">🗒 메모</div>
+                  <div class="text-grey-darken-1 text-body-2">{{ schedule?.memo || '-' }}</div>
+                </v-sheet>
+              </v-col>
+            </v-row>
+          </v-card>
+        </transition>
       </v-container>
 
       <!-- 하단 고정 버튼 -->
@@ -145,7 +148,6 @@
     </v-main>
   </v-app>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -267,9 +269,24 @@ function goBack() {
   router.back()
 }
 </script>
-
 <style scoped>
 .font-weight-bold {
   font-weight: bold;
+}
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

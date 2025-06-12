@@ -71,44 +71,46 @@
         <!-- 작업 내용 및 수량 -->
         <v-sheet class="mb-4 pa-4 elevation-1 rounded-lg">
           <div class="mb-2 font-weight-bold">💪 작업 내용 및 수량</div>
-          <div
-            v-for="(task, index) in form.tasks"
-            :key="index"
-            class="d-flex align-center mb-2 flex-wrap task-row"
-          >
-            <v-btn-toggle v-model="task.name" class="mr-2">
-              <v-btn
-                v-for="t in types"
-                :key="t"
-                :value="t"
-                :class="task.name === t ? 'selected-btn' : ''"
-                color="secondary"
-                variant="tonal"
-              >
-                {{ t }}
-              </v-btn>
-            </v-btn-toggle>
+          <transition-group name="fade-stagger" tag="div">
+            <div
+              v-for="(task, index) in form.tasks"
+              :key="index"
+              class="d-flex align-center mb-2 flex-wrap task-row"
+            >
+              <v-btn-toggle v-model="task.name" class="mr-2">
+                <v-btn
+                  v-for="t in types"
+                  :key="t"
+                  :value="t"
+                  :class="task.name === t ? 'selected-btn' : ''"
+                  color="secondary"
+                  variant="tonal"
+                >
+                  {{ t }}
+                </v-btn>
+              </v-btn-toggle>
 
-            <v-text-field
-              v-if="task.name === '기타'"
-              v-model="task.etc"
-              label="직접입력"
-              class="mr-2 custom-task-etc"
-              dense
-            />
-            <v-text-field
-              v-model.number="task.count"
-              type="number"
-              min="1"
-              label="수량"
-              class="mr-2"
-              style="max-width: 80px"
-              dense
-            />
-            <v-btn icon color="error" @click="removeTask(index)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </div>
+              <v-text-field
+                v-if="task.name === '기타'"
+                v-model="task.etc"
+                label="직접입력"
+                class="mr-2 custom-task-etc"
+                dense
+              />
+              <v-text-field
+                v-model.number="task.count"
+                type="number"
+                min="1"
+                label="수량"
+                class="mr-2"
+                style="max-width: 80px"
+                dense
+              />
+              <v-btn icon color="error" @click="removeTask(index)">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </div>
+          </transition-group>
           <v-btn small color="success" @click="addTask">+ 작업 추가</v-btn>
         </v-sheet>
 
@@ -149,7 +151,7 @@
           />
         </v-sheet>
 
-        <!-- Dummy Spacer for Keyboard -->
+        <!-- Dummy Spacer -->
         <div style="height: 200px;"></div>
       </v-container>
 
@@ -306,5 +308,23 @@ async function submit() {
   min-width: 120px;
   max-width: 180px;
   flex-shrink: 1;
+}
+
+/* fade-stagger 효과 */
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

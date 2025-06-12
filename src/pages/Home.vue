@@ -14,18 +14,19 @@
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
 
-        <!-- 로딩 인디케이터 -->
-        <v-progress-linear
-          v-if="isLoading"
+        <!-- 중앙 로딩 -->
+        <v-progress-circular
+          v-if="loading"
           indeterminate
           color="primary"
-          height="4"
-          class="mb-4"
-        ></v-progress-linear>
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
         <!-- 일정 메타 정보 카드 -->
         <v-card class="mb-6 elevation-0 meta-info-card" outlined>
-         <!-- 날짜 이동 영역 -->
+          <!-- 날짜 이동 영역 -->
           <v-row align="center" class="pa-3 pb-1">
             <v-col cols="auto">
               <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
@@ -45,7 +46,7 @@
             </v-col>
           </v-row>
           <v-divider></v-divider>
-             <!-- 일정 메타 정보 내용 (👉 여기만 클릭 시 goToMetaEdit) -->
+          <!-- 일정 메타 정보 내용 -->
           <v-card-text @click="goToMetaEdit" style="cursor: pointer;">
             <v-row>
               <v-col cols="12" md="4">
@@ -80,32 +81,38 @@
         <!-- 작업 리스트 -->
         <div v-if="activeSchedules.length">
           <h3 class="section-title">🛠 진행 중</h3>
-          <TaskCard
-            v-for="item in activeSchedules"
-            :key="item.id"
-            :item="item"
-            @click="goToDetail(item.id)"
-          />
+          <transition-group name="fade-stagger" tag="div" appear>
+            <TaskCard
+              v-for="item in activeSchedules"
+              :key="item.id + '-active'"
+              :item="item"
+              @click="goToDetail(item.id)"
+            />
+          </transition-group>
         </div>
 
         <div v-if="completedSchedules.filter(s => s.status === '완료').length">
           <h3 class="section-title">✅ 완료</h3>
-          <TaskCard
-            v-for="item in completedSchedules.filter(s => s.status === '완료')"
-            :key="item.id"
-            :item="item"
-            @click="goToDetail(item.id)"
-          />
+          <transition-group name="fade-stagger" tag="div" appear>
+            <TaskCard
+              v-for="item in completedSchedules.filter(s => s.status === '완료')"
+              :key="item.id + '-done'"
+              :item="item"
+              @click="goToDetail(item.id)"
+            />
+          </transition-group>
         </div>
 
         <div v-if="completedSchedules.filter(s => s.status === '보류').length">
           <h3 class="section-title">⏸ 보류</h3>
-          <TaskCard
-            v-for="item in completedSchedules.filter(s => s.status === '보류')"
-            :key="item.id"
-            :item="item"
-            @click="goToDetail(item.id)"
-          />
+          <transition-group name="fade-stagger" tag="div" appear>
+            <TaskCard
+              v-for="item in completedSchedules.filter(s => s.status === '보류')"
+              :key="item.id + '-hold'"
+              :item="item"
+              @click="goToDetail(item.id)"
+            />
+          </transition-group>
         </div>
 
         <!-- 없을 때 -->
@@ -152,7 +159,7 @@ const userStore = useUserStore()
 
 const scheduleMeta = ref(null)
 const selectedDate = ref(getTodayKST())
-const isLoading = ref(false)
+const loading = ref(false)
 
 function getTodayKST() {
   const now = new Date()
@@ -209,12 +216,9 @@ async function loadScheduleMeta(date) {
 }
 
 const debouncedLoadData = debounce(async (date) => {
-  isLoading.value = true
-  await Promise.all([
-    loadSchedules(date),
-    loadScheduleMeta(date)
-  ])
-  isLoading.value = false
+  loading.value = true
+  await Promise.all([loadSchedules(date), loadScheduleMeta(date)])
+  loading.value = false
 }, 300)
 
 function changeDate(offset) {
@@ -225,15 +229,11 @@ function changeDate(offset) {
   debouncedLoadData(newDateStr)
 }
 
-function goToday() {
-  selectedDate.value = getTodayKST()
-  debouncedLoadData(selectedDate.value)
-}
-
 function logout() {
   userStore.logout()
   router.push('/login')
 }
+
 function goToAll() { router.push('/schedules') }
 function goToDetail(id) { router.push(`/schedule/${id}`) }
 function goToMetaEdit() { router.push('/meta') }
@@ -244,7 +244,8 @@ function goToAdd() { router.push('/add') }
 const activeSchedules = computed(() => scheduleStore.schedules.filter(s => s.status === '진행'))
 const completedSchedules = computed(() => scheduleStore.schedules.filter(s => s.status !== '진행' && s.status !== '취소됨'))
 
-onMounted(() => {
+onMounted(async () => {
+  // 유저 정보 복원
   if (!userStore.userId) {
     const storedId = localStorage.getItem('user_id')
     const storedName = localStorage.getItem('user_name')
@@ -258,7 +259,10 @@ onMounted(() => {
     }
   }
 
-  debouncedLoadData(selectedDate.value)
+  // 최초 로딩은 debounce 없이 즉시 실행
+  loading.value = true
+  await Promise.all([loadSchedules(selectedDate.value), loadScheduleMeta(selectedDate.value)])
+  loading.value = false
 })
 </script>
 
@@ -289,5 +293,29 @@ onMounted(() => {
   font-size: 16px;
   margin-top: 16px;
   margin-bottom: 10px;
+}
+
+/* fade-stagger 효과 */
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+}
+.fade-stagger-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

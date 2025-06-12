@@ -82,7 +82,7 @@ const statusColor = computed(() => {
     case '완료': return 'green'
     case '보류': return 'red'
     case '진행': return 'orange'
-    case '예정': return 'purple' // 예정을 강조 색상 purple 사용
+    case '예정': return 'purple' // 예정 강조 색상
     default: return 'grey'
   }
 })
@@ -93,7 +93,7 @@ const statusClass = computed(() => {
     case '완료': return 'status-complete'
     case '보류': return 'status-hold'
     case '진행': return 'status-active'
-    case '예정': return 'status-planned' // 예정 별도 class 적용
+    case '예정': return 'status-planned'
     default: return 'status-default'
   }
 })
@@ -102,12 +102,13 @@ const statusClass = computed(() => {
 <style scoped>
 .task-card {
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s;
   border-left: 6px solid #2196f3; /* 기본 진행 색상 */
 }
 
 .task-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px); /* 살짝 뜨는 효과 */
 }
 
 .status-active {

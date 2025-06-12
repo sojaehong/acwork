@@ -4,14 +4,15 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">일정 관리</h2>
 
-        <!-- 로딩 Progress -->
-        <v-progress-linear
+        <!-- 중앙 로딩 (circular 적용) -->
+        <v-progress-circular
           v-if="isLoading"
           indeterminate
           color="primary"
-          height="4"
-          class="mb-4"
-        ></v-progress-linear>
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
         <!-- 기존 날짜 목록 -->
         <div v-if="existingDatesDisplay.length" class="mb-4">
@@ -85,7 +86,7 @@
             <v-btn color="secondary" block @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="4" v-if="isEdit">
-            <v-btn color="error" block @click="cancelSchedule">일정 취소</v-btn>
+            <v-btn color="error" block :loading="isSaving" @click="cancelSchedule">일정 취소</v-btn>
           </v-col>
           <v-col :cols="isEdit ? 4 : 8">
             <v-btn color="primary" block :loading="isSaving" @click="submit">저장</v-btn>

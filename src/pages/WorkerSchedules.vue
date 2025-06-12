@@ -1,74 +1,85 @@
 <template>
-  <v-container class="pa-4 pb-16">
-    <h2 class="text-h5 mb-4">👷 작업자별 일정</h2>
+  <v-app>
+    <v-main>
+      <v-container class="pa-4 pb-16">
+        <h2 class="text-h5 mb-4">👷 작업자별 일정</h2>
 
-    <!-- 로딩 인디케이터 -->
-    <v-progress-linear
-      v-if="loadingMeta"
-      indeterminate
-      color="primary"
-      height="4"
-      class="mb-4"
-    ></v-progress-linear>
+        <!-- 중앙 로딩 circular -->
+        <v-progress-circular
+          v-if="loadingMeta"
+          indeterminate
+          color="primary"
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
-    <!-- 작업자 선택 -->
-    <v-select
-      v-model="selectedWorker"
-      :items="workers"
-      label="작업자 선택"
-      outlined
-      dense
-      class="mb-4"
-      item-title="name"
-      item-value="id"
-    />
+        <!-- 작업자 선택 -->
+        <v-select
+          v-model="selectedWorker"
+          :items="workers"
+          label="작업자 선택"
+          outlined
+          dense
+          class="mb-4"
+          item-title="name"
+          item-value="id"
+        />
 
-    <v-alert v-if="!selectedWorker" type="info">작업자를 선택해주세요.</v-alert>
+        <v-alert v-if="!selectedWorker" type="info">작업자를 선택해주세요.</v-alert>
 
-    <template v-else>
-      <!-- 남은 일정 -->
-      <h3 class="text-subtitle-1 font-weight-bold mb-2">📅 남은 일정</h3>
-      <v-alert v-if="upcomingMeta.length === 0" type="warning">남은 일정이 없습니다.</v-alert>
-      <v-card
-        v-for="(item, index) in upcomingMeta"
-        :key="index"
-        class="mb-3 pa-3"
-        outlined
+        <template v-else>
+          <!-- 남은 일정 -->
+          <h3 class="text-subtitle-1 font-weight-bold mb-2">📅 남은 일정</h3>
+          <v-alert v-if="upcomingMeta.length === 0" type="warning">남은 일정이 없습니다.</v-alert>
+
+          <transition-group name="fade-stagger" tag="div">
+            <v-card
+              v-for="(item, index) in upcomingMeta"
+              :key="item.id"
+              class="mb-3 pa-3"
+              outlined
+            >
+              <div class="text-subtitle-2 font-weight-bold">[D-{{ item.dday }}] {{ item.date }}</div>
+              <div>시작 시간: {{ item.startTime || '-' }}</div>
+              <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
+              <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
+            </v-card>
+          </transition-group>
+
+          <!-- 지난 일정 -->
+          <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-2">📜 지난 일정</h3>
+          <v-alert v-if="pastMeta.length === 0" type="info">지난 일정이 없습니다.</v-alert>
+
+          <transition-group name="fade-stagger" tag="div">
+            <v-card
+              v-for="(item, index) in pastMeta"
+              :key="item.id"
+              class="mb-3 pa-3"
+              outlined
+            >
+              <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
+              <div>시작 시간: {{ item.startTime || '-' }}</div>
+              <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
+              <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
+            </v-card>
+          </transition-group>
+        </template>
+      </v-container>
+
+      <!-- 하단 고정 버튼 -->
+      <v-container
+        class="pa-2"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
-        <div class="text-subtitle-2 font-weight-bold">[D-{{ item.dday }}] {{ item.date }}</div>
-        <div>시작 시간: {{ item.startTime || '-' }}</div>
-        <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
-        <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
-      </v-card>
-
-      <!-- 지난 일정 -->
-      <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-2">📜 지난 일정</h3>
-      <v-alert v-if="pastMeta.length === 0" type="info">지난 일정이 없습니다.</v-alert>
-      <v-card
-        v-for="(item, index) in pastMeta"
-        :key="index"
-        class="mb-3 pa-3"
-        outlined
-      >
-        <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
-        <div>시작 시간: {{ item.startTime || '-' }}</div>
-        <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
-        <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
-      </v-card>
-    </template>
-  </v-container>
-
-  <!-- 하단 고정 버튼 -->
-  <v-container
-    class="pa-2"
-    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
-  >
-    <v-row dense>
-      <v-col>
-        <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-row dense>
+          <v-col>
+            <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup>
@@ -167,5 +178,23 @@ const pastMeta = computed(() => {
 <style scoped>
 .font-weight-bold {
   font-weight: bold;
+}
+
+/* fade-stagger 애니메이션 */
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

@@ -1,99 +1,110 @@
 <template>
-  <v-container class="pa-4 pb-16">
-    <h2 class="text-h5 mb-4">💰 정산 확인</h2>
+  <v-app>
+    <v-main>
+      <v-container class="pa-4 pb-16">
+        <h2 class="text-h5 mb-4">💰 정산 확인</h2>
 
-    <!-- 로딩 인디케이터 -->
-    <v-progress-linear
-      v-if="loadingMeta"
-      indeterminate
-      color="primary"
-      height="4"
-      class="mb-4"
-    ></v-progress-linear>
+        <!-- 중앙 로딩 circular -->
+        <v-progress-circular
+          v-if="loadingMeta"
+          indeterminate
+          color="primary"
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
-    <!-- 작업자 선택 -->
-    <v-select
-      v-model="selectedWorker"
-      :items="workers"
-      item-title="name"
-      item-value="id"
-      label="작업자 선택"
-      outlined
-      dense
-      class="mb-4"
-    />
+        <!-- 작업자 선택 -->
+        <v-select
+          v-model="selectedWorker"
+          :items="workers"
+          item-title="name"
+          item-value="id"
+          label="작업자 선택"
+          outlined
+          dense
+          class="mb-4"
+        />
 
-    <v-alert v-if="!selectedWorker" type="info">작업자를 선택해주세요.</v-alert>
+        <v-alert v-if="!selectedWorker" type="info">작업자를 선택해주세요.</v-alert>
 
-    <template v-else>
-      <!-- 정산 안됨 -->
-      <h3 class="text-subtitle-1 font-weight-bold mb-2">💼 정산 안됨</h3>
-      <v-alert v-if="unpaid.length === 0" type="success">정산 안된 항목이 없습니다.</v-alert>
-      <v-card
-        v-for="(item, index) in unpaid"
-        :key="item.id"
-        class="mb-3 pa-3"
-        outlined
-        :color="selectedUnpaid.includes(item.id) ? 'blue lighten-4' : ''"
-        @click="toggleUnpaid(item.id)"
-        style="cursor: pointer"
+        <template v-else>
+          <!-- 정산 안됨 -->
+          <h3 class="text-subtitle-1 font-weight-bold mb-2">💼 정산 안됨</h3>
+          <v-alert v-if="unpaid.length === 0" type="success">정산 안된 항목이 없습니다.</v-alert>
+
+          <transition-group name="fade-stagger" tag="div">
+            <v-card
+              v-for="(item, index) in unpaid"
+              :key="item.id"
+              class="mb-3 pa-3"
+              outlined
+              :color="selectedUnpaid.includes(item.id) ? 'blue lighten-4' : ''"
+              @click="toggleUnpaid(item.id)"
+              style="cursor: pointer"
+            >
+              <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
+              <div>시작 시간: {{ item.startTime || '-' }}</div>
+              <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
+              <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
+              <div class="text-grey">정산 상태: 정산 안됨</div>
+            </v-card>
+          </transition-group>
+
+          <v-btn
+            v-if="selectedUnpaid.length > 0"
+            :loading="updating"
+            color="primary"
+            block
+            class="mb-6"
+            @click="markAsPaid"
+          >정산 처리</v-btn>
+
+          <!-- 정산 완료 -->
+          <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-2">📜 정산 완료</h3>
+          <v-alert v-if="paid.length === 0" type="info">정산 완료된 항목이 없습니다.</v-alert>
+
+          <transition-group name="fade-stagger" tag="div">
+            <v-card
+              v-for="(item, index) in paid"
+              :key="item.id"
+              class="mb-3 pa-3"
+              outlined
+              :color="selectedPaid.includes(item.id) ? 'red lighten-4' : ''"
+              @click="togglePaid(item.id)"
+              style="cursor: pointer"
+            >
+              <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
+              <div>시작 시간: {{ item.startTime || '-' }}</div>
+              <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
+              <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
+              <div class="text-grey">정산 상태: 정산 완료</div>
+            </v-card>
+          </transition-group>
+
+          <v-btn
+            v-if="selectedPaid.length > 0"
+            :loading="updating"
+            color="error"
+            block
+            @click="cancelPaid"
+          >정산 취소</v-btn>
+        </template>
+      </v-container>
+
+      <!-- 하단 고정 버튼 -->
+      <v-container
+        class="pa-2"
+        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
-        <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
-        <div>시작 시간: {{ item.startTime || '-' }}</div>
-        <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
-        <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
-        <div class="text-grey">정산 상태: 정산 안됨</div>
-      </v-card>
-
-      <v-btn
-        v-if="selectedUnpaid.length > 0"
-        :loading="updating"
-        color="primary"
-        block
-        class="mb-6"
-        @click="markAsPaid"
-      >정산 처리</v-btn>
-
-      <!-- 정산 완료 -->
-      <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-2">📜 정산 완료</h3>
-      <v-alert v-if="paid.length === 0" type="info">정산 완료된 항목이 없습니다.</v-alert>
-      <v-card
-        v-for="(item, index) in paid"
-        :key="item.id"
-        class="mb-3 pa-3"
-        outlined
-        :color="selectedPaid.includes(item.id) ? 'red lighten-4' : ''"
-        @click="togglePaid(item.id)"
-        style="cursor: pointer"
-      >
-        <div class="text-subtitle-2 font-weight-bold">[D+{{ item.dday }}] {{ item.date }}</div>
-        <div>시작 시간: {{ item.startTime || '-' }}</div>
-        <div>작업 인원: {{ item.workerNames.join(', ') }}</div>
-        <div v-if="item.notice" class="text-grey">📌 {{ item.notice }}</div>
-        <div class="text-grey">정산 상태: 정산 완료</div>
-      </v-card>
-
-      <v-btn
-        v-if="selectedPaid.length > 0"
-        :loading="updating"
-        color="error"
-        block
-        @click="cancelPaid"
-      >정산 취소</v-btn>
-    </template>
-  </v-container>
-
-  <!-- 하단 고정 버튼 -->
-  <v-container
-    class="pa-2"
-    style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
-  >
-    <v-row dense>
-      <v-col>
-        <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-row dense>
+          <v-col>
+            <v-btn color="primary" block @click="$router.push('/')">홈으로</v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup>
@@ -226,5 +237,23 @@ watch(selectedWorker, () => {
 <style scoped>
 .font-weight-bold {
   font-weight: bold;
+}
+
+/* fade-stagger 애니메이션 */
+.fade-stagger-enter-active {
+  transition: all 0.3s ease;
+}
+.fade-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-stagger-leave-active {
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

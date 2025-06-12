@@ -4,14 +4,15 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
-        <!-- 로딩 인디케이터 -->
-        <v-progress-linear
+        <!-- 중앙 로딩 -->
+        <v-progress-circular
           v-if="isLoading"
           indeterminate
           color="primary"
-          height="4"
-          class="mb-4"
-        ></v-progress-linear>
+          size="48"
+          width="5"
+          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
+        ></v-progress-circular>
 
         <!-- 🔍 필터 및 검색 -->
         <v-expansion-panels flat class="mb-4">
@@ -48,12 +49,8 @@
           </v-expansion-panel>
         </v-expansion-panels>
 
-        <!-- ⏳ 로딩 / 에러 -->
-        <v-alert v-if="loading" type="info">불러오는 중...</v-alert>
-        <v-alert v-if="error" type="error">{{ error }}</v-alert>
-
         <!-- 📋 날짜별 작업 리스트 -->
-        <div v-if="groupedSchedules.length">
+        <v-slide-y-transition group>
           <div v-for="[date, items] in groupedSchedules" :key="date" class="mb-6">
             <h3 class="text-subtitle-1 font-weight-bold mb-2">
               📅 {{ formatDateWithDay(date) }}
@@ -65,51 +62,52 @@
                 cols="12"
                 sm="12"
                 md="6"
-                @click="goToDetail(item.id)"
               >
-                <v-card class="mb-4 pa-4" hover style="cursor: pointer">
-                  <div class="d-flex justify-space-between align-center mb-2">
-                    <div class="text-subtitle-1 font-weight-medium">
-                      🕓 {{ item.date }}
+                <v-expand-transition>
+                  <v-card class="mb-4 pa-4" hover style="cursor: pointer" @click="goToDetail(item.id)">
+                    <div class="d-flex justify-space-between align-center mb-2">
+                      <div class="text-subtitle-1 font-weight-medium">
+                        🕓 {{ item.date }}
+                      </div>
+                      <div>
+                        <v-chip :color="displayStatusColor(item)" size="small" class="me-1" text-color="white">
+                          {{ displayStatusText(item) }}
+                        </v-chip>
+                        <v-chip :color="item.invoice ? 'blue' : 'grey'" size="small" text-color="white">
+                          세금계산서 {{ item.invoice ? 'O' : 'X' }}
+                        </v-chip>
+                      </div>
                     </div>
-                    <div>
-                      <v-chip :color="displayStatusColor(item)" size="small" class="me-1" text-color="white">
-                        {{ displayStatusText(item) }}
-                      </v-chip>
-                      <v-chip :color="item.invoice ? 'blue' : 'grey'" size="small" text-color="white">
-                        세금계산서 {{ item.invoice ? 'O' : 'X' }}
-                      </v-chip>
+                    <div class="text-body-1 font-weight-bold mb-2">
+                      🏢 {{ item.building }} {{ item.unit }}동 {{ item.room }}호
                     </div>
-                  </div>
-                  <div class="text-body-1 font-weight-bold mb-2">
-                    🏢 {{ item.building }} {{ item.unit }}동 {{ item.room }}호
-                  </div>
-                  <div class="text-body-2 text-grey-darken-2">
-                    <span class="font-weight-medium">🛠️ 작업 내용:</span>
-                    <template v-if="item.tasks && item.tasks.length">
-                      <v-chip
-                        v-for="(task, i) in item.tasks"
-                        :key="i"
-                        size="small"
-                        class="me-1 mt-1"
-                        color="secondary"
-                        variant="tonal"
-                      >
-                        {{ task.name }} ({{ task.count }} )
-                      </v-chip>
-                    </template>
-                    <span v-else class="text-grey">없음</span>
-                  </div>
-                  <div class="text-caption text-grey mt-2" v-if="item.memo">
-                    ✏️ {{ item.memo }}
-                  </div>
-                </v-card>
+                    <div class="text-body-2 text-grey-darken-2">
+                      <span class="font-weight-medium">🛠️ 작업 내용:</span>
+                      <template v-if="item.tasks && item.tasks.length">
+                        <v-chip
+                          v-for="(task, i) in item.tasks"
+                          :key="i"
+                          size="small"
+                          class="me-1 mt-1"
+                          color="secondary"
+                          variant="tonal"
+                        >
+                          {{ task.name }} ({{ task.count }} )
+                        </v-chip>
+                      </template>
+                      <span v-else class="text-grey">없음</span>
+                    </div>
+                    <div class="text-caption text-grey mt-2" v-if="item.memo">
+                      ✏️ {{ item.memo }}
+                    </div>
+                  </v-card>
+                </v-expand-transition>
               </v-col>
             </v-row>
           </div>
-        </div>
+        </v-slide-y-transition>
 
-        <div v-else class="text-grey text-subtitle-1 mt-4">등록된 작업이 없습니다.</div>
+        <div v-if="!groupedSchedules.length" class="text-grey text-subtitle-1 mt-4">등록된 작업이 없습니다.</div>
       </v-container>
 
       <!-- ⬅️ 하단 고정 버튼 -->
@@ -164,7 +162,6 @@ const dateConfig = {
 
 function applyFilters() {
   isLoading.value = true
-  // 여긴 실제 서버 필터링이 아니라 client computed 사용이므로 바로 끝남
   setTimeout(() => { isLoading.value = false }, 200)
 }
 const applyFiltersDebounced = debounce(applyFilters, 200)
