@@ -21,7 +21,7 @@
     <v-slide-group show-arrows class="mb-4" v-model="selectedItemIndex">
       <v-slide-item v-for="(item, i) in productButtons" :key="i">
         <v-btn class="ma-1" color="primary" variant="tonal" :style="{ minWidth: '120px' }" @click="selectPresetItem(item)">
-          {{ item.name }} - {{ item.spec }}
+          {{ item.displayName }}
         </v-btn>
       </v-slide-item>
       <v-slide-item>
@@ -259,9 +259,10 @@ function processProductButtons() {
     return true
   }).map(p => {
     const specTrimmed = (p.spec || '').trim()
+    const displayName = specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
     return {
       ...p,
-      displayName: specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
+      displayName
     }
   })
 }

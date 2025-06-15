@@ -119,17 +119,17 @@
 
       <v-container class="pa-2 fixed-bottom-btn">
         <v-row dense>
-          <v-col cols="4">
-            <v-btn color="info" block @click="goToWorker" class="responsive-btn">👷 작업자별</v-btn>
+          <v-col cols="3">
+            <v-btn color="info" block @click="goToWorker" class="responsive-btn">작업자별</v-btn>
           </v-col>
-          <v-col cols="4">
-            <v-btn color="success" block @click="goToPayroll" class="responsive-btn">💰 정산</v-btn>
+          <v-col cols="3">
+            <v-btn color="success" block @click="goToPayroll" class="responsive-btn">정산</v-btn>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="3">
             <v-btn color="grey" block @click="goToEstimateForm" class="responsive-btn">견적서</v-btn>
           </v-col>
-          <v-col cols="4">
-            <v-btn color="secondary" block @click="goToAdd" class="responsive-btn">+ 작업 등록</v-btn>
+          <v-col cols="3">
+            <v-btn color="secondary" block @click="goToAdd" class="responsive-btn">+ 작업등록</v-btn>
           </v-col>
         </v-row>
         <v-btn class="mt-2 responsive-btn" block color="grey darken-1" @click="goToAll">📋 전체 작업 일정 보기</v-btn>
