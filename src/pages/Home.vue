@@ -126,6 +126,9 @@
             <v-btn color="success" block @click="goToPayroll" class="responsive-btn">💰 정산</v-btn>
           </v-col>
           <v-col cols="4">
+            <v-btn color="grey" block @click="goToEstimateForm" class="responsive-btn">견적서</v-btn>
+          </v-col>
+          <v-col cols="4">
             <v-btn color="secondary" block @click="goToAdd" class="responsive-btn">+ 작업 등록</v-btn>
           </v-col>
         </v-row>
@@ -240,6 +243,7 @@ const goToPayroll = () => goTo('/payroll')
 const goToWorker = () => goTo('/worker-schedules')
 const goToMetaEdit = () => goTo('/meta')
 const goToDetail = (id) => goTo(`/schedule/${id}`)
+const goToEstimateForm = () => goTo('/estimate')
 
 const activeSchedules = computed(() =>
   scheduleStore.schedules.filter(s => (s.status || '').trim() === '진행')

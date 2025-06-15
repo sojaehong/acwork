@@ -11,6 +11,8 @@ const EditSchedule = () => import('@/pages/EditSchedule.vue')
 const SchedulesMeta = () => import('@/pages/SchedulesMeta.vue')
 const WorkerSchedules = () => import('@/pages/WorkerSchedules.vue')
 const WorkerPayroll = () => import('@/pages/WorkerPayroll.vue')
+const EstimateForm = () => import('@/pages/EstimateForm.vue')  // ⬅️ 위 Lazy-loading 라인들 하단에 추가
+
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -21,7 +23,9 @@ const routes = [
   { path: '/schedule/:id/edit', name: 'EditSchedule', component: EditSchedule },
   { path: '/meta', name: 'SchedulesMeta', component: SchedulesMeta },
   { path: '/worker-schedules', name: 'WorkerSchedules', component: WorkerSchedules },
-  { path: '/payroll', name: 'WorkerPayroll', component: WorkerPayroll }
+  { path: '/payroll', name: 'WorkerPayroll', component: WorkerPayroll },
+  { path: '/estimate', name: 'EstimateForm', component: EstimateForm }
+
 ]
 
 const router = createRouter({
