@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4" :class="{ 'pb-drawer': showFilters }">
+      <v-container class="pa-4">
         <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
         <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
@@ -32,14 +32,11 @@
                       </v-chip>
                     </div>
                   </div>
-
-                  <!-- ✅ 건물 + 동 + 호수 띄어쓰기 처리 -->
                   <div class="text-body-1 font-weight-bold mb-2">
                     🏢 <span class="text-primary">{{ item.building }}</span>
                     <span v-if="item.unit">&nbsp;{{ item.unit }}동</span>
                     <span v-if="item.room">&nbsp;{{ item.room }}호</span>
                   </div>
-
                   <div class="text-body-2 text-grey-darken-2">
                     <span class="font-weight-medium">🛠️ 작업 내용:</span>
                     <v-chip
@@ -61,15 +58,19 @@
         <div v-if="!groupedSchedules.length" class="text-grey text-subtitle-1 mt-4">등록된 작업이 없습니다.</div>
       </v-container>
 
-      <!-- 하단 고정 버튼 -->
-      <v-container class="pa-2 bottom-bar">
+      <!-- 하단 고정 버튼 영역 -->
+      <v-container v-if="!showFilters" class="pa-2 bottom-bar">
         <v-row dense>
           <v-col cols="6">
             <v-btn block color="primary" @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn block color="grey-darken-2" @click="showFilters = !showFilters">
-              {{ showFilters ? '🔽 필터 닫기' : '🔍 필터 열기' }}
+            <v-btn
+              block
+              :color="hasActiveFilters ? 'green' : 'grey-darken-2'"
+              @click="showFilters = true"
+            >
+              {{ hasActiveFilters ? '✅ 필터 적용됨' : '🔍 필터 열기' }}
             </v-btn>
           </v-col>
         </v-row>
@@ -105,8 +106,11 @@
                 <v-col cols="12">
                   <v-text-field v-model="store.filters.searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced" />
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="6">
                   <v-btn block color="grey-darken-2" @click="resetFilters">초기화</v-btn>
+                </v-col>
+                <v-col cols="6">
+                  <v-btn block color="error" @click="showFilters = false">닫기</v-btn>
                 </v-col>
               </v-row>
             </div>
@@ -194,6 +198,13 @@ const displayStatusText = item => {
   }
   return item.status
 }
+
+const hasActiveFilters = computed(() => {
+  const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
+  return (
+    status.length || building.length || task.length || invoice || searchText || startDate || endDate
+  )
+})
 
 const filteredSchedules = computed(() => {
   return store.schedules.filter(item => {
@@ -285,9 +296,7 @@ onMounted(async () => {
 }
 .filter-drawer {
   position: fixed;
-  bottom: 60px;
-  padding-bottom: calc(16px + 70vh);
-  transition: padding-bottom 0.3s;
+  bottom: 0; /* 🔥 기존 60px → 0 으로 수정 */
   left: 0;
   right: 0;
   background: #f9f9f9;
@@ -298,10 +307,6 @@ onMounted(async () => {
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-}
-.pb-drawer {
-  padding-bottom: calc(16px + 70vh);
-  transition: padding-bottom 0.3s;
 }
 .text-primary {
   color: #1976d2;
