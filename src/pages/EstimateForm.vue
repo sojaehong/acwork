@@ -252,10 +252,17 @@ function addCustomItem() {
 function processProductButtons() {
   const seen = new Set()
   productButtons.value = productOptions.value.filter(p => {
-    const key = `${p.name}-${p.spec}`
+    const specTrimmed = (p.spec || '').trim()
+    const key = specTrimmed ? `${p.name}-${specTrimmed}` : p.name
     if (seen.has(key)) return false
     seen.add(key)
     return true
+  }).map(p => {
+    const specTrimmed = (p.spec || '').trim()
+    return {
+      ...p,
+      displayName: specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
+    }
   })
 }
 
