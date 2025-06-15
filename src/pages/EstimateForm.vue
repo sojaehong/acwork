@@ -293,20 +293,66 @@ async function loadProducts() {
 }
 
 async function saveProductToDB() {
-  const existing = new Set(productOptions.value.map(p => `${p.name}-${p.spec}`))
-  const newItems = form.items.filter(i => {
-    const key = `${i.name}-${i.spec}`
-    return i.name && i.spec && !existing.has(key)
-  })
-  for (const i of newItems) {
-    await addDoc(collection(db, 'products'), {
-      name: i.name,
-      spec: i.spec,
-      price: i.unit
+  try {
+    const existing = new Map()
+
+    // 모든 product 불러와서 중복 체크용 Map 구성 (name+spec → price)
+    const snap = await getDocs(collection(db, 'products'))
+    snap.forEach(doc => {
+      const data = doc.data()
+      const key = `${data.name}-${(data.spec || '').trim()}`
+      existing.set(key, { ...data, id: doc.id })
     })
+
+    const toSave = form.items.filter(i => {
+      const name = (i.name || '').trim()
+      const spec = (i.spec || '').trim()
+      return name !== ''
+    })
+
+    if (toSave.length === 0) {
+      alert('저장할 유효한 항목이 없습니다.')
+      return
+    }
+
+    for (const i of toSave) {
+      const name = i.name.trim()
+      const spec = (i.spec || '').trim()
+      const price = parseNumberInput(i.unit)
+      const key = `${name}-${spec}`
+
+      const existingItem = existing.get(key)
+
+      if (existingItem) {
+        // 이미 있으면 단가가 다른 경우에만 업데이트
+        if (existingItem.price !== price) {
+          await setDoc(doc(db, 'products', existingItem.id), {
+            name,
+            spec,
+            price
+          })
+          console.log(`🔁 수정됨: ${key} (단가 ${existingItem.price} → ${price})`)
+        } else {
+          console.log(`✅ 이미 존재 (변경 없음): ${key}`)
+        }
+      } else {
+        // 신규 항목이면 추가
+        await addDoc(collection(db, 'products'), {
+          name,
+          spec,
+          price
+        })
+        console.log(`➕ 새로 저장: ${key}`)
+      }
+    }
+
+    alert('품목 DB 저장 완료')
+    await loadProducts()
+
+  } catch (e) {
+    console.error('🔥 Firestore 저장 실패:', e)
+    alert('DB 저장 중 오류 발생')
   }
-  alert('DB 저장 완료')
-  await loadProducts()
 }
 
 async function saveEstimateToDB() {
