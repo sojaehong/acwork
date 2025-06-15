@@ -16,14 +16,22 @@
         ></v-progress-circular>
 
         <!-- 🔽 필터 토글 버튼 -->
-        <!-- <v-btn @click="showFilters = !showFilters" class="mb-4" color="primary" variant="outlined" block>
+        <v-btn @click="showFilters = !showFilters" class="mb-4" color="primary" variant="outlined" block>
           {{ showFilters ? '🔽 필터 및 검색 닫기' : '🔍 필터 및 검색 열기' }}
-        </v-btn> -->
+        </v-btn>
 
         <!-- 🔽 필터 영역 -->
         <v-slide-y-transition>
-          <div v-show="true" class="filter-bar">
+          <div v-show="showFilters" class="filter-bar">
             <div class="filter-row">
+              <v-row dense class="mb-4">
+      <v-col cols="6" sm="3">
+        <flat-pickr v-model="store.filters.startDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" @change="applyFiltersDebounced" />
+      </v-col>
+      <v-col cols="6" sm="3">
+        <flat-pickr v-model="store.filters.endDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" @change="applyFiltersDebounced" />
+      </v-col>
+    </v-row>
               <div class="filter-group">
                 <label>📌 상태</label>
                 <div class="filter-scroll">
@@ -81,20 +89,14 @@
               </div>
             </div>
 
-            <v-row dense class="mt-2">
-              <v-col cols="6" sm="3">
-                <flat-pickr v-model="store.filters.startDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" @change="applyFiltersDebounced" />
-              </v-col>
-              <v-col cols="6" sm="3">
-                <flat-pickr v-model="store.filters.endDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" @change="applyFiltersDebounced" />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <v-text-field v-model="store.filters.searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced" />
-              </v-col>
-              <v-col cols="12" sm="2">
-                <v-btn block color="grey-darken-2" @click="resetFilters">초기화</v-btn>
-              </v-col>
-            </v-row>
+           <v-row dense class="mt-2">
+      <v-col cols="12" sm="10">
+        <v-text-field v-model="store.filters.searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced" />
+      </v-col>
+      <v-col cols="12" sm="2">
+        <v-btn block color="grey-darken-2" @click="resetFilters">초기화</v-btn>
+      </v-col>
+    </v-row>
           </div>
         </v-slide-y-transition>
 
