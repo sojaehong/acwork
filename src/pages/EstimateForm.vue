@@ -442,8 +442,9 @@ onMounted(() => {
 .stamp-image {
   position: absolute;
   top: -10px;
-  right: -5px;
+  right: -11px;
   height: 40px;
+  width: 40px;
   pointer-events: none;
 }
 .summary {
