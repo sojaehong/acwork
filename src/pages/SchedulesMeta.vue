@@ -85,15 +85,26 @@
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
       >
         <v-row dense>
-          <v-col cols="4">
-            <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
-          </v-col>
-          <v-col cols="4" v-if="isEdit">
-            <v-btn color="error" block :loading="isSaving" class="responsive-btn" @click="cancelSchedule">일정 취소</v-btn>
-          </v-col>
-          <v-col :cols="isEdit ? 4 : 8">
-            <v-btn color="primary" block :loading="isSaving" class="responsive-btn" @click="submit">저장</v-btn>
-          </v-col>
+          <template v-if="isEdit">
+            <v-col cols="4">
+              <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
+            </v-col>
+            <v-col cols="4">
+              <v-btn color="error" block :loading="isSaving" class="responsive-btn" @click="cancelSchedule">일정 취소</v-btn>
+            </v-col>
+            <v-col cols="4">
+              <v-btn color="primary" block :loading="isSaving" class="responsive-btn" @click="submit">저장</v-btn>
+            </v-col>
+          </template>
+
+          <template v-else>
+            <v-col cols="6">
+              <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
+            </v-col>
+            <v-col cols="6">
+              <v-btn color="primary" block :loading="isSaving" class="responsive-btn" @click="submit">저장</v-btn>
+            </v-col>
+          </template>
         </v-row>
       </v-container>
     </v-main>
@@ -126,7 +137,7 @@ const userMap = ref({})
 
 const existingDates = ref([])
 const existingDatesDisplay = ref([])
-const selectedDate = ref('')
+const selectedDate = ref(today)
 const metaMap = ref({})
 
 const isEdit = ref(false)
@@ -183,11 +194,9 @@ async function fetchExistingDates() {
   if (firstFutureOrToday) {
     selectedDate.value = firstFutureOrToday
     await handleDateSelect(firstFutureOrToday)
-  } else if (sortedDates.length > 0) {
-    selectedDate.value = sortedDates[0]
-    await handleDateSelect(sortedDates[0])
   } else {
-    selectedDate.value = ''
+    form.value.date = todayDateStr
+    selectedDate.value = todayDateStr
     clearForm()
   }
   isLoading.value = false

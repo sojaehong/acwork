@@ -84,7 +84,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -113,8 +115,12 @@ const today = getTodayKST()
 onMounted(async () => {
   await fetchUsers()
   const queryId = route.query.worker
+  const currentUserId = userStore.userId
   if (queryId && workers.value.find(w => w.id === queryId)) {
     selectedWorker.value = queryId
+  } else if (!selectedWorker.value && currentUserId) {
+    const match = workers.value.find(w => w.id === currentUserId)
+    selectedWorker.value = match ? match.id : null
   }
   await fetchMeta()
 })

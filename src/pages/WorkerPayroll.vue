@@ -106,10 +106,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { db } from '@/firebase/config'
 import { collection, getDocs, query, orderBy, updateDoc, doc, getDoc } from 'firebase/firestore'
+import { useUserStore } from '@/stores/user'
 
+const userStore = useUserStore()
 const meta = ref([])
 const selectedWorker = ref(null)
 const workers = ref([])
@@ -147,7 +149,9 @@ async function fetchUsers() {
   workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
   userMap.value = Object.fromEntries(workers.value.map(u => [u.id, u.name]))
   if (!selectedWorker.value && workers.value.length > 0) {
-    selectedWorker.value = workers.value[0].id
+    const currentUserId = userStore.userId
+    const match = workers.value.find(w => w.id === currentUserId)
+    selectedWorker.value = match ? match.id : workers.value[0].id
   }
 }
 
