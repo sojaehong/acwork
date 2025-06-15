@@ -132,10 +132,10 @@
       >
         <v-row dense>
           <v-col cols="6">
-            <v-btn color="secondary" block class="responsive-btn" @click="goBack">돌아가기</v-btn>
+            <v-btn color="primary" block class="responsive-btn" @click="goBack">돌아가기</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="submit">수정 완료</v-btn>
+            <v-btn color="secondary" block class="responsive-btn" :loading="isSaving" @click="submit">수정 완료</v-btn>
           </v-col>
         </v-row>
       </v-container>

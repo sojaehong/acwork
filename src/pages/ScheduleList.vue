@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="pa-4 pb-16">
+      <v-container class="pa-4" :class="{ 'pb-drawer': showFilters }">
         <h2 class="text-h5 mb-4">📋 전체 작업 일정</h2>
 
         <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
@@ -13,94 +13,8 @@
           size="48"
           width="5"
           style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
-        ></v-progress-circular>
+        />
 
-        <!-- 🔽 필터 토글 버튼 -->
-        <v-btn @click="showFilters = !showFilters" class="mb-4" color="primary" variant="outlined" block>
-          {{ showFilters ? '🔽 필터 및 검색 닫기' : '🔍 필터 및 검색 열기' }}
-        </v-btn>
-
-        <!-- 🔽 필터 영역 -->
-        <v-slide-y-transition>
-          <div v-show="showFilters" class="filter-bar">
-            <div class="filter-row">
-              <v-row dense class="mb-4">
-      <v-col cols="6" sm="3">
-        <flat-pickr v-model="store.filters.startDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" @change="applyFiltersDebounced" />
-      </v-col>
-      <v-col cols="6" sm="3">
-        <flat-pickr v-model="store.filters.endDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" @change="applyFiltersDebounced" />
-      </v-col>
-    </v-row>
-              <div class="filter-group">
-                <label>📌 상태</label>
-                <div class="filter-scroll">
-                  <v-btn
-                    v-for="s in statuses"
-                    :key="s"
-                    :color="store.filters.status.includes(s) ? 'primary' : 'grey-lighten-2'"
-                    size="small"
-                    class="ma-1"
-                    @click="toggleFilter('status', s)"
-                  >{{ s }}</v-btn>
-                </div>
-              </div>
-
-              <div class="filter-group">
-                <label>🏢 건물</label>
-                <div class="filter-scroll">
-                  <v-btn
-                    v-for="b in buildings"
-                    :key="b"
-                    :color="store.filters.building.includes(b) ? 'primary' : 'grey-lighten-2'"
-                    size="small"
-                    class="ma-1"
-                    @click="toggleFilter('building', b)"
-                  >{{ b }}</v-btn>
-                </div>
-              </div>
-
-              <div class="filter-group">
-                <label>🧾 세금계산서 유무</label>
-                <div class="filter-scroll">
-                  <v-btn
-                    v-for="opt in invoiceOptions"
-                    :key="opt"
-                    :color="store.filters.invoice === opt ? 'primary' : 'grey-lighten-2'"
-                    size="small"
-                    class="ma-1"
-                    @click="toggleFilter('invoice', opt)"
-                  >{{ opt }}</v-btn>
-                </div>
-              </div>
-
-              <div class="filter-group">
-                <label>🛠️ 작업 종류</label>
-                <div class="filter-scroll">
-                  <v-btn
-                    v-for="t in taskTypes"
-                    :key="t"
-                    :color="store.filters.task.includes(t) ? 'primary' : 'grey-lighten-2'"
-                    size="small"
-                    class="ma-1"
-                    @click="toggleFilter('task', t)"
-                  >{{ t }}</v-btn>
-                </div>
-              </div>
-            </div>
-
-           <v-row dense class="mt-2">
-      <v-col cols="12" sm="10">
-        <v-text-field v-model="store.filters.searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced" />
-      </v-col>
-      <v-col cols="12" sm="2">
-        <v-btn block color="grey-darken-2" @click="resetFilters">초기화</v-btn>
-      </v-col>
-    </v-row>
-          </div>
-        </v-slide-y-transition>
-
-        <!-- 🔽 일정 리스트 -->
         <v-slide-y-transition group>
           <div v-for="[date, items] in groupedSchedules" :key="date" class="mb-6">
             <h3 class="text-subtitle-1 font-weight-bold mb-2">🗓️ {{ formatDateWithDay(date) }}</h3>
@@ -118,7 +32,14 @@
                       </v-chip>
                     </div>
                   </div>
-                  <div class="text-body-1 font-weight-bold mb-2">🏢 {{ item.building }} {{ item.unit }}동 {{ item.room }}호</div>
+
+                  <!-- ✅ 건물 + 동 + 호수 띄어쓰기 처리 -->
+                  <div class="text-body-1 font-weight-bold mb-2">
+                    🏢 <span class="text-primary">{{ item.building }}</span>
+                    <span v-if="item.unit">&nbsp;{{ item.unit }}동</span>
+                    <span v-if="item.room">&nbsp;{{ item.room }}호</span>
+                  </div>
+
                   <div class="text-body-2 text-grey-darken-2">
                     <span class="font-weight-medium">🛠️ 작업 내용:</span>
                     <v-chip
@@ -140,13 +61,58 @@
         <div v-if="!groupedSchedules.length" class="text-grey text-subtitle-1 mt-4">등록된 작업이 없습니다.</div>
       </v-container>
 
-      <v-container class="pa-2" style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);">
+      <!-- 하단 고정 버튼 -->
+      <v-container class="pa-2 bottom-bar">
         <v-row dense>
-          <v-col cols="12">
-            <v-btn color="primary" block @click="goHome">홈으로</v-btn>
+          <v-col cols="6">
+            <v-btn block color="primary" @click="goHome">홈으로</v-btn>
+          </v-col>
+          <v-col cols="6">
+            <v-btn block color="grey-darken-2" @click="showFilters = !showFilters">
+              {{ showFilters ? '🔽 필터 닫기' : '🔍 필터 열기' }}
+            </v-btn>
           </v-col>
         </v-row>
       </v-container>
+
+      <!-- 하단 슬라이드 필터 -->
+      <v-slide-y-transition>
+        <div v-show="showFilters" class="filter-drawer">
+          <div class="filter-bar">
+            <div class="filter-row">
+              <v-row dense class="mb-4">
+                <v-col cols="6">
+                  <flat-pickr v-model="store.filters.startDate" :config="dateConfig" placeholder="시작일" class="flatpickr-input" @change="applyFiltersDebounced" />
+                </v-col>
+                <v-col cols="6">
+                  <flat-pickr v-model="store.filters.endDate" :config="dateConfig" placeholder="종료일" class="flatpickr-input" @change="applyFiltersDebounced" />
+                </v-col>
+              </v-row>
+              <div class="filter-group" v-for="(group, key) in filterGroups" :key="key">
+                <label>{{ group.label }}</label>
+                <div class="filter-scroll">
+                  <v-btn
+                    v-for="opt in group.options"
+                    :key="opt"
+                    :color="group.active(opt) ? 'primary' : 'grey-lighten-2'"
+                    size="small"
+                    class="ma-1"
+                    @click="() => toggleFilter(group.type, opt)"
+                  >{{ opt }}</v-btn>
+                </div>
+              </div>
+              <v-row dense class="mt-2">
+                <v-col cols="12">
+                  <v-text-field v-model="store.filters.searchText" label="호수 또는 메모" clearable outlined dense @input="applyFiltersDebounced" />
+                </v-col>
+                <v-col cols="12">
+                  <v-btn block color="grey-darken-2" @click="resetFilters">초기화</v-btn>
+                </v-col>
+              </v-row>
+            </div>
+          </div>
+        </div>
+      </v-slide-y-transition>
     </v-main>
   </v-app>
 </template>
@@ -182,9 +148,7 @@ const toggleFilter = (type, value) => {
     return
   }
   const target = [...store.filters[type]]
-  const updated = target.includes(value)
-    ? target.filter(v => v !== value)
-    : [...target, value]
+  const updated = target.includes(value) ? target.filter(v => v !== value) : [...target, value]
   store.setFilters({ [type]: updated })
   applyFiltersDebounced()
 }
@@ -239,8 +203,7 @@ const filteredSchedules = computed(() => {
     const matchTask = !task.length || item.tasks?.some(t => task.includes(t.name))
     const matchInvoice = !invoice || (invoice === 'O' ? item.invoice : !item.invoice)
     const matchSearch = !searchText || (item.room?.includes(searchText) || item.memo?.includes(searchText))
-    const matchDate = (!startDate || new Date(item.date) >= new Date(startDate)) &&
-                      (!endDate || new Date(item.date) <= new Date(endDate))
+    const matchDate = (!startDate || new Date(item.date) >= new Date(startDate)) && (!endDate || new Date(item.date) <= new Date(endDate))
     return matchStatus && matchBuilding && matchInvoice && matchTask && matchSearch && matchDate
   })
 })
@@ -254,6 +217,33 @@ const groupedSchedules = computed(() => {
   }
   return Object.entries(groups).sort((a, b) => new Date(b[0]) - new Date(a[0]))
 })
+
+const filterGroups = computed(() => ({
+  status: {
+    label: '📌 상태',
+    type: 'status',
+    options: statuses.value,
+    active: (val) => store.filters.status.includes(val),
+  },
+  building: {
+    label: '🏢 건물',
+    type: 'building',
+    options: buildings.value,
+    active: (val) => store.filters.building.includes(val),
+  },
+  invoice: {
+    label: '🧾 세금계산서 유무',
+    type: 'invoice',
+    options: invoiceOptions,
+    active: (val) => store.filters.invoice === val,
+  },
+  task: {
+    label: '🛠️ 작업 종류',
+    type: 'task',
+    options: taskTypes.value,
+    active: (val) => store.filters.task.includes(val),
+  }
+}))
 
 onMounted(async () => {
   try {
@@ -272,7 +262,6 @@ onMounted(async () => {
 })
 </script>
 
-
 <style scoped>
 .flatpickr-input {
   font-size: 14px;
@@ -285,4 +274,40 @@ onMounted(async () => {
 .filter-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .filter-group label { font-weight: bold; margin-bottom: 4px; display: block; }
 .filter-scroll { overflow-x: auto; white-space: nowrap; }
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 100;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+}
+.filter-drawer {
+  position: fixed;
+  bottom: 60px;
+  padding-bottom: calc(16px + 70vh);
+  transition: padding-bottom 0.3s;
+  left: 0;
+  right: 0;
+  background: #f9f9f9;
+  z-index: 200;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.pb-drawer {
+  padding-bottom: calc(16px + 70vh);
+  transition: padding-bottom 0.3s;
+}
+.text-primary {
+  color: #1976d2;
+  font-weight: bold;
+}
+.text-grey-darken-2 {
+  color: #666;
+}
 </style>

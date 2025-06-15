@@ -166,10 +166,10 @@
         <div class="mb-2">📌 요약: {{ summaryText }}</div>
         <v-row dense>
           <v-col cols="6">
-            <v-btn color="secondary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
+            <v-btn color="primary" block class="responsive-btn" @click="goHome">홈으로</v-btn>
           </v-col>
           <v-col cols="6">
-            <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="submit">등록</v-btn>
+            <v-btn color="secondary" block class="responsive-btn" :loading="isSaving" @click="submit">등록</v-btn>
           </v-col>
         </v-row>
       </v-container>
