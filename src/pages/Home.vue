@@ -1,6 +1,5 @@
 <template>
   <v-app>
-    <!-- 상단바 -->
     <v-app-bar color="primary" dark flat>
       <v-toolbar-title>공조+</v-toolbar-title>
       <v-spacer />
@@ -10,23 +9,18 @@
       </v-btn>
     </v-app-bar>
 
-    <!-- 본문 -->
     <v-main>
       <v-container class="pa-4" style="padding-bottom: 180px !important">
-
-        <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="loading"
           indeterminate
           color="primary"
           size="48"
           width="5"
-          style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
-        ></v-progress-circular>
+          class="loading-overlay"
+        />
 
-        <!-- 일정 메타 정보 카드 -->
         <v-card class="mb-6 elevation-0 meta-info-card responsive-card" outlined>
-          <!-- 날짜 이동 영역 -->
           <v-row align="center" class="pa-3 pb-1">
             <v-col cols="auto">
               <v-btn icon :ripple="false" @click.stop="changeDate(-1)">
@@ -46,8 +40,7 @@
             </v-col>
           </v-row>
           <v-divider></v-divider>
-          <!-- 일정 메타 정보 내용 -->
-          <v-card-text @click="goToMetaEdit" style="cursor: pointer;">
+          <v-card-text @click="goToMetaEdit" style="cursor: pointer">
             <v-row>
               <v-col cols="12" md="4">
                 <div class="meta-label">🕒 시작 시간</div>
@@ -59,7 +52,7 @@
                   <template v-if="scheduleMeta">
                     <v-chip
                       v-for="(user, i) in scheduleMeta.workerNames"
-                      :key="user"
+                      :key="user + i"
                       :color="user === userStore.userName ? 'warning' : 'grey lighten-2'"
                       small
                       class="ma-1"
@@ -78,57 +71,53 @@
           </v-card-text>
         </v-card>
 
-        <!-- 작업 리스트 -->
-        <div v-if="activeSchedules.length">
-          <h3 class="section-title responsive-title">🛠 진행 중</h3>
-          <transition-group name="fade-stagger" tag="div" appear>
-            <TaskCard
-              v-for="item in activeSchedules"
-              :key="item.id + '-active'"
-              :item="item"
-              @click="goToDetail(item.id)"
-              class="responsive-card"
-            />
-          </transition-group>
-        </div>
+        <template v-if="scheduleStore.schedules.length">
+          <div v-if="activeSchedules.length">
+            <h3 class="section-title responsive-title">🛠 진행 중</h3>
+            <transition-group name="fade-stagger" tag="div" appear>
+              <TaskCard
+                v-for="item in activeSchedules"
+                :key="item.id"
+                :item="item"
+                @click="goToDetail(item.id)"
+                class="responsive-card"
+              />
+            </transition-group>
+          </div>
 
-        <div v-if="completedDoneSchedules.length">
-          <h3 class="section-title responsive-title">✅ 완료</h3>
-          <transition-group name="fade-stagger" tag="div" appear>
-            <TaskCard
-              v-for="item in completedDoneSchedules"
-              :key="item.id + '-done'"
-              :item="item"
-              @click="goToDetail(item.id)"
-              class="responsive-card"
-            />
-          </transition-group>
-        </div>
+          <div v-if="completedDoneSchedules.length">
+            <h3 class="section-title responsive-title">✅ 완료</h3>
+            <transition-group name="fade-stagger" tag="div" appear>
+              <TaskCard
+                v-for="item in completedDoneSchedules"
+                :key="item.id"
+                :item="item"
+                @click="goToDetail(item.id)"
+                class="responsive-card"
+              />
+            </transition-group>
+          </div>
 
-        <div v-if="completedHoldSchedules.length">
-          <h3 class="section-title responsive-title">⏸ 보류</h3>
-          <transition-group name="fade-stagger" tag="div" appear>
-            <TaskCard
-              v-for="item in completedHoldSchedules"
-              :key="item.id + '-hold'"
-              :item="item"
-              @click="goToDetail(item.id)"
-              class="responsive-card"
-            />
-          </transition-group>
-        </div>
+          <div v-if="completedHoldSchedules.length">
+            <h3 class="section-title responsive-title">⏸ 보류</h3>
+            <transition-group name="fade-stagger" tag="div" appear>
+              <TaskCard
+                v-for="item in completedHoldSchedules"
+                :key="item.id"
+                :item="item"
+                @click="goToDetail(item.id)"
+                class="responsive-card"
+              />
+            </transition-group>
+          </div>
+        </template>
 
-        <!-- 없을 때 -->
-        <v-alert v-if="!activeSchedules.length && !completedSchedules.length" type="info" class="mt-4">
+        <v-alert v-else type="info" class="mt-4">
           등록된 작업이 없습니다.
         </v-alert>
       </v-container>
 
-      <!-- 하단 버튼 -->
-      <v-container
-        class="pa-2"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1); pointer-events: auto;"
-      >
+      <v-container class="pa-2 fixed-bottom-btn">
         <v-row dense>
           <v-col cols="4">
             <v-btn color="info" block @click="goToWorker" class="responsive-btn">👷 작업자별</v-btn>
@@ -146,7 +135,6 @@
   </v-app>
 </template>
 
-
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -155,14 +143,13 @@ import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
-import debounce from 'lodash/debounce'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
 const userStore = useUserStore()
-const scheduleMeta = ref(null)
 
 const loading = ref(false)
+const scheduleMeta = ref(null)
 
 const todayKST = computed(() => {
   const now = new Date()
@@ -173,27 +160,17 @@ const todayKST = computed(() => {
 
 const selectedDate = ref(todayKST.value)
 
-function formatDateWithDay(dateStr) {
-  const date = new Date(dateStr)
+const displayDate = computed(() => {
+  const date = new Date(selectedDate.value)
   const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
-  if (dateStr === todayKST.value) {
-    return `오늘`
-  } else {
-    return `${dateStr} (${day})`
-  }
-}
-
-const displayDate = computed(() => formatDateWithDay(selectedDate.value))
+  return selectedDate.value === todayKST.value ? '오늘' : `${selectedDate.value} (${day})`
+})
 
 const displayDday = computed(() => {
-  if (selectedDate.value === todayKST.value) {
-    return '오늘'
-  } else {
-    const today = new Date(todayKST.value)
-    const target = new Date(selectedDate.value)
-    const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
-    return diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
-  }
+  const today = new Date(todayKST.value)
+  const target = new Date(selectedDate.value)
+  const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
+  return selectedDate.value === todayKST.value ? '오늘' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
 })
 
 async function loadSchedules(date) {
@@ -216,65 +193,103 @@ async function loadScheduleMeta(date) {
   }
 }
 
-const debouncedLoadData = debounce(async (date) => {
+async function loadData(date) {
   loading.value = true
-  await Promise.all([loadSchedules(date), loadScheduleMeta(date)])
-  loading.value = false
-}, 300)
+  try {
+    await Promise.all([
+      loadSchedules(date),
+      loadScheduleMeta(date)
+    ])
+  } catch (err) {
+    console.error('데이터 로딩 실패:', err)
+  } finally {
+    loading.value = false
+  }
+}
 
 function changeDate(offset) {
   const current = new Date(selectedDate.value)
   current.setDate(current.getDate() + offset)
-  const newDateStr = current.toISOString().split('T')[0]
-  selectedDate.value = newDateStr
-  debouncedLoadData(newDateStr)
+  selectedDate.value = current.toISOString().split('T')[0]
+  loadData(selectedDate.value)
 }
 
-function logout() {
-  userStore.logout()
-  router.push('/login')
+async function logout() {
+  try {
+    userStore.logout()
+    await router.push('/login')
+  } catch (err) {
+    console.error('로그아웃 실패:', err)
+  }
 }
 
-function goToAll() { router.push('/schedules') }
-function goToDetail(id) { router.push(`/schedule/${id}`) }
-function goToMetaEdit() { router.push('/meta') }
-function goToWorker() { router.push('/worker-schedules') }
-function goToPayroll() { router.push('/payroll') }
-function goToAdd() { router.push('/add') }
+async function goTo(path) {
+  try {
+    loading.value = true
+    await router.push(path)
+  } catch (err) {
+    console.error('이동 실패:', err)
+  } finally {
+    loading.value = false
+  }
+}
 
-const activeSchedules = computed(() => scheduleStore.schedules.filter(s => s.status === '진행'))
-const completedSchedules = computed(() => scheduleStore.schedules.filter(s => s.status !== '진행' && s.status !== '취소됨'))
+const goToAll = () => goTo('/schedules')
+const goToAdd = () => goTo('/add')
+const goToPayroll = () => goTo('/payroll')
+const goToWorker = () => goTo('/worker-schedules')
+const goToMetaEdit = () => goTo('/meta')
+const goToDetail = (id) => goTo(`/schedule/${id}`)
 
+const activeSchedules = computed(() =>
+  scheduleStore.schedules.filter(s => (s.status || '').trim() === '진행')
+)
+const completedSchedules = computed(() =>
+  scheduleStore.schedules.filter(s => (s.status || '').trim() !== '진행' && (s.status || '').trim() !== '취소됨')
+)
 const completedDoneSchedules = computed(() =>
-  completedSchedules.value.filter(s => s.status === '완료')
+  completedSchedules.value.filter(s => (s.status || '').trim() === '완료')
 )
 const completedHoldSchedules = computed(() =>
-  completedSchedules.value.filter(s => s.status === '보류')
+  completedSchedules.value.filter(s => (s.status || '').trim() === '보류')
 )
 
 onMounted(async () => {
-  // 유저 정보 복원
-  if (!userStore.userId) {
-    const storedId = localStorage.getItem('user_id')
-    const storedName = localStorage.getItem('user_name')
-    const storedRole = localStorage.getItem('user_role')
-    if (storedId && storedName && storedRole) {
-      userStore.setUser({
-        id: storedId,
-        name: storedName,
-        role: storedRole
-      })
+  try {
+    if (!userStore.userId) {
+      const id = localStorage.getItem('user_id')
+      const name = localStorage.getItem('user_name')
+      const role = localStorage.getItem('user_role')
+      if (id && name && role) {
+        userStore.setUser({ id, name, role })
+      }
     }
+    await loadData(selectedDate.value)
+  } catch (err) {
+    console.error('초기 로딩 실패:', err)
+    await router.push('/login')
   }
-
-  // 최초 로딩
-  loading.value = true
-  await Promise.all([loadSchedules(selectedDate.value), loadScheduleMeta(selectedDate.value)])
-  loading.value = false
 })
 </script>
 
 <style scoped>
+.loading-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+}
+.fixed-bottom-btn {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 100;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
+}
 .meta-info-card {
   background-color: #f0f4ff;
   border-left: 5px solid #2196f3;

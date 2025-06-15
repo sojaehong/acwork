@@ -29,18 +29,36 @@ const router = createRouter({
   routes
 })
 
-// 인증 가드에 userStore 사용
+// 인증 가드 with localStorage 동기화
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-  const isLoggedIn = !!userStore.userId || !!localStorage.getItem('user_id')
 
-  if (!isLoggedIn && to.path !== '/login') {
-    next('/login')
-  } else if (isLoggedIn && to.path === '/login') {
-    next('/') // 이미 로그인 시 /login 접근 시 홈으로
-  } else {
-    next()
+  const storedId = localStorage.getItem('user_id')
+  const storedName = localStorage.getItem('user_name')
+  const storedRole = localStorage.getItem('user_role')
+
+  const isLoggedIn = !!userStore.userId || !!storedId
+
+  // 🧩 store가 비어 있으면 localStorage 값으로 복원
+  if (storedId && !userStore.userId) {
+    userStore.setUser({
+      id: storedId,
+      name: storedName,
+      role: storedRole
+    })
   }
+
+  // 🔒 비로그인 상태에서 보호된 페이지 접근 시 → 로그인 페이지로
+  if (!isLoggedIn && to.path !== '/login') {
+    return next('/login')
+  }
+
+  // 🔁 로그인 상태인데 /login 접근 시 → 홈으로 리디렉션
+  if (isLoggedIn && to.path === '/login') {
+    return next('/')
+  }
+
+  return next()
 })
 
 export default router

@@ -4,10 +4,8 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4 responsive-title">💰 정산 확인</h2>
 
-        <!-- 에러 표시 -->
         <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
 
-        <!-- 중앙 로딩 -->
         <v-progress-circular
           v-if="loadingMeta"
           indeterminate
@@ -17,22 +15,21 @@
           style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
         ></v-progress-circular>
 
-        <!-- 작업자 선택 -->
-        <v-select
-          v-model="selectedWorker"
-          :items="workers"
-          item-title="name"
-          item-value="id"
-          label="작업자 선택"
-          outlined
-          dense
-          class="mb-4"
-        />
+        <div class="worker-scroll mb-4">
+          <v-btn
+            v-for="worker in workers"
+            :key="worker.id"
+            :color="selectedWorker === worker.id ? 'primary' : 'grey-lighten-2'"
+            size="small"
+            class="ma-1"
+            @click="selectWorker(worker.id)"
+            :class="{ selected: selectedWorker === worker.id }"
+          >{{ worker.name }}</v-btn>
+        </div>
 
         <v-alert v-if="!selectedWorker" type="info">작업자를 선택해주세요.</v-alert>
 
         <template v-else>
-          <!-- 정산 안됨 -->
           <h3 class="text-subtitle-1 font-weight-bold mb-2">💼 정산 안됨</h3>
           <v-alert v-if="unpaid.length === 0" type="success">정산 안된 항목이 없습니다.</v-alert>
 
@@ -63,7 +60,6 @@
             @click="markAsPaid"
           >정산 처리</v-btn>
 
-          <!-- 정산 완료 -->
           <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-2">📜 정산 완료</h3>
           <v-alert v-if="paid.length === 0" type="info">정산 완료된 항목이 없습니다.</v-alert>
 
@@ -95,7 +91,6 @@
         </template>
       </v-container>
 
-      <!-- 하단 고정 버튼 -->
       <v-container
         class="pa-2"
         style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
@@ -134,18 +129,25 @@ function getTodayKST() {
 }
 const todayKST = getTodayKST()
 
+function toKSTDate(dateStr) {
+  return new Date(dateStr + 'T00:00:00+09:00')
+}
 function calcDday(dateStr) {
-  const from = new Date(dateStr + 'T00:00:00+09:00')
-  const to = new Date(todayKST + 'T00:00:00+09:00')
-  return Math.floor((to - from) / (1000 * 60 * 60 * 24))
+  return Math.floor((toKSTDate(todayKST) - toKSTDate(dateStr)) / (1000 * 60 * 60 * 24))
+}
+
+function selectWorker(id) {
+  selectedWorker.value = selectedWorker.value === id ? null : id
+  selectedUnpaid.value = []
+  selectedPaid.value = []
 }
 
 async function fetchUsers() {
   const userSnap = await getDocs(collection(db, 'users'))
   workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-  userMap.value = {}
-  for (const user of workers.value) {
-    userMap.value[user.id] = user.name
+  userMap.value = Object.fromEntries(workers.value.map(u => [u.id, u.name]))
+  if (!selectedWorker.value && workers.value.length > 0) {
+    selectedWorker.value = workers.value[0].id
   }
 }
 
@@ -248,11 +250,6 @@ onMounted(async () => {
   await fetchUsers()
   await fetchMeta()
 })
-
-watch(selectedWorker, () => {
-  selectedUnpaid.value = []
-  selectedPaid.value = []
-})
 </script>
 
 <style scoped>
@@ -260,7 +257,22 @@ watch(selectedWorker, () => {
   font-weight: bold;
 }
 
-/* fade-stagger 애니메이션 */
+.worker-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  display: flex;
+}
+.worker-scroll .v-btn {
+  flex-shrink: 0;
+  padding: 0 12px;
+  font-size: 13px;
+  margin-right: 8px;
+}
+.worker-scroll .v-btn.selected {
+  border: 2px solid #1976d2;
+  font-weight: bold;
+}
+
 .fade-stagger-enter-active {
   transition: all 0.3s ease;
 }

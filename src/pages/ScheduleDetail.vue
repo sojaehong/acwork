@@ -4,7 +4,6 @@
       <v-container class="pa-4 pb-16">
         <h2 class="text-h5 mb-4 responsive-title">📄 작업 상세 보기</h2>
 
-        <!-- 중앙 로딩 circular -->
         <v-progress-circular
           v-if="isLoading"
           indeterminate
@@ -12,7 +11,7 @@
           size="48"
           width="5"
           style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;"
-        ></v-progress-circular>
+        />
 
         <transition name="fade-stagger">
           <v-card v-if="!isLoading" class="pa-4 mb-4" elevation="2">
@@ -53,7 +52,7 @@
               </v-col>
             </v-row>
 
-            <!-- 세금계산서 & 작업 상태 -->
+            <!-- 세금계산서 & 상태 -->
             <v-row class="mb-3">
               <v-col cols="12" md="6">
                 <v-sheet class="pa-3 rounded bg-grey-lighten-4">
@@ -78,17 +77,12 @@
               </v-col>
             </v-row>
 
-            <!-- 보류 상태에서 날짜 변경 -->
+            <!-- 보류일 경우 날짜 변경 -->
             <v-row v-if="status === '보류'">
               <v-col cols="12">
                 <v-sheet class="pa-3 rounded bg-grey-lighten-4">
                   <div class="font-weight-bold text-subtitle-1 mb-2">📆 변경할 날짜</div>
-                  <v-dialog
-                    v-model="pickerOpen"
-                    scrollable
-                    persistent
-                    max-width="95vw"
-                  >
+                  <v-dialog v-model="pickerOpen" scrollable persistent max-width="95vw">
                     <template #activator="{ props }">
                       <v-text-field
                         v-bind="props"
@@ -99,12 +93,7 @@
                       />
                     </template>
                     <v-card style="max-height: 90vh; overflow-y: auto;">
-                      <v-date-picker
-                        v-model="newDate"
-                        :min="today"
-                        scrollable
-                        color="primary"
-                      />
+                      <v-date-picker v-model="newDate" :min="today" scrollable color="primary" />
                       <v-card-actions class="justify-end">
                         <v-btn text @click="pickerOpen = false">닫기</v-btn>
                         <v-btn color="primary" :loading="isSaving" @click="applyNewDate">적용</v-btn>
@@ -128,17 +117,29 @@
         </transition>
       </v-container>
 
-      <!-- 하단 고정 버튼 -->
-      <v-container
-        class="pa-2"
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);"
-      >
+      <!-- 하단 버튼 -->
+      <v-container class="pa-2" style="position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 100; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);">
         <v-row dense>
           <v-col cols="4">
             <v-btn color="grey-darken-1" block class="responsive-btn" @click="goBack">뒤로가기</v-btn>
           </v-col>
           <v-col cols="4">
-            <v-btn color="error" block class="responsive-btn" :loading="isSaving" @click="cancelSchedule">작업취소</v-btn>
+            <v-btn
+              v-if="schedule?.status === '취소됨'"
+              color="error"
+              block
+              class="responsive-btn"
+              :loading="isSaving"
+              @click="deleteSchedule"
+            >삭제하기</v-btn>
+            <v-btn
+              v-else
+              color="error"
+              block
+              class="responsive-btn"
+              :loading="isSaving"
+              @click="cancelSchedule"
+            >작업취소</v-btn>
           </v-col>
           <v-col cols="4">
             <v-btn color="primary" block class="responsive-btn" :loading="isSaving" @click="goToEdit">수정</v-btn>
@@ -153,7 +154,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { useScheduleStore } from '@/stores/schedule'
 
 const route = useRoute()
@@ -165,35 +166,38 @@ const status = ref('')
 const newDate = ref('')
 const displayDate = ref('')
 const pickerOpen = ref(false)
-
 const isLoading = ref(true)
 const isSaving = ref(false)
-
 const statusOptions = ['진행', '보류', '완료']
 const today = new Date().toISOString().split('T')[0]
 
 onMounted(async () => {
   const id = route.params.id
-  const storeSchedule = scheduleStore.schedules.find(s => s.id === id)
-
-  if (storeSchedule) {
-    schedule.value = storeSchedule
-    status.value = storeSchedule.status || '진행'
-    displayDate.value = storeSchedule.date
-    isLoading.value = false
-  } else {
-    const docRef = doc(db, 'schedules', id)
-    const snap = await getDoc(docRef)
-    if (snap.exists()) {
-      const data = snap.data()
-      schedule.value = { id: snap.id, ...data }
-      scheduleStore.setSchedules([...scheduleStore.schedules, schedule.value])
-      status.value = data.status || '진행'
-      displayDate.value = data.date
-    } else {
-      alert('일정을 찾을 수 없습니다.')
-      router.push('/schedules')
+  try {
+    isLoading.value = true
+    if (!scheduleStore.schedules.length) {
+      const snapshot = await getDocs(query(collection(db, 'schedules'), orderBy('date', 'desc')))
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      scheduleStore.setSchedules(fetched)
     }
+    let target = scheduleStore.schedules.find(s => s.id === id)
+    if (!target) {
+      const snap = await getDoc(doc(db, 'schedules', id))
+      if (snap.exists()) {
+        target = { id: snap.id, ...snap.data() }
+        scheduleStore.setSchedules([...scheduleStore.schedules, target])
+      } else {
+        alert('해당 일정을 찾을 수 없습니다.')
+        return router.push('/schedules')
+      }
+    }
+    schedule.value = target
+    status.value = target.status || '진행'
+    displayDate.value = target.date
+  } catch (err) {
+    alert('일정 데이터를 불러오는 중 오류가 발생했습니다.')
+    router.push('/schedules')
+  } finally {
     isLoading.value = false
   }
 })
@@ -263,6 +267,23 @@ async function cancelSchedule() {
   }
 }
 
+async function deleteSchedule() {
+  if (isSaving.value || !schedule.value.id) return
+  const ok = confirm('정말 이 취소된 작업을 완전히 삭제하시겠습니까? 복구할 수 없습니다.')
+  if (!ok) return
+  isSaving.value = true
+  try {
+    await deleteDoc(doc(db, 'schedules', schedule.value.id))
+    scheduleStore.setSchedules(scheduleStore.schedules.filter(s => s.id !== schedule.value.id))
+    alert('작업이 완전히 삭제되었습니다.')
+    router.push('/schedules')
+  } catch (err) {
+    alert('삭제 중 오류 발생')
+  } finally {
+    isSaving.value = false
+  }
+}
+
 function goToEdit() {
   router.push(`/schedule/${schedule.value.id}/edit`)
 }
@@ -273,23 +294,9 @@ function goBack() {
 </script>
 
 <style scoped>
-.font-weight-bold {
-  font-weight: bold;
-}
-.fade-stagger-enter-active {
-  transition: all 0.3s ease;
-}
-.fade-stagger-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-.fade-stagger-enter-to {
-  opacity: 1;
-  transform: translateY(0);
-}
-.fade-stagger-leave-active {
-  transition: all 0.2s ease;
-  opacity: 0;
-  transform: translateY(8px);
-}
+.font-weight-bold { font-weight: bold; }
+.fade-stagger-enter-active { transition: all 0.3s ease; }
+.fade-stagger-enter-from { opacity: 0; transform: translateY(8px); }
+.fade-stagger-enter-to { opacity: 1; transform: translateY(0); }
+.fade-stagger-leave-active { transition: all 0.2s ease; opacity: 0; transform: translateY(8px); }
 </style>
