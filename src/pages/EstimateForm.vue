@@ -142,8 +142,8 @@
             </div>
           </td>
         </tr>
-        <tr><th>사업자주소</th><td colspan="4">서울시 송파구 송파대로 201, B동 216호</td></tr>
-        <tr><th>업태</th><td>서비스</td><th>종목</th><td colspan="2">기계 수리</td></tr>
+        <tr><th>사업자주소</th><td colspan="4">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td></tr>
+        <tr><th>업태</th><td>서비스</td><th>종목</th><td colspan="2">기계수리</td></tr>
       </tbody>
     </table>
   </div>
