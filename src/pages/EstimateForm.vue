@@ -29,6 +29,24 @@
       </v-slide-item>
     </v-slide-group>
 
+    <v-row class="mb-2">
+  <v-col>
+    <div class="d-flex flex-wrap align-center">
+      <v-chip
+        v-for="(item, i) in form.items"
+        :key="i"
+        class="ma-1"
+        color="blue lighten-4"
+        text-color="black"
+        size="small"
+        outlined
+      >
+        {{ item.name }}<span v-if="item.spec"> - {{ item.spec }}</span> × {{ item.qty }}
+      </v-chip>
+    </div>
+  </v-col>
+</v-row>
+
    <!-- 품목 리스트 (카드 기반으로 전면 교체) -->
 <v-row v-for="(item, i) in form.items" :key="i" class="mb-2">
   <v-col cols="12">
@@ -233,16 +251,28 @@ function recalculateAll() {
 }
 
 function selectPresetItem(product) {
-  form.items.push({
-    name: product.name,
-    spec: product.spec,
-    qty: 1,
-    unit: product.price,
-    supply: 0,
-    vat: 0,
-    note: ''
-  })
-  recalculateAll()
+  const name = product.name.trim()
+  const spec = (product.spec || '').trim()
+
+  const existing = form.items.find(
+    item => item.name === name && (item.spec || '').trim() === spec
+  )
+
+  if (existing) {
+    existing.qty += 1
+    updateItem(form.items.indexOf(existing))
+  } else {
+    form.items.push({
+      name,
+      spec,
+      qty: 1,
+      unit: product.price,
+      supply: 0,
+      vat: 0,
+      note: ''
+    })
+    recalculateAll()
+  }
 }
 
 function addCustomItem() {
