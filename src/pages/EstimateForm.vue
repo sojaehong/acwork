@@ -441,10 +441,10 @@ onMounted(() => {
 }
 .stamp-image {
   position: absolute;
-  top: -10px;
-  right: -11px;
-  height: 40px;
-  width: 40px;
+  top: -15px;
+  right: -18px;
+  height: 50px;
+  width: 50px;
   pointer-events: none;
 }
 .summary {
