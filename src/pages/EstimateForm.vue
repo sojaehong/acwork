@@ -185,10 +185,16 @@ import jsPDF from 'jspdf'
 
 const form = reactive({
   title: '',
-  date: new Date().toISOString().substring(0, 10),
+  date: getTodayKST(),
   client: '',
   items: []
 })
+
+function getTodayKST() {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset()) // 타임존 보정
+  return now.toISOString().substring(0, 10)
+}
 
 const productOptions = ref([])
 const productButtons = ref([])
@@ -405,6 +411,7 @@ async function saveEstimateToDB() {
 onMounted(() => {
   loadProducts()
 })
+
 </script>
 
 <style scoped>
