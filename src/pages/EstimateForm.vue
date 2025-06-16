@@ -149,7 +149,7 @@
   </table>
 
   <div class="summary">
-    <div>합계금액: {{ format(totalAmount) }}원 ({{ totalKorean }}원)</div>
+    <div>합계금액: {{ totalKorean }}원정 (&#x20A9;{{ format(totalAmount) }}원)</div>
     <div>계좌번호: 1002-150-335422 (우리은행)</div>
     <div>연락처: 010-4684-4794 / 담당자: 배규석</div>
   </div>
