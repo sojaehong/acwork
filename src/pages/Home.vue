@@ -119,16 +119,21 @@
 
       <v-container class="pa-2 fixed-bottom-btn">
         <v-row dense>
-          <v-col cols="3">
+           <v-col cols="6">
+            <v-btn color="grey" block @click="goToEstimateForm" class="responsive-btn">견적서</v-btn>
+            </v-col>
+           <v-col cols="6">
+            <v-btn color="grey" block @click="goToStatementForm" class="responsive-btn">거래명세서</v-btn>
+          </v-col>
+        </v-row>
+        <v-row dense>
+          <v-col cols="4">
             <v-btn color="info" block @click="goToWorker" class="responsive-btn">작업자별</v-btn>
           </v-col>
-          <v-col cols="3">
+          <v-col cols="4">
             <v-btn color="success" block @click="goToPayroll" class="responsive-btn">정산</v-btn>
           </v-col>
-          <v-col cols="3">
-            <v-btn color="grey" block @click="goToEstimateForm" class="responsive-btn">견적서</v-btn>
-          </v-col>
-          <v-col cols="3">
+          <v-col cols="4">
             <v-btn color="secondary" block @click="goToAdd" class="responsive-btn">+ 작업등록</v-btn>
           </v-col>
         </v-row>
@@ -244,6 +249,7 @@ const goToWorker = () => goTo('/worker-schedules')
 const goToMetaEdit = () => goTo('/meta')
 const goToDetail = (id) => goTo(`/schedule/${id}`)
 const goToEstimateForm = () => goTo('/estimate')
+const goToStatementForm = () => goTo('/statement')
 
 const activeSchedules = computed(() =>
   scheduleStore.schedules.filter(s => (s.status || '').trim() === '진행')
