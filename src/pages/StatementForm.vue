@@ -117,8 +117,8 @@
             <table class="sum-table">
                 <tbody>
                     <tr>
-                        <td class="sum-label">합계<br />금액</td>
-                        <td class="sum-amount"> {{ convertToKoreanMoney(totalSupply + totalVAT) }}원정</td>
+                        <td class="sum-label">합계<br>금액</td>
+                        <td class="sum-amount"> {{ convertToKoreanMoney(totalSupply + totalVAT) }}원정 (&#x20A9;{{format(totalSupply + totalVAT)}})</td>
                     </tr>
                 </tbody>
             </table>
@@ -150,7 +150,13 @@
                         <td>{{ format(totalSupply) }}</td>
                         <td>{{ format(totalVAT) }}</td>
                     </tr>
-                    <tr>
+                    <tr class="total-row">
+                        <td colspan="1">전잔금</td>
+                        <td></td>
+                        <td colspan="2">합계</td>
+                        <td colspan="3">{{ format(totalSupply+totalVAT) }}</td>
+                    </tr>
+                    <tr class="bottom-info-row">
                         <td colspan="1" class="remark">비고</td>
                         <td colspan="3">{{ form.remark }}</td>
                         <td colspan="1" class="receiver">인수자</td>
@@ -436,5 +442,9 @@ async function generatePDF() {
   display: inline-block;
   padding-bottom: 2px;
   margin-bottom: 4px;
+}
+.bottom-info-row td {
+  height: 50px; /* 높이는 필요에 따라 조정 */
+  vertical-align: middle; /* 가운데 정렬 */
 }
 </style>
