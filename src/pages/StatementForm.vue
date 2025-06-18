@@ -68,49 +68,51 @@
         <!-- PDF 출력 템플릿 -->
         <div ref="pdfPreview" class="pdf-box">
             <h3 class="form-title">거 래 명 세 표</h3>
-             <!-- 상단 공급자 정보 + 수신자 정보 -->
-      <div class="top-header">
-        <div class="left-box">
-          <div class="underline-text mt-2">{{ formatKoreanDate(form.date) }}</div><br />
-          <div class="underline-text mt-2">{{ form.client }} 귀하</div><br />
-          <div class="mt-2">아래와 같이 계산합니다.</div>
-        </div>
-
-        <div class="right-box">
-          <table class="supplier-info">
-            <tbody>
-              <tr>
-                <td class="vertical-label" rowspan="5">공<br />급<br />자</td>
-                <td>등록번호</td>
-                <td colspan="3">403-41-01157</td>
-              </tr>
-              <tr>
-                <td>상호</td>
-                <td>이안공조프러스</td>
-                <td>성명</td>
-                <td class="relative supplier-signer">
-                  배규석 (인)
-                  <img src="/stamp.png" class="stamp-image" />
-                </td>
-              </tr>
-              <tr>
-                <td>사업장소재지</td>
-                <td colspan="3">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td>
-              </tr>
-              <tr>
-                <td>업태</td>
-                <td>서비스</td>
-                <td>종목</td>
-                <td>기계수리</td>
-              </tr>
-              <tr>
-                <td>전화번호</td>
-                <td colspan="3">010-4684-4794</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+            <table class="header-table">
+                <tbody>
+                    <tr>
+                        <td colspan="3" class="no-border-cell">
+                            <div class="underline-text">{{ formatKoreanDate(form.date) }}</div><br><br>
+                             <div class="underline-text">{{ form.client }} 귀하</div><br><br>
+                            아래와 같이 계산합니다.
+                        </td>
+                        <td colspan="3" class="no-border-cell">
+                            <table class="supplier-info">
+                                <tbody>
+                                    <tr>
+                                        <td class="vertical-label" rowspan="5">공<br>급<br>자</td>
+                                        <td>등록번호</td>
+                                        <td colspan="3">403-41-01157</td>
+                                    </tr>
+                                    <tr>
+                                        <td>상호</td>
+                                        <td>이안공조프러스</td>
+                                        <td>성명</td>
+                                        <td class="relative supplier-signer">
+                                            배규석 (인)
+                                            <img src="/stamp.png" class="stamp-image" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>사업장소재지</td>
+                                        <td colspan="3">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>업태</td>
+                                        <td>서비스</td>
+                                        <td>종목</td>
+                                        <td>기계수리</td>
+                                    </tr>
+                                    <tr>
+                                        <td>전화번호</td>
+                                        <td colspan="3">010-4684-4794</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <table class="sum-table">
                 <tbody>
@@ -302,122 +304,147 @@ async function generatePDF() {
 
 <style scoped>
 .pdf-box {
-  width: 794px;
-  min-height: 1123px;
-  background: white;
-  border: 1px solid #000;
-  padding: 20px;
-  margin: 32px auto;
-  font-size: 12px;
-  color: black;
+    width: 794px;
+    min-height: 1123px;
+    background: white;
+    border: 1px solid #000;
+    padding: 20px;
+    margin: 32px auto;
+    font-size: 12px;
+    color: black;
 }
 
 .form-title {
-  text-align: center;
-  font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 12px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 12px;
 }
 
-.top-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 16px;
+.sum-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    table-layout: fixed;
 }
-.left-box {
-  width: 30%;
-  font-size: 14px;
-  line-height: 1.6;
+
+.sum-table td {
+    border: 1px solid #000;
+    padding: 6px;
+    text-align: center;
+    font-size: 14px;
 }
-.right-box {
-  width: 68%;
+
+.sum-label {
+    width: 10%;
+    /* 2:8 비율 중 2 */
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sum-amount {
+    width: 90%;
+    /* 2:8 중 8 */
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.header-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.header-table td {
+    vertical-align: top;
+    border: 1px solid #000;
+    padding: 6px;
 }
 
 .supplier-info {
-  width: 100%;
-  border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
 }
+
 .supplier-info td {
-  border: 1px solid #000;
-  padding: 6px;
-  font-size: 12px;
-  text-align: left;
+    border: 1px solid #000;
+    padding: 4px;
+    text-align: left;
+    font-size: 11px;
+}
+
+.relative {
+    min-height: 60px;
+    position: relative;
+}
+
+.stamp-image {
+    position: absolute;
+    top: -10px;
+    right: 84px;
+    width: 48px;
+    height: 48px;
+    pointer-events: none;
+}
+
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.item-table th,
+.item-table td {
+    border: 1px solid #000;
+    padding: 4px;
+    text-align: center;
+}
+
+.total-row td {
+    font-weight: bold;
+    background: #eee;
+}
+
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+}
+
+.remark,
+.receiver {
+    border: 1px solid #000;
+}
+
+.stamp-inline {
+    display: inline-block;
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    margin-left: 4px;
 }
 .vertical-label {
-  text-align: center;
-  vertical-align: middle;
+  text-align: center !important;
+  vertical-align: middle !important;
   font-size: 14px;
   padding: 4px;
   border: 1px solid #000;
 }
-
-.relative {
-  min-height: 60px;
-  position: relative;
-}
-.stamp-image {
-  position: absolute;
-  top: 50%;
-  right: 63px;
-  transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  pointer-events: none;
+.no-border-cell {
+  border: none !important;
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 .underline-text {
   border-bottom: 1px solid #000;
   display: inline-block;
   padding-bottom: 2px;
-  margin-bottom: 8px; /* 여백 명확하게 줌 */
-  font-size: 14px;
-}
-
-.sum-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-}
-.sum-table td {
-  border: 1px solid #000;
-  padding: 6px;
-  text-align: center;
-  font-size: 14px;
-}
-.sum-label {
-  width: 20%;
-  font-weight: bold;
-  text-align: center;
-  white-space: nowrap;
-}
-.sum-amount {
-  width: 80%;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.item-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-}
-.item-table th,
-.item-table td {
-  border: 1px solid #000;
-  padding: 4px;
-  text-align: center;
-}
-.total-row td {
-  font-weight: bold;
-  background: #eee;
+  margin-bottom: 4px;
 }
 .bottom-info-row td {
-  height: 50px;
-  vertical-align: middle;
-}
-.remark,
-.receiver {
-  border: 1px solid #000;
+  height: 50px; /* 높이는 필요에 따라 조정 */
+  vertical-align: middle; /* 가운데 정렬 */
 }
 </style>
