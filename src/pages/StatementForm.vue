@@ -383,7 +383,7 @@ async function generatePDF() {
 .stamp-image {
     position: absolute;
     top: -10px;
-    right: 84px;
+    right: 86px;
     width: 48px;
     height: 48px;
     pointer-events: none;
