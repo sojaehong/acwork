@@ -307,18 +307,21 @@ async function generatePDF() {
   const previewEl = pdfPreview.value
 
   const canvas = await html2canvas(previewEl, {
-    scale: 1,
+    scale: 2,              // ✔ 고화질 프린터 대응
     useCORS: true,
-    width: 794,
-    windowWidth: 794
+    width: previewEl.offsetWidth,
+    height: previewEl.offsetHeight
   })
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.9)
-  const pdf = new jsPDF('p', 'mm', 'a4')
-  const width = pdf.internal.pageSize.getWidth()
-  const height = (canvas.height * width) / canvas.width
+  const imgData = canvas.toDataURL('image/jpeg', 0.85)  // ✔ 고화질 + 압축
 
-  pdf.addImage(imgData, 'JPEG', 0, 0, width, height)
+  const pdf = new jsPDF('p', 'mm', 'a4')
+  const pageWidth = pdf.internal.pageSize.getWidth()     // 210mm
+  const margin = 10                                      // 여백 확보
+  const contentWidth = pageWidth - margin * 2            // 실제 이미지 너비
+  const imageHeight = (canvas.height * contentWidth) / canvas.width
+
+  pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imageHeight)
   pdf.save(`${form.client}_${form.date}.pdf`)
 }
 
