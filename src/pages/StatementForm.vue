@@ -291,12 +291,12 @@ onMounted(() => {
 })
 
 async function generatePDF() {
-  const canvas = await html2canvas(pdfPreview.value, { scale: 2 })
-  const imgData = canvas.toDataURL('image/png')
+  const canvas = await html2canvas(pdfPreview.value, { scale: 1 })
+  const imgData = canvas.toDataURL('image/jpeg', 0.9)
   const pdf = new jsPDF('p', 'mm', 'a4')
   const width = pdf.internal.pageSize.getWidth()
   const height = (canvas.height * width) / canvas.width
-  pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+  pdf.addImage(imgData, 'JPEG', 0, 0, width, height)
   pdf.save(`${form.client}_${form.date}_거래명세서.pdf`)
 }
 </script>
