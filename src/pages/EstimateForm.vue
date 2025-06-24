@@ -98,19 +98,20 @@
     </v-card>
   </v-col>
 </v-row>
-    <v-checkbox v-model="includeVAT" label="세액 포함" class="mt-4" @change="recalculateAll" />
+    <v-checkbox v-model="includeVAT" label="부가세 포함" class="mt-4" @change="recalculateAll" />
 
     <v-row class="mt-4">
       <v-col cols="12" md="6">
         <div>총 공급가액: {{ format(totalSupply) }}원</div>
-        <div>총 세액: {{ format(totalVAT) }}원</div>
+        <div>총 부가세: {{ format(totalVAT) }}원</div>
         <div>합계금액: {{ format(totalAmount) }}원</div>
         <div>한글표기: {{ totalKorean }}원</div>
       </v-col>
       <v-col cols="12" md="6" class="text-right">
-        <v-btn color="primary" @click="generatePDF">📄 PDF 생성</v-btn>
-        <v-btn color="secondary" @click="saveProductToDB">💾 품목 저장</v-btn>
-        <v-btn color="success" @click="saveEstimateToDB">🗃️ 견적 저장</v-btn>
+        <v-btn color="primary" @click="generatePDF">PDF 생성</v-btn>
+        <v-btn color="secondary" @click="downloadWithMarginImage">이미지 생성</v-btn>
+        <v-btn color="secondary" @click="saveProductToDB">품목 저장</v-btn>
+        <v-btn color="success" @click="saveEstimateToDB">견적 저장</v-btn>
       </v-col>
     </v-row>
 
@@ -151,7 +152,7 @@
   <!-- ✅ item-table 수정 -->
   <table class="item-table">
     <thead>
-      <tr><th>품명</th><th>규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>세액</th><th>비고</th></tr>
+      <tr><th>품명</th><th>규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>비고</th></tr>
     </thead>
     <tbody>
       <tr v-for="(item, i) in form.items" :key="i">
@@ -309,8 +310,7 @@ async function generatePDF() {
   const canvas = await html2canvas(previewEl, {
     scale: 2,              // ✔ 고화질 프린터 대응
     useCORS: true,
-    width: previewEl.offsetWidth,
-    height: previewEl.offsetHeight
+    backgroundColor: '#ffffff',
   })
 
   const imgData = canvas.toDataURL('image/jpeg', 0.85)  // ✔ 고화질 + 압축
@@ -323,6 +323,35 @@ async function generatePDF() {
 
   pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imageHeight)
   pdf.save(`${form.client}_${form.date}.pdf`)
+
+}
+
+async function downloadWithMarginImage() {
+  const previewEl = pdfPreview.value
+  const scale = 2
+
+  const originalCanvas = await html2canvas(previewEl, {
+    scale,
+    useCORS: true,
+    backgroundColor: '#fff'
+  })
+
+  // ✔️ margin in px (10mm ≒ 38px @ 96dpi, ≒ 76px @ 192dpi → scale 2 이므로 76)
+  const margin = 76
+  const canvasWithMargin = document.createElement('canvas')
+  canvasWithMargin.width = originalCanvas.width + margin * 2
+  canvasWithMargin.height = originalCanvas.height + margin * 2
+
+  const ctx = canvasWithMargin.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvasWithMargin.width, canvasWithMargin.height)
+  ctx.drawImage(originalCanvas, margin, margin)
+
+  const finalImg = canvasWithMargin.toDataURL('image/jpeg', 1.0)
+  const link = document.createElement('a')
+  link.href = finalImg
+  link.download = `${form.client}_${form.date}_견적서.jpg`
+  link.click()
 }
 
 async function loadProducts() {
@@ -448,16 +477,18 @@ onMounted(() => {
 }
 
 .preview-box {
-  width: 794px;                /* A4 width in px (210mm @96dpi) */
-  min-height: 1123px;          /* A4 height in px */
+  width: 794px;
+  min-height: 1123px;
+  margin: 32px auto;
+  padding: 38px;
   background: white;
-  padding: 16px;
-  margin: 40px auto;
-  border: 1px solid #ccc;
+  box-sizing: border-box;
+  border: 1px solid #888;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
   font-size: 12px;
   color: black;
-  box-sizing: border-box;
 }
+
 .title {
   font-size: 20px;
   font-weight: bold;

@@ -61,7 +61,8 @@
     <!-- PDF 버튼 -->
     <v-row class="mt-4">
       <v-col class="text-right">
-        <v-btn color="primary" @click="generatePDF">PDF 저장</v-btn>
+        <v-btn color="primary" @click="generatePDF">PDF 생성</v-btn>
+        <v-btn color="secondary" @click="downloadTransactionImageWithMargin">이미지 생성</v-btn>
       </v-col>
     </v-row>
 
@@ -163,10 +164,7 @@
           </tr>
         </tbody>
       </table>
-
     </div>
-
-
   </v-container>
 </template>
 
@@ -310,6 +308,33 @@ async function generatePDF() {
 
   pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imageHeight)
   pdf.save(`${form.client}_${form.date}_거래명세서.pdf`)
+}
+
+async function downloadTransactionImageWithMargin() {
+  const previewEl = pdfPreview.value
+  const scale = 2
+
+  const originalCanvas = await html2canvas(previewEl, {
+    scale,
+    useCORS: true,
+    backgroundColor: '#fff'
+  })
+
+  const margin = 76
+  const canvasWithMargin = document.createElement('canvas')
+  canvasWithMargin.width = originalCanvas.width + margin * 2
+  canvasWithMargin.height = originalCanvas.height + margin * 2
+
+  const ctx = canvasWithMargin.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvasWithMargin.width, canvasWithMargin.height)
+  ctx.drawImage(originalCanvas, margin, margin)
+
+  const finalImg = canvasWithMargin.toDataURL('image/jpeg', 1.0)
+  const link = document.createElement('a')
+  link.href = finalImg
+  link.download = `${form.client}_${form.date}_거래명세서.jpg`
+  link.click()
 }
 </script>
 
