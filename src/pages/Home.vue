@@ -151,7 +151,9 @@ import { collection, query, where, getDocs, doc, getDoc, limit } from 'firebase/
 import TaskCard from '@/components/TaskCard.vue'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
+import { getAuth, signInAnonymously } from 'firebase/auth'
 
+const auth = getAuth()
 const router = useRouter()
 const scheduleStore = useScheduleStore()
 const userStore = useUserStore()
@@ -224,7 +226,15 @@ function changeDate(offset) {
 
 async function logout() {
   try {
+    // 🔐 Firebase Auth 세션 종료
+    await auth.signOut()
+
+    // 🧹 사용자 정보 초기화
+    localStorage.removeItem('user_id')
+    localStorage.removeItem('user_name')
+    localStorage.removeItem('user_role')
     userStore.logout()
+
     await router.push('/login')
   } catch (err) {
     console.error('로그아웃 실패:', err)
@@ -266,6 +276,12 @@ const completedHoldSchedules = computed(() =>
 
 onMounted(async () => {
   try {
+    // ✅ Firebase 익명 로그인 처리 (이미 로그인 되어 있으면 무시됨)
+    if (!auth.currentUser) {
+      await signInAnonymously(auth)
+    }
+
+    // ✅ userStore 복원
     if (!userStore.userId) {
       const id = localStorage.getItem('user_id')
       const name = localStorage.getItem('user_name')
@@ -274,6 +290,7 @@ onMounted(async () => {
         userStore.setUser({ id, name, role })
       }
     }
+
     await loadData(selectedDate.value)
   } catch (err) {
     console.error('초기 로딩 실패:', err)
