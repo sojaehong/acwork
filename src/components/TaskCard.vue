@@ -9,9 +9,9 @@
     <!-- 상태 chip / 세금계산서 chip 우측 -->
     <div class="d-flex justify-space-between align-center mb-2 px-4 pt-4">
    <div class="text-subtitle-1 font-weight-medium">
-  🏢 {{ item.building }}
-  <template v-if="item.unit">&nbsp;{{ item.unit }}동</template>
-  <template v-if="item.room">&nbsp;{{ item.room }}호</template>
+  🏢 <span>{{ item.building }}</span>
+   <span v-if="item.unit">&nbsp;{{ item.unit }}동</span>
+  <span v-if="item.room">&nbsp;{{ item.room }}호</span>
 </div>
       <div>
         <v-chip :color="statusColor" size="small" class="me-1" text-color="white">
