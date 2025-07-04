@@ -242,10 +242,10 @@ function goHome() {
 }
 
 async function submit() {
-  if (!form.value.date || !form.value.building || !form.value.unit || !form.value.room.trim()) {
-    alert('날짜 / 건물 / 동 / 호수는 필수 입력입니다.')
-    return
-  }
+  if (!form.value.date || !form.value.building) {
+  alert('날짜와 건물명은 필수 입력입니다.');
+  return;
+}
 
   if (isSaving.value) return
   isSaving.value = true
