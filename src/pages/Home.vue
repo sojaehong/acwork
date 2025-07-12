@@ -208,7 +208,7 @@
           </div>
           <h3 class="empty-title">등록된 작업이 없습니다</h3>
           <p class="empty-description">새 작업을 등록하여 시작해보세요!</p>
-          <v-btn color="primary" size="large" @click="goToAdd" class="mt-4">
+          <v-btn color="primary" size="large" @click="goToAddDate" class="mt-4">
             <v-icon start>mdi-plus</v-icon>
             첫 작업 등록하기
           </v-btn>
@@ -392,6 +392,13 @@ async function goTo(path) {
 
 const goToAll = () => goTo('/schedules')
 const goToAdd = () => goTo('/add')
+const goToAddDate = () => {
+  const formatted = selectedDate.value instanceof Date
+    ? selectedDate.value.toISOString().split('T')[0]
+    : selectedDate.value  // already string
+
+  router.push({ path: '/add', query: { date: formatted } })
+}
 const goToPayroll = () => goTo('/payroll')
 const goToWorker = () => goTo('/worker-schedules')
 const goToMetaEdit = () => goTo('/meta')

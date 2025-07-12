@@ -394,7 +394,7 @@ const scheduleStore = useScheduleStore()
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
-const types = ['설치', '수리', '청소', '기타']
+const types = ['설치', '수리','점검', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
 
 const form = ref({

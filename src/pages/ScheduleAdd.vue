@@ -391,22 +391,34 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ref, computed } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
-import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useScheduleStore } from '@/stores/schedule'
 
 const router = useRouter()
+const route = useRoute()
 const scheduleStore = useScheduleStore()
 
 const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
 const units = ['A', 'B', 'C', 'D', '기타']
-const types = ['설치', '수리', '청소', '기타']
+const types = ['설치', '수리', '점검', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
+
+function parseDateParam(param) {
+  if (!param || typeof param !== 'string') return new Date()
+  const [y, m, d] = param.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+console.log('[route.query.date]:', route.query.date)
+console.log('[typeof date]:', typeof route.query.date)
+console.log('[instanceof Date]:', route.query.date instanceof Date)
 
 const form = ref({
   building: '',
@@ -416,7 +428,7 @@ const form = ref({
   room: '',
   tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
   status: '진행',
-  date: new Date().toISOString().split('T')[0],
+  date: parseDateParam(route.query.date),
   memo: '',
   invoice: 'N'
 })
@@ -424,10 +436,11 @@ const form = ref({
 const isSaving = ref(false)
 
 const dateConfig = {
-  locale: Korean,
+   locale: Korean,
   dateFormat: 'Y-m-d',
   disableMobile: true,
-  allowInput: true
+  defaultDate: form.value.date,
+  allowInput: true,
 }
 
 // 폼 완성도 계산
@@ -473,6 +486,14 @@ const getStatusIcon = (status) => {
   }
 }
 
+function formatDate(date) {
+  if (!(date instanceof Date)) return date
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 const summaryText = computed(() => {
   const b = form.value.building === '기타' ? form.value.buildingEtc : form.value.building
   const u = form.value.unit === '기타' ? form.value.unitEtc : form.value.unit
@@ -485,7 +506,7 @@ const summaryText = computed(() => {
   
   const invoice = form.value.invoice === 'Y' ? '세금계산서 발행' : '계산서 없음'
   
-  return `${form.value.date || '날짜 미선택'} | ${location || '위치 미입력'} | ${tasks} | ${form.value.status} | ${invoice}`
+  return `${formatDate(form.value.date) || '날짜 미선택'} | ${location || '위치 미입력'} | ${tasks} | ${form.value.status} | ${invoice}`
 })
 
 function addTask() {
