@@ -578,7 +578,7 @@ async function submit() {
   try {
     await scheduleStore.updateSchedule(data)
     uiStore.showSnackbar('작업이 성공적으로 수정되었습니다!', 'success')
-    router.replace(`/schedule/${route.params.id}`)
+    router.go(-1)
   } catch (err) {
     uiStore.showSnackbar('수정 중 오류가 발생했습니다.', 'error')
   }
