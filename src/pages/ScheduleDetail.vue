@@ -485,7 +485,7 @@ function goToEdit() {
 }
 
 function goBack() {
-  router.push('/schedules')
+  router.back()
 }
 </script>
 
