@@ -308,9 +308,9 @@
                         <th>상호</th><td>이안공조프러스</td>
                         <th>대표자</th>
                         <td colspan="2">
-                          <div class="preview-stamp-wrapper">
+                          <div class="stamp-wrapper">
                             <span>배 규 석 (인)</span>
-                            <div class="preview-stamp">도장</div>
+                            <img src="/stamp.png" class="stamp-image" />
                           </div>
                         </td>
                       </tr>
@@ -1219,14 +1219,15 @@ onMounted(() => {
 }
 
 /* 미리보기 스타일 */
+/* 미리보기 스타일 */
 .preview-wrapper {
   padding: 24px;
   background: #f8fafc;
+  overflow-x: auto; /* 핵심: 내용이 넘칠 경우 가로 스크롤 생성 */
 }
 
 .preview-content {
-  max-width: 800px;
-  margin: 0 auto;
+  min-width: 700px; /* 최소 너비를 지정하여 모바일에서 표가 깨지는 것을 방지 */
   background: white;
   padding: 40px;
   border-radius: 12px;
@@ -1262,28 +1263,7 @@ onMounted(() => {
   color: #475569;
 }
 
-.preview-stamp-wrapper {
-  position: relative;
-  display: inline-block;
-}
 
-.preview-stamp {
-  position: absolute;
-  top: -10px;
-  right: -20px;
-  width: 50px;
-  height: 50px;
-  border: 2px solid #e11d48;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #e11d48;
-  font-weight: bold;
-  font-size: 12px;
-  transform: rotate(-15deg);
-  background: rgba(255, 255, 255, 0.9);
-}
 
 .preview-summary {
   margin-top: 24px;

@@ -317,7 +317,7 @@
                           <td>성명</td>
                           <td class="relative supplier-signer">
                             배규석 (인)
-                            <div class="preview-stamp">도장</div>
+                            <img src="/stamp.png" class="stamp-image-preview" />
                           </td>
                         </tr>
                         <tr>
@@ -1058,10 +1058,11 @@ onMounted(() => {
 .preview-wrapper {
   padding: 24px;
   background: #f8fafc;
+  overflow-x: auto; /* 핵심: 내용이 넘칠 경우 가로 스크롤 생성 */
 }
 
 .preview-content {
-  max-width: 800px;
+  min-width: 700px; /* 최소 너비를 지정하여 모바일에서 표가 깨지는 것을 방지 */
   margin: 0 auto;
   background: white;
   padding: 30px;
@@ -1132,22 +1133,14 @@ onMounted(() => {
   min-height: 50px;
 }
 
-.preview-stamp {
+.stamp-image-preview {
   position: absolute;
   top: 50%;
-  right: 20px;
-  transform: translateY(-50%) rotate(-15deg);
-  width: 50px;
-  height: 50px;
-  border: 2px solid #e11d48;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #e11d48;
-  font-weight: bold;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.9);
+  right: 90px; /* 미리보기 레이아웃에 맞게 재조정된 값 */
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
 }
 
 .preview-sum-table {
