@@ -577,7 +577,7 @@ const filterGroups = computed(() => ({
 }))
 
 onMounted(async () => {
-  await store.fetchSchedules(true) // force fetch all schedules
+  await store.fetchAllSchedules()
   statuses.value = [...new Set(store.schedules.map((s) => s.status))]
   buildings.value = [...new Set(store.schedules.map((s) => s.building))]
   taskTypes.value = [

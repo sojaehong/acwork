@@ -326,10 +326,7 @@ const displayDday = computed(() => {
 })
 
 async function loadSchedules(date) {
-  const q = query(collection(db, 'schedules'), where('date', '==', date))
-  const snap = await getDocs(q)
-  const schedules = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-  scheduleStore.setSchedules(schedules)
+  await scheduleStore.fetchSchedulesByDate(date)
 }
 
 async function loadScheduleMeta(date) {

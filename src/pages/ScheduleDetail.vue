@@ -485,7 +485,7 @@ function goToEdit() {
 }
 
 function goBack() {
-  router.back()
+  router.push('/schedules')
 }
 </script>
 
@@ -493,7 +493,7 @@ function goBack() {
 /* Styles remain the same */
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

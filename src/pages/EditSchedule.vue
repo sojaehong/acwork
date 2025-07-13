@@ -99,7 +99,7 @@
               <v-icon color="primary">mdi-home-city</v-icon>
             </div>
             <h3 class="card-title">동 선택</h3>
-            <v-chip color="info" size="small" class="ml-2">필수</v-chip>
+            <v-chip color="warning" size="small" class="ml-2">선택사항</v-chip>
           </div>
 
           <div class="card-content">
@@ -138,7 +138,7 @@
               <v-icon color="primary">mdi-home</v-icon>
             </div>
             <h3 class="card-title">호수 입력</h3>
-            <v-chip color="info" size="small" class="ml-2">필수</v-chip>
+            <v-chip color="warning" size="small" class="ml-2">선택사항</v-chip>
           </div>
 
           <div class="card-content">
@@ -504,6 +504,7 @@ function initializeForm(source) {
 }
 
 onMounted(async () => {
+  console.log('EditSchedule: onMounted - Current route:', router.currentRoute.value.fullPath, 'History length:', window.history.length)
   const id = route.params.id
   const scheduleFromStore = scheduleStore.getScheduleById(id)
   if (scheduleFromStore) {
@@ -545,8 +546,6 @@ function goBack() {
 async function submit() {
   if (
     !form.value.building ||
-    !form.value.unit ||
-    !form.value.room ||
     !form.value.status ||
     !form.value.date
   ) {
@@ -579,7 +578,7 @@ async function submit() {
   try {
     await scheduleStore.updateSchedule(data)
     uiStore.showSnackbar('작업이 성공적으로 수정되었습니다!', 'success')
-    router.back()
+    router.replace(`/schedule/${route.params.id}`)
   } catch (err) {
     uiStore.showSnackbar('수정 중 오류가 발생했습니다.', 'error')
   }

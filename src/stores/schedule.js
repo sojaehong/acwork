@@ -44,18 +44,46 @@ export const useScheduleStore = defineStore('schedule', {
 
   actions: {
     // Firestore Actions
-    async fetchSchedules(date) {
+    async fetchSchedulesByDate(date) {
       this.isLoading = true
       this.error = null
       try {
         const q = query(collection(db, 'schedules'), where('date', '==', date))
         const snapshot = await getDocs(q)
-        this.schedules = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
+        console.log('fetchSchedulesByDate: Fetched snapshot size:', snapshot.size)
+        this.schedules = snapshot.docs.map((doc) => {
+          console.log('fetchSchedulesByDate: Document data:', doc.data())
+          return {
+            id: doc.id,
+            ...doc.data(),
+          }
+        })
+        console.log('fetchSchedulesByDate: schedules after mapping:', this.schedules)
       } catch (err) {
         this.error = '일정 데이터를 불러오는 중 오류가 발생했습니다.'
+        console.error(err)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchAllSchedules() {
+      this.isLoading = true
+      this.error = null
+      try {
+        const q = query(collection(db, 'schedules'), orderBy('date', 'desc'))
+        const snapshot = await getDocs(q)
+        console.log('fetchAllSchedules: Fetched snapshot size:', snapshot.size)
+        this.schedules = snapshot.docs.map((doc) => {
+          console.log('fetchAllSchedules: Document data:', doc.data())
+          return {
+            id: doc.id,
+            ...doc.data(),
+          }
+        })
+        console.log('fetchAllSchedules: schedules after mapping:', this.schedules)
+      } catch (err) {
+        this.error = '모든 일정 데이터를 불러오는 중 오류가 발생했습니다.'
         console.error(err)
       } finally {
         this.isLoading = false
