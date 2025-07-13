@@ -127,65 +127,58 @@
                   elevation="0"
                   @click="goToDetail(item.id)"
                 >
-                  <!-- 카드 헤더 -->
-                  <div class="card-header">
-                    <div class="building-info">
-                      <h4 class="building-name">{{ item.building }}</h4>
-                      <div class="unit-info">
-                        <span v-if="item.unit">{{ item.unit }}동</span>
-                        <span v-if="item.room" class="room-number">{{ item.room }}호</span>
+                  <div class="card-content-wrapper">
+                    <!-- 카드 헤더: 건물 정보 + 상태 -->
+                    <div class="card-header">
+                      <div class="building-info">
+                        <v-icon class="building-icon" color="primary">mdi-office-building-outline</v-icon>
+                        <div class="building-text">
+                          <h4 class="building-name">{{ item.building }}</h4>
+                          <div class="unit-info">
+                            <span v-if="item.unit">{{ item.unit }}동</span>
+                            <span v-if="item.room" class="room-number">{{ item.room }}호</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="status-badges">
+                        <v-chip :color="displayStatusColor(item)" size="small" variant="flat" class="status-chip">
+                          <v-icon start size="14">{{ getStatusIcon(item) }}</v-icon>
+                          {{ displayStatusText(item) }}
+                        </v-chip>
+                        <v-chip :color="item.invoice ? 'blue' : 'grey-lighten-2'" size="small" variant="flat" class="invoice-chip">
+                          <v-icon start size="14">{{ item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}</v-icon>
+                          {{ item.invoice ? '계산서' : '미발행' }}
+                        </v-chip>
                       </div>
                     </div>
-                    
-                    <div class="status-badges">
-                      <v-chip 
-                        :color="displayStatusColor(item)" 
-                        size="small" 
-                        variant="flat"
-                        class="status-chip"
-                      >
-                        <v-icon start size="14">{{ getStatusIcon(item) }}</v-icon>
-                        {{ displayStatusText(item) }}
-                      </v-chip>
-                      <v-chip 
-                        :color="item.invoice ? 'blue' : 'grey-lighten-2'" 
-                        size="small" 
-                        variant="flat"
-                        class="invoice-chip"
-                      >
-                        <v-icon start size="14">{{ item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}</v-icon>
-                        {{ item.invoice ? '계산서' : '미발행' }}
-                      </v-chip>
-                    </div>
-                  </div>
 
-                  <!-- 작업 내용 -->
-                  <div class="task-section" v-if="item.tasks?.length">
-                    <div class="task-label">
-                      <v-icon size="16" color="grey-darken-1">mdi-wrench</v-icon>
-                      작업 내용
-                    </div>
-                    <div class="task-chips">
-                      <v-chip
-                        v-for="(task, i) in item.tasks"
-                        :key="`${task.name}-${i}`"
-                        size="small"
-                        variant="tonal"
-                        color="secondary"
-                        class="task-chip"
-                      >
-                        {{ task.name }} ({{ task.count }})
-                      </v-chip>
-                    </div>
-                  </div>
+                    <v-divider class="my-3"></v-divider>
 
-                  <!-- 메모 -->
-                  <div class="memo-section" v-if="item.memo">
-                    <div class="memo-label">
-                      <v-icon size="16" color="grey-darken-1">mdi-note-text</v-icon>
-                      메모
+                    <!-- 카드 본문: 작업 내용 + 메모 -->
+                    <div class="card-body">
+                      <!-- 작업 내용 -->
+                      <div class="info-row" v-if="item.tasks?.length">
+                        <v-icon class="info-icon" size="18">mdi-format-list-checks</v-icon>
+                        <div class="task-chips">
+                          <v-chip
+                            v-for="(task, i) in item.tasks"
+                            :key="`${task.name}-${i}`"
+                            size="small"
+                            variant="tonal"
+                            color="secondary"
+                            class="task-chip"
+                          >
+                            {{ task.name }} ({{ task.count }})
+                          </v-chip>
+                        </div>
+                      </div>
+
+                      <!-- 메모 -->
+                      <div class="info-row" v-if="item.memo">
+                        <v-icon class="info-icon" size="18">mdi-note-text-outline</v-icon>
+                        <p class="memo-text">{{ item.memo }}</p>
+                      </div>
                     </div>
-                    <div class="memo-text">{{ item.memo }}</div>
                   </div>
 
                   <!-- 카드 호버 인디케이터 -->
@@ -744,64 +737,74 @@ onMounted(async () => {
 }
 
 /* 📋 스케줄 카드 */
-.schedule-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 16px;
-}
-
 .schedule-card {
   background: white;
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
 }
 
 .schedule-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.15);
   border-color: #4f46e5;
+}
+
+.card-content-wrapper {
+  display: flex;
+  flex-direction: column;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  gap: 16px;
 }
 
 .building-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
+}
+
+.building-icon {
+  font-size: 28px !important;
 }
 
 .building-name {
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0 0 4px 0;
+  margin: 0;
 }
 
 .unit-info {
   display: flex;
+  align-items: center;
   gap: 8px;
   font-size: 14px;
   color: #64748b;
+  margin-top: 2px;
 }
 
 .room-number {
-  background: #e2e8f0;
+  background: #f1f5f9;
   padding: 2px 8px;
   border-radius: 6px;
   font-weight: 600;
+  color: #475569;
 }
 
 .status-badges {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 6px;
 }
 
@@ -809,18 +812,21 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.task-section, .memo-section {
-  margin-bottom: 16px;
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.task-label, .memo-label {
+.info-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.info-icon {
+  color: #94a3b8;
+  margin-top: 3px;
 }
 
 .task-chips {
@@ -836,23 +842,32 @@ onMounted(async () => {
 .memo-text {
   font-size: 14px;
   color: #475569;
-  font-style: italic;
-  line-height: 1.5;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+  word-break: keep-all;
 }
 
 .card-hover-indicator {
   position: absolute;
   top: 50%;
-  right: 16px;
+  right: -20px;
   transform: translateY(-50%);
   opacity: 0;
-  transition: all 0.3s ease;
-  color: #4f46e5;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  color: white;
+  background: #4f46e5;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .schedule-card:hover .card-hover-indicator {
   opacity: 1;
-  transform: translateY(-50%) translateX(4px);
+  right: 16px;
 }
 
 /* 📋 빈 상태 */
