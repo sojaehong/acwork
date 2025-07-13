@@ -7,11 +7,11 @@ export default defineConfig({
   publicDir: 'public',
   plugins: [
     vue(),
-    vuetify({ autoImport: true })  // ✅ Vuetify 플러그인 설정
+    vuetify({ autoImport: true }), // ✅ Vuetify 플러그인 설정
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
 })

@@ -1,15 +1,11 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
+          <v-btn
+            icon
             size="large"
             class="back-btn mr-3"
             @click="$router.push('/')"
@@ -24,13 +20,13 @@
             <div class="header-subtitle">개인별 스케줄 관리</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <!-- 선택된 작업자 표시 -->
-          <v-chip 
-            v-if="selectedWorkerName" 
-            color="warning" 
-            size="small" 
+          <v-chip
+            v-if="selectedWorkerName"
+            color="warning"
+            size="small"
             class="mr-2"
           >
             <v-icon start size="14">mdi-account</v-icon>
@@ -54,7 +50,10 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 120px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 120px !important; max-width: 1200px"
+      >
         <!-- 🚨 에러 알림 -->
         <v-alert v-if="error" type="error" class="mb-6" prominent>
           <v-icon start>mdi-alert-circle</v-icon>
@@ -72,7 +71,7 @@
               {{ workers.length }}명
             </v-chip>
           </div>
-          
+
           <div class="worker-grid">
             <v-btn
               v-for="worker in workers"
@@ -83,7 +82,11 @@
               @click="selectWorker(worker.id)"
             >
               <v-icon start>
-                {{ selectedWorker === worker.id ? 'mdi-account-check' : 'mdi-account' }}
+                {{
+                  selectedWorker === worker.id
+                    ? 'mdi-account-check'
+                    : 'mdi-account'
+                }}
               </v-icon>
               {{ worker.name }}
             </v-btn>
@@ -93,10 +96,14 @@
         <!-- 📋 작업자 미선택 상태 -->
         <div v-if="!selectedWorker" class="empty-state">
           <div class="empty-icon">
-            <v-icon size="80" color="grey-lighten-2">mdi-account-question</v-icon>
+            <v-icon size="80" color="grey-lighten-2"
+              >mdi-account-question</v-icon
+            >
           </div>
           <h3 class="empty-title">작업자를 선택해주세요</h3>
-          <p class="empty-description">일정을 확인할 작업자를 선택하면 상세 정보를 볼 수 있습니다.</p>
+          <p class="empty-description">
+            일정을 확인할 작업자를 선택하면 상세 정보를 볼 수 있습니다.
+          </p>
         </div>
 
         <!-- 📊 일정 현황 -->
@@ -109,7 +116,7 @@
               </div>
               <h3 class="stats-title">{{ selectedWorkerName }} 일정 현황</h3>
             </div>
-            
+
             <div class="stats-grid">
               <div class="stat-item upcoming">
                 <div class="stat-number">{{ upcomingMeta.length }}</div>
@@ -126,7 +133,9 @@
                 </div>
               </div>
               <div class="stat-item total">
-                <div class="stat-number">{{ upcomingMeta.length + pastMeta.length }}</div>
+                <div class="stat-number">
+                  {{ upcomingMeta.length + pastMeta.length }}
+                </div>
                 <div class="stat-label">총 작업 수</div>
                 <div class="stat-icon">
                   <v-icon>mdi-calendar-multiple</v-icon>
@@ -142,18 +151,18 @@
                 <v-icon color="white">mdi-calendar-clock</v-icon>
               </div>
               <h3 class="section-title">예정된 일정</h3>
-              <v-chip 
-                :color="upcomingMeta.length > 0 ? 'warning' : 'grey'" 
-                size="small" 
+              <v-chip
+                :color="upcomingMeta.length > 0 ? 'warning' : 'grey'"
+                size="small"
                 class="ml-2"
               >
                 {{ upcomingMeta.length }}건
               </v-chip>
             </div>
 
-            <v-alert 
-              v-if="upcomingMeta.length === 0" 
-              type="info" 
+            <v-alert
+              v-if="upcomingMeta.length === 0"
+              type="info"
               class="info-alert"
               prominent
             >
@@ -169,27 +178,33 @@
               >
                 <div class="card-content">
                   <div class="card-main-info">
-                    <div class="date-badge upcoming-badge">D-{{ item.dday }}</div>
+                    <div class="date-badge upcoming-badge">
+                      D-{{ item.dday }}
+                    </div>
                     <div class="date-info">
                       <h4 class="work-date">{{ formatDate(item.date) }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div v-if="item.notice" class="notice-section">
                     <v-icon size="16" color="info">mdi-information</v-icon>
                     <span class="notice-text">{{ item.notice }}</span>
                   </div>
-                  
+
                   <div class="status-section">
                     <v-chip color="warning" size="small" variant="flat">
                       <v-icon start size="14">mdi-calendar-clock</v-icon>
@@ -213,9 +228,9 @@
               </v-chip>
             </div>
 
-            <v-alert 
-              v-if="pastMeta.length === 0" 
-              type="info" 
+            <v-alert
+              v-if="pastMeta.length === 0"
+              type="info"
               class="info-alert"
               prominent
             >
@@ -236,22 +251,26 @@
                       <h4 class="work-date">{{ formatDate(item.date) }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div v-if="item.notice" class="notice-section">
                     <v-icon size="16" color="info">mdi-information</v-icon>
                     <span class="notice-text">{{ item.notice }}</span>
                   </div>
-                  
+
                   <div class="status-section">
                     <v-chip color="success" size="small" variant="flat">
                       <v-icon start size="14">mdi-check</v-icon>
@@ -267,7 +286,7 @@
 
       <!-- 🏠 하단 홈 버튼 -->
       <div class="floating-actions">
-        <v-btn 
+        <v-btn
           block
           size="large"
           variant="outlined"
@@ -330,7 +349,7 @@ const today = getTodayKST()
 
 const selectedWorkerName = computed(() => {
   if (!selectedWorker.value) return ''
-  const worker = workers.value.find(w => w.id === selectedWorker.value)
+  const worker = workers.value.find((w) => w.id === selectedWorker.value)
   return worker ? worker.name : ''
 })
 
@@ -338,10 +357,10 @@ onMounted(async () => {
   await fetchUsers()
   const queryId = route.query.worker
   const currentUserId = userStore.userId
-  if (queryId && workers.value.find(w => w.id === queryId)) {
+  if (queryId && workers.value.find((w) => w.id === queryId)) {
     selectedWorker.value = queryId
   } else if (!selectedWorker.value && currentUserId) {
-    const match = workers.value.find(w => w.id === currentUserId)
+    const match = workers.value.find((w) => w.id === currentUserId)
     selectedWorker.value = match ? match.id : null
   }
   await fetchMeta()
@@ -354,8 +373,11 @@ const selectWorker = (id) => {
 
 async function fetchUsers() {
   const snap = await getDocs(collection(db, 'users'))
-  workers.value = snap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-  userMap.value = Object.fromEntries(workers.value.map(u => [u.id, u.name]))
+  workers.value = snap.docs.map((doc) => ({
+    id: doc.id,
+    name: doc.data().name || doc.id,
+  }))
+  userMap.value = Object.fromEntries(workers.value.map((u) => [u.id, u.name]))
 }
 
 async function fetchMeta() {
@@ -373,7 +395,9 @@ async function fetchMeta() {
         startTime: typeof data.startTime === 'string' ? data.startTime : '',
         workers: data.workers,
         notice: typeof data.notice === 'string' ? data.notice : '',
-        workerNames: data.workers.map(id => userMap.value[id] || '알 수 없음')
+        workerNames: data.workers.map(
+          (id) => userMap.value[id] || '알 수 없음'
+        ),
       })
     }
     metaList.value = result
@@ -388,16 +412,16 @@ async function fetchMeta() {
 const upcomingMeta = computed(() => {
   if (!selectedWorker.value) return []
   return metaList.value
-    .filter(m => m.workers.includes(selectedWorker.value) && m.date >= today)
-    .map(m => ({ ...m, dday: dateDiff(today, m.date) }))
+    .filter((m) => m.workers.includes(selectedWorker.value) && m.date >= today)
+    .map((m) => ({ ...m, dday: dateDiff(today, m.date) }))
     .sort((a, b) => new Date(a.date) - new Date(b.date))
 })
 
 const pastMeta = computed(() => {
   if (!selectedWorker.value) return []
   return metaList.value
-    .filter(m => m.workers.includes(selectedWorker.value) && m.date < today)
-    .map(m => ({ ...m, dday: dateDiff(m.date, today) }))
+    .filter((m) => m.workers.includes(selectedWorker.value) && m.date < today)
+    .map((m) => ({ ...m, dday: dateDiff(m.date, today) }))
     .sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 </script>
@@ -856,39 +880,39 @@ const pastMeta = computed(() => {
     gap: 8px;
     padding: 20px;
   }
-  
+
   .worker-btn {
     height: 52px;
     font-size: 14px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
     gap: 12px;
     padding: 20px;
   }
-  
+
   .stat-number {
     font-size: 28px;
   }
-  
+
   .card-main-info {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .date-badge {
     align-self: flex-start;
   }
-  
+
   .section-title {
     font-size: 20px;
   }
-  
+
   .work-date {
     font-size: 16px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
@@ -898,36 +922,36 @@ const pastMeta = computed(() => {
   .header-title {
     font-size: 20px;
   }
-  
+
   .worker-grid {
     grid-template-columns: 1fr;
     padding: 16px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stat-item {
     padding: 16px;
   }
-  
+
   .stat-number {
     font-size: 24px;
   }
-  
+
   .schedule-card {
     padding: 16px;
   }
-  
+
   .card-header {
     padding: 20px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
-  
+
   .home-btn {
     height: 52px;
   }

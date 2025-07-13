@@ -1,11 +1,7 @@
 <template>
   <v-app>
     <!-- 🎨 현대적인 그라데이션 헤더 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
           <div class="header-icon-wrapper">
@@ -16,13 +12,8 @@
             <div class="header-subtitle">스마트 문서 관리</div>
           </div>
         </div>
-        
-        <v-btn 
-          icon 
-          size="large"
-          class="back-btn"
-          @click="goBack"
-        >
+
+        <v-btn icon size="large" class="back-btn" @click="goBack">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
@@ -42,7 +33,10 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 120px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 120px !important; max-width: 1200px"
+      >
         <!-- 📋 기본 정보 입력 카드 -->
         <v-card class="info-card mb-6" elevation="0">
           <div class="card-header">
@@ -51,14 +45,14 @@
             </div>
             <h3 class="section-title">기본 정보</h3>
           </div>
-          
+
           <div class="card-content">
             <v-row>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.title" 
-                    label="견적명" 
+                  <v-text-field
+                    v-model="form.title"
+                    label="견적명"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -67,10 +61,10 @@
               </v-col>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.date" 
-                    label="견적일자" 
-                    type="date" 
+                  <v-text-field
+                    v-model="form.date"
+                    label="견적일자"
+                    type="date"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -79,9 +73,9 @@
               </v-col>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.client" 
-                    label="업체명" 
+                  <v-text-field
+                    v-model="form.client"
+                    label="업체명"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -100,25 +94,25 @@
             </div>
             <h3 class="section-title">품목 선택</h3>
           </div>
-          
+
           <div class="card-content">
             <!-- 품목 선택 버튼들 -->
             <v-slide-group show-arrows class="mb-4" v-model="selectedItemIndex">
               <v-slide-item v-for="(item, i) in productButtons" :key="i">
-                <v-btn 
-                  class="product-btn ma-1" 
-                  color="primary" 
-                  variant="tonal" 
+                <v-btn
+                  class="product-btn ma-1"
+                  color="primary"
+                  variant="tonal"
                   @click="selectPresetItem(item)"
                 >
                   {{ item.displayName }}
                 </v-btn>
               </v-slide-item>
               <v-slide-item>
-                <v-btn 
-                  class="custom-item-btn ma-1" 
-                  color="secondary" 
-                  variant="outlined" 
+                <v-btn
+                  class="custom-item-btn ma-1"
+                  color="secondary"
+                  variant="outlined"
                   @click="addCustomItem"
                 >
                   <v-icon start>mdi-plus</v-icon>
@@ -138,7 +132,9 @@
                 size="small"
               >
                 <v-icon start size="16">mdi-check</v-icon>
-                {{ item.name }}<span v-if="item.spec"> - {{ item.spec }}</span> × {{ item.qty }}
+                {{ item.name
+                }}<span v-if="item.spec"> - {{ item.spec }}</span> ×
+                {{ item.qty }}
               </v-chip>
             </div>
           </div>
@@ -146,17 +142,21 @@
 
         <!-- 📝 품목 상세 목록 -->
         <transition-group name="item-fade" tag="div">
-          <div v-for="(item, i) in form.items" :key="'item-' + i" class="item-card-wrapper">
+          <div
+            v-for="(item, i) in form.items"
+            :key="'item-' + i"
+            class="item-card-wrapper"
+          >
             <v-card class="item-detail-card" elevation="0">
               <div class="item-header">
                 <div class="item-number">
                   <v-icon size="20" class="mr-2">mdi-numeric</v-icon>
                   {{ i + 1 }}번 품목
                 </div>
-                <v-btn 
-                  icon 
-                  size="small" 
-                  color="error" 
+                <v-btn
+                  icon
+                  size="small"
+                  color="error"
                   variant="tonal"
                   @click="removeItem(i)"
                 >
@@ -166,18 +166,18 @@
 
               <v-row dense class="mt-3">
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field 
-                    v-model="item.name" 
-                    label="품명" 
+                  <v-text-field
+                    v-model="item.name"
+                    label="품명"
                     variant="outlined"
                     density="compact"
                     class="modern-input"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field 
-                    v-model="item.spec" 
-                    label="규격" 
+                  <v-text-field
+                    v-model="item.spec"
+                    label="규격"
                     variant="outlined"
                     density="compact"
                     class="modern-input"
@@ -205,9 +205,9 @@
                   />
                 </v-col>
                 <v-col cols="12" md="2">
-                  <v-text-field 
-                    v-model="item.note" 
-                    label="비고" 
+                  <v-text-field
+                    v-model="item.note"
+                    label="비고"
                     variant="outlined"
                     density="compact"
                     class="modern-input"
@@ -237,14 +237,14 @@
             </div>
             <h3 class="section-title">합계 정보</h3>
           </div>
-          
+
           <div class="card-content">
             <div class="vat-checkbox-wrapper">
-              <v-checkbox 
-                v-model="includeVAT" 
-                label="부가세 포함" 
+              <v-checkbox
+                v-model="includeVAT"
+                label="부가세 포함"
                 color="primary"
-                @change="recalculateAll" 
+                @change="recalculateAll"
               />
             </div>
 
@@ -283,10 +283,12 @@
               variant="tonal"
               @click="showPreview = !showPreview"
             >
-              <v-icon>{{ showPreview ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              <v-icon>{{
+                showPreview ? 'mdi-chevron-up' : 'mdi-chevron-down'
+              }}</v-icon>
             </v-btn>
           </div>
-          
+
           <v-expand-transition>
             <div v-show="showPreview" class="preview-wrapper">
               <div class="preview-content">
@@ -294,39 +296,79 @@
 
                 <table class="preview-info-table">
                   <tbody>
-                    <tr><th>견적명</th><td>{{ form.title || '-' }}</td></tr>
-                    <tr><th>견적일자</th><td>{{ form.date || '-' }}</td></tr>
-                    <tr><th>업체명</th><td>{{ form.client || '-' }}</td></tr>
+                    <tr>
+                      <th>견적명</th>
+                      <td>{{ form.title || '-' }}</td>
+                    </tr>
+                    <tr>
+                      <th>견적일자</th>
+                      <td>{{ form.date || '-' }}</td>
+                    </tr>
+                    <tr>
+                      <th>업체명</th>
+                      <td>{{ form.client || '-' }}</td>
+                    </tr>
                   </tbody>
                 </table>
 
                 <div class="preview-supplier-block">
                   <table class="preview-supplier-table">
                     <tbody>
-                      <tr><th colspan="2">공급자</th><th>등록번호</th><td colspan="2">403-41-01157</td></tr>
                       <tr>
-                        <th>상호</th><td>이안공조프러스</td>
+                        <th colspan="2">공급자</th>
+                        <th>등록번호</th>
+                        <td colspan="2">403-41-01157</td>
+                      </tr>
+                      <tr>
+                        <th>상호</th>
+                        <td>이안공조프러스</td>
                         <th>대표자</th>
                         <td colspan="2">
                           <div class="stamp-wrapper">
                             <span>배 규 석 (인)</span>
-                            <img src="/stamp.png" class="stamp-image" />
+                            <img
+                              src="@/assets/stamp.png"
+                              class="stamp-image"
+                              loading="lazy"
+                            />
                           </div>
                         </td>
                       </tr>
-                      <tr><th>사업자주소</th><td colspan="4">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td></tr>
-                      <tr><th>업태</th><td>서비스</td><th>종목</th><td colspan="2">기계수리</td></tr>
+                      <tr>
+                        <th>사업자주소</th>
+                        <td colspan="4">
+                          서울특별시 송파구 송파대로 201, B동 208-71호(문정동,
+                          송파 테라타워2)
+                        </td>
+                      </tr>
+                      <tr>
+                        <th>업태</th>
+                        <td>서비스</td>
+                        <th>종목</th>
+                        <td colspan="2">기계수리</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
 
                 <table class="preview-item-table">
                   <thead>
-                    <tr><th>품명</th><th>규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>비고</th></tr>
+                    <tr>
+                      <th>품명</th>
+                      <th>규격</th>
+                      <th>수량</th>
+                      <th>단가</th>
+                      <th>공급가액</th>
+                      <th>부가세</th>
+                      <th>비고</th>
+                    </tr>
                   </thead>
                   <tbody>
                     <tr v-if="form.items.length === 0">
-                      <td colspan="7" style="text-align: center; padding: 20px; color: #999;">
+                      <td
+                        colspan="7"
+                        style="text-align: center; padding: 20px; color: #999"
+                      >
                         품목을 추가해주세요
                       </td>
                     </tr>
@@ -343,7 +385,11 @@
                 </table>
 
                 <div class="preview-summary">
-                  <div>합계금액: {{ totalKorean || '영' }}원정 (₩{{ format(totalAmount) || 0 }}원)</div>
+                  <div>
+                    합계금액: {{ totalKorean || '영' }}원정 (₩{{
+                      format(totalAmount) || 0
+                    }}원)
+                  </div>
                   <div>계좌번호: 1002-150-335422 (우리은행)</div>
                   <div>연락처: 010-4684-4794 / 담당자: 배규석</div>
                 </div>
@@ -354,8 +400,8 @@
 
         <!-- 🎯 액션 버튼 영역 -->
         <div class="action-buttons-container">
-          <v-btn 
-            color="primary" 
+          <v-btn
+            color="primary"
             size="large"
             class="action-btn primary-btn"
             @click="generatePDF"
@@ -363,8 +409,8 @@
             <v-icon start>mdi-file-pdf-box</v-icon>
             PDF 생성
           </v-btn>
-          <v-btn 
-            color="secondary" 
+          <v-btn
+            color="secondary"
             size="large"
             class="action-btn"
             @click="downloadWithMarginImage"
@@ -372,8 +418,8 @@
             <v-icon start>mdi-image</v-icon>
             이미지 생성
           </v-btn>
-          <v-btn 
-            color="info" 
+          <v-btn
+            color="info"
             size="large"
             class="action-btn"
             @click="saveProductToDB"
@@ -381,8 +427,8 @@
             <v-icon start>mdi-package-variant-closed</v-icon>
             품목 저장
           </v-btn>
-          <v-btn 
-            color="success" 
+          <v-btn
+            color="success"
             size="large"
             class="action-btn success-btn"
             @click="saveEstimateToDB"
@@ -393,40 +439,82 @@
         </div>
 
         <!-- PDF 미리보기 (숨김) -->
-        <div id="pdf-preview" ref="pdfPreview" class="preview-box" style="position: absolute; left: -9999px;">
+        <div
+          id="pdf-preview"
+          ref="pdfPreview"
+          class="preview-box"
+          style="position: absolute; left: -9999px"
+        >
           <h1 class="title">견&nbsp;적&nbsp;서</h1>
 
           <table class="info-table">
             <tbody>
-              <tr><th>견적명</th><td>{{ form.title }}</td></tr>
-              <tr><th>견적일자</th><td>{{ form.date }}</td></tr>
-              <tr><th>업체명</th><td>{{ form.client }}</td></tr>
+              <tr>
+                <th>견적명</th>
+                <td>{{ form.title }}</td>
+              </tr>
+              <tr>
+                <th>견적일자</th>
+                <td>{{ form.date }}</td>
+              </tr>
+              <tr>
+                <th>업체명</th>
+                <td>{{ form.client }}</td>
+              </tr>
             </tbody>
           </table>
 
           <div class="supplier-block">
             <table class="supplier-table">
               <tbody>
-                <tr><th colspan="2">공급자</th><th>등록번호</th><td colspan="2">403-41-01157</td></tr>
                 <tr>
-                  <th>상호</th><td>이안공조프러스</td>
+                  <th colspan="2">공급자</th>
+                  <th>등록번호</th>
+                  <td colspan="2">403-41-01157</td>
+                </tr>
+                <tr>
+                  <th>상호</th>
+                  <td>이안공조프러스</td>
                   <th>대표자</th>
                   <td colspan="2">
                     <div class="stamp-wrapper">
                       <span>배 규 석 (인)</span>
-                      <img src="/stamp.png" class="stamp-image" />
+                      <img
+                        src="@/assets/stamp.png"
+                        class="stamp-image"
+                        loading="lazy"
+                      />
                     </div>
                   </td>
                 </tr>
-                <tr><th>사업자주소</th><td colspan="4">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td></tr>
-                <tr><th>업태</th><td>서비스</td><th>종목</th><td colspan="2">기계수리</td></tr>
+                <tr>
+                  <th>사업자주소</th>
+                  <td colspan="4">
+                    서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파
+                    테라타워2)
+                  </td>
+                </tr>
+                <tr>
+                  <th>업태</th>
+                  <td>서비스</td>
+                  <th>종목</th>
+                  <td colspan="2">기계수리</td>
+                </tr>
               </tbody>
             </table>
           </div>
 
           <table class="item-table">
             <thead>
-              <tr><th>품명</th><th>규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>비고</th></tr>
+              <tr>
+                <th>품명</th>
+                <th>규격</th>
+                <th>수량</th>
+                <th>단가</th>
+                <th>공급가액</th>
+                <th>부가세</th>
+                <th>비고</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="(item, i) in form.items" :key="i">
@@ -442,7 +530,11 @@
           </table>
 
           <div class="summary">
-            <div>합계금액: {{ totalKorean }}원정 (&#x20A9;{{ format(totalAmount) }}원)</div>
+            <div>
+              합계금액: {{ totalKorean }}원정 (&#x20A9;{{
+                format(totalAmount)
+              }}원)
+            </div>
             <div>계좌번호: 1002-150-335422 (우리은행)</div>
             <div>연락처: 010-4684-4794 / 담당자: 배규석</div>
           </div>
@@ -456,20 +548,30 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
-import { collection, addDoc, getDocs, serverTimestamp, setDoc, doc } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+  setDoc,
+  doc,
+} from 'firebase/firestore'
 import { convertToKoreanMoney } from '@/utils/money'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { useUiStore } from '@/stores/ui'
 
 const router = useRouter()
 const loading = ref(false)
 const showPreview = ref(true) // 미리보기 기본적으로 표시
 
+const uiStore = useUiStore()
+
 const form = reactive({
   title: '',
   date: getTodayKST(),
   client: '',
-  items: []
+  items: [],
 })
 
 function getTodayKST() {
@@ -508,7 +610,15 @@ function onUnitInput(val, i) {
 }
 
 function addItem() {
-  form.items.push({ name: '', spec: '', qty: 1, unit: 0, supply: 0, vat: 0, note: '' })
+  form.items.push({
+    name: '',
+    spec: '',
+    qty: 1,
+    unit: 0,
+    supply: 0,
+    vat: 0,
+    note: '',
+  })
 }
 
 function removeItem(i) {
@@ -543,7 +653,7 @@ function selectPresetItem(product) {
   const spec = (product.spec || '').trim()
 
   const existing = form.items.find(
-    item => item.name === name && (item.spec || '').trim() === spec
+    (item) => item.name === name && (item.spec || '').trim() === spec
   )
 
   if (existing) {
@@ -557,7 +667,7 @@ function selectPresetItem(product) {
       unit: product.price,
       supply: 0,
       vat: 0,
-      note: ''
+      note: '',
     })
     recalculateAll()
   }
@@ -569,20 +679,22 @@ function addCustomItem() {
 
 function processProductButtons() {
   const seen = new Set()
-  productButtons.value = productOptions.value.filter(p => {
-    const specTrimmed = (p.spec || '').trim()
-    const key = specTrimmed ? `${p.name}-${specTrimmed}` : p.name
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  }).map(p => {
-    const specTrimmed = (p.spec || '').trim()
-    const displayName = specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
-    return {
-      ...p,
-      displayName
-    }
-  })
+  productButtons.value = productOptions.value
+    .filter((p) => {
+      const specTrimmed = (p.spec || '').trim()
+      const key = specTrimmed ? `${p.name}-${specTrimmed}` : p.name
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .map((p) => {
+      const specTrimmed = (p.spec || '').trim()
+      const displayName = specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
+      return {
+        ...p,
+        displayName,
+      }
+    })
 }
 
 async function generatePDF() {
@@ -623,7 +735,7 @@ async function downloadWithMarginImage() {
     const originalCanvas = await html2canvas(previewEl, {
       scale,
       useCORS: true,
-      backgroundColor: '#fff'
+      backgroundColor: '#fff',
     })
 
     const margin = 76
@@ -652,7 +764,7 @@ async function downloadWithMarginImage() {
 async function loadProducts() {
   try {
     const snap = await getDocs(collection(db, 'products'))
-    productOptions.value = snap.docs.map(doc => doc.data())
+    productOptions.value = snap.docs.map((doc) => doc.data())
     processProductButtons()
   } catch (err) {
     console.error('제품 로딩 실패:', err)
@@ -665,13 +777,13 @@ async function saveProductToDB() {
     const existing = new Map()
 
     const snap = await getDocs(collection(db, 'products'))
-    snap.forEach(doc => {
+    snap.forEach((doc) => {
       const data = doc.data()
       const key = `${data.name}-${(data.spec || '').trim()}`
       existing.set(key, { ...data, id: doc.id })
     })
 
-    const toSave = form.items.filter(i => {
+    const toSave = form.items.filter((i) => {
       const name = (i.name || '').trim()
       return name !== ''
     })
@@ -694,14 +806,14 @@ async function saveProductToDB() {
           await setDoc(doc(db, 'products', existingItem.id), {
             name,
             spec,
-            price
+            price,
           })
         }
       } else {
         await addDoc(collection(db, 'products'), {
           name,
           spec,
-          price
+          price,
         })
       }
     }
@@ -729,13 +841,13 @@ async function saveEstimateToDB() {
       totalAmount: totalAmount.value,
       totalKorean: totalKorean.value,
       includeVAT: includeVAT.value,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     }
     await addDoc(collection(db, 'estimates'), payload)
     alert('견적서가 저장되었습니다')
   } catch (err) {
     console.error('견적서 저장 실패:', err)
-    alert('견적서 저장 중 오류가 발생했습니다.')
+    uiStore.showSnackbar('견적서 저장 중 오류가 발생했습니다.', 'error')
   } finally {
     loading.value = false
   }
@@ -823,7 +935,10 @@ onMounted(() => {
 }
 
 /* 카드 공통 스타일 */
-.info-card, .item-selection-card, .total-card, .preview-card {
+.info-card,
+.item-selection-card,
+.total-card,
+.preview-card {
   background: white;
   border-radius: 20px;
   overflow: hidden;
@@ -1185,14 +1300,20 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.info-table, .supplier-table, .item-table {
+.info-table,
+.supplier-table,
+.item-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 16px;
 }
 
-.info-table th, .supplier-table th, .item-table th,
-.info-table td, .supplier-table td, .item-table td {
+.info-table th,
+.supplier-table th,
+.item-table th,
+.info-table td,
+.supplier-table td,
+.item-table td {
   border: 1px solid #444;
   padding: 4px 8px;
   text-align: left;
@@ -1243,27 +1364,33 @@ onMounted(() => {
   color: #1e293b;
 }
 
-.preview-info-table, .preview-supplier-table, .preview-item-table {
+.preview-info-table,
+.preview-supplier-table,
+.preview-item-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
   font-size: 14px;
 }
 
-.preview-info-table th, .preview-supplier-table th, .preview-item-table th,
-.preview-info-table td, .preview-supplier-table td, .preview-item-table td {
+.preview-info-table th,
+.preview-supplier-table th,
+.preview-item-table th,
+.preview-info-table td,
+.preview-supplier-table td,
+.preview-item-table td {
   border: 1px solid #cbd5e1;
   padding: 8px 12px;
   text-align: left;
 }
 
-.preview-info-table th, .preview-supplier-table th, .preview-item-table th {
+.preview-info-table th,
+.preview-supplier-table th,
+.preview-item-table th {
   background: #f1f5f9;
   font-weight: 600;
   color: #475569;
 }
-
-
 
 .preview-summary {
   margin-top: 24px;
@@ -1280,17 +1407,23 @@ onMounted(() => {
   .preview-content {
     padding: 20px;
   }
-  
+
   .preview-title {
     font-size: 20px;
   }
-  
-  .preview-info-table, .preview-supplier-table, .preview-item-table {
+
+  .preview-info-table,
+  .preview-supplier-table,
+  .preview-item-table {
     font-size: 12px;
   }
-  
-  .preview-info-table th, .preview-supplier-table th, .preview-item-table th,
-  .preview-info-table td, .preview-supplier-table td, .preview-item-table td {
+
+  .preview-info-table th,
+  .preview-supplier-table th,
+  .preview-item-table th,
+  .preview-info-table td,
+  .preview-supplier-table td,
+  .preview-item-table td {
     padding: 6px 8px;
   }
 }

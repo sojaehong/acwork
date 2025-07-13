@@ -555,7 +555,7 @@ onMounted(async () => {
 
 /* ⬇️ 이하 네 기존 스타일 유지 – 수정 필요 없음 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -819,4 +819,3 @@ onMounted(async () => {
   margin-bottom: 0;
 }
 </style>
-

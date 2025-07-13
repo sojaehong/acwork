@@ -14,12 +14,12 @@ const pinia = createPinia()
 const vuetify = createVuetify({
   locale: {
     locale: 'ko',
-    messages: {  }
-  }
+    messages: {},
+  },
 })
 
 createApp(App)
-  .use(pinia)  // Pinia 사용
+  .use(pinia) // Pinia 사용
   .use(vuetify)
   .use(router)
   .mount('#app')

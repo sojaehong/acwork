@@ -11,9 +11,8 @@ const EditSchedule = () => import('@/pages/EditSchedule.vue')
 const SchedulesMeta = () => import('@/pages/SchedulesMeta.vue')
 const WorkerSchedules = () => import('@/pages/WorkerSchedules.vue')
 const WorkerPayroll = () => import('@/pages/WorkerPayroll.vue')
-const EstimateForm = () => import('@/pages/EstimateForm.vue')  // ⬅️ 위 Lazy-loading 라인들 하단에 추가
-const StatementForm = () => import('@/pages/StatementForm.vue')  // ⬅️ 위 Lazy-loading 라인들 하단에 추가
-
+const EstimateForm = () => import('@/pages/EstimateForm.vue') // ⬅️ 위 Lazy-loading 라인들 하단에 추가
+const StatementForm = () => import('@/pages/StatementForm.vue') // ⬅️ 위 Lazy-loading 라인들 하단에 추가
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -23,16 +22,19 @@ const routes = [
   { path: '/schedule/:id', name: 'ScheduleDetail', component: ScheduleDetail },
   { path: '/schedule/:id/edit', name: 'EditSchedule', component: EditSchedule },
   { path: '/meta', name: 'SchedulesMeta', component: SchedulesMeta },
-  { path: '/worker-schedules', name: 'WorkerSchedules', component: WorkerSchedules },
+  {
+    path: '/worker-schedules',
+    name: 'WorkerSchedules',
+    component: WorkerSchedules,
+  },
   { path: '/payroll', name: 'WorkerPayroll', component: WorkerPayroll },
   { path: '/estimate', name: 'EstimateForm', component: EstimateForm },
-  { path: '/statement', name: 'StatementForm', component: StatementForm }
-
+  { path: '/statement', name: 'StatementForm', component: StatementForm },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 // 인증 가드 with localStorage 동기화
@@ -50,7 +52,7 @@ router.beforeEach((to, from, next) => {
     userStore.setUser({
       id: storedId,
       name: storedName,
-      role: storedRole
+      role: storedRole,
     })
   }
 

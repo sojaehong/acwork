@@ -1,11 +1,7 @@
 <template>
   <v-app>
     <!-- 🎨 현대적인 그라데이션 헤더 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
           <div class="header-icon-wrapper">
@@ -16,13 +12,8 @@
             <div class="header-subtitle">스마트 문서 관리</div>
           </div>
         </div>
-        
-        <v-btn 
-          icon 
-          size="large"
-          class="back-btn"
-          @click="goBack"
-        >
+
+        <v-btn icon size="large" class="back-btn" @click="goBack">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
@@ -42,7 +33,10 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 120px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 120px !important; max-width: 1200px"
+      >
         <!-- 📋 기본 정보 입력 카드 -->
         <v-card class="info-card mb-6" elevation="0">
           <div class="card-header">
@@ -51,15 +45,15 @@
             </div>
             <h3 class="section-title">기본 정보</h3>
           </div>
-          
+
           <div class="card-content">
             <v-row>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.date" 
-                    label="작성일자" 
-                    type="date" 
+                  <v-text-field
+                    v-model="form.date"
+                    label="작성일자"
+                    type="date"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -68,9 +62,9 @@
               </v-col>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.client" 
-                    label="공급받는자 (거래처명)" 
+                  <v-text-field
+                    v-model="form.client"
+                    label="공급받는자 (거래처명)"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -79,9 +73,9 @@
               </v-col>
               <v-col cols="12" md="4">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.receiver" 
-                    label="인수자" 
+                  <v-text-field
+                    v-model="form.receiver"
+                    label="인수자"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -90,9 +84,9 @@
               </v-col>
               <v-col cols="12">
                 <div class="input-wrapper">
-                  <v-text-field 
-                    v-model="form.remark" 
-                    label="비고" 
+                  <v-text-field
+                    v-model="form.remark"
+                    label="비고"
                     variant="outlined"
                     density="comfortable"
                     class="modern-input"
@@ -111,25 +105,25 @@
             </div>
             <h3 class="section-title">품목 선택</h3>
           </div>
-          
+
           <div class="card-content">
             <!-- 품목 선택 버튼들 -->
             <v-slide-group show-arrows class="mb-4">
               <v-slide-item v-for="(item, i) in productButtons" :key="i">
-                <v-btn 
-                  class="product-btn ma-1" 
-                  color="primary" 
-                  variant="tonal" 
+                <v-btn
+                  class="product-btn ma-1"
+                  color="primary"
+                  variant="tonal"
                   @click="selectPresetItem(item)"
                 >
                   {{ item.displayName }}
                 </v-btn>
               </v-slide-item>
               <v-slide-item>
-                <v-btn 
-                  class="custom-item-btn ma-1" 
-                  color="secondary" 
-                  variant="outlined" 
+                <v-btn
+                  class="custom-item-btn ma-1"
+                  color="secondary"
+                  variant="outlined"
                   @click="addItem"
                 >
                   <v-icon start>mdi-plus</v-icon>
@@ -149,7 +143,9 @@
                 size="small"
               >
                 <v-icon start size="16">mdi-check</v-icon>
-                {{ item.name }}<span v-if="item.spec"> - {{ item.spec }}</span> × {{ item.qty }}
+                {{ item.name
+                }}<span v-if="item.spec"> - {{ item.spec }}</span> ×
+                {{ item.qty }}
               </v-chip>
             </div>
           </div>
@@ -157,17 +153,21 @@
 
         <!-- 📝 품목 상세 목록 -->
         <transition-group name="item-fade" tag="div">
-          <div v-for="(item, i) in form.items" :key="'item-' + i" class="item-card-wrapper">
+          <div
+            v-for="(item, i) in form.items"
+            :key="'item-' + i"
+            class="item-card-wrapper"
+          >
             <v-card class="item-detail-card" elevation="0">
               <div class="item-header">
                 <div class="item-number">
                   <v-icon size="20" class="mr-2">mdi-numeric</v-icon>
                   {{ i + 1 }}번 품목
                 </div>
-                <v-btn 
-                  icon 
-                  size="small" 
-                  color="error" 
+                <v-btn
+                  icon
+                  size="small"
+                  color="error"
                   variant="tonal"
                   @click="removeItem(i)"
                 >
@@ -177,18 +177,18 @@
 
               <v-row dense class="mt-3">
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field 
-                    v-model="item.name" 
-                    label="품목" 
+                  <v-text-field
+                    v-model="item.name"
+                    label="품목"
                     variant="outlined"
                     density="compact"
                     class="modern-input"
                   />
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
-                  <v-text-field 
-                    v-model="item.spec" 
-                    label="규격" 
+                  <v-text-field
+                    v-model="item.spec"
+                    label="규격"
                     variant="outlined"
                     density="compact"
                     class="modern-input"
@@ -240,14 +240,14 @@
             </div>
             <h3 class="section-title">합계 정보</h3>
           </div>
-          
+
           <div class="card-content">
             <div class="vat-checkbox-wrapper">
-              <v-checkbox 
-                v-model="includeVAT" 
-                label="세액 포함" 
+              <v-checkbox
+                v-model="includeVAT"
+                label="세액 포함"
                 color="primary"
-                @change="recalculateAll" 
+                @change="recalculateAll"
               />
             </div>
 
@@ -262,11 +262,15 @@
               </div>
               <div class="total-item highlight">
                 <div class="total-label">합계금액</div>
-                <div class="total-value">{{ format(totalSupply + totalVAT) }}원</div>
+                <div class="total-value">
+                  {{ format(totalSupply + totalVAT) }}원
+                </div>
               </div>
               <div class="total-item korean">
                 <div class="total-label">한글표기</div>
-                <div class="total-value">{{ convertToKoreanMoney(totalSupply + totalVAT) }}원</div>
+                <div class="total-value">
+                  {{ convertToKoreanMoney(totalSupply + totalVAT) }}원
+                </div>
               </div>
             </div>
           </div>
@@ -286,20 +290,26 @@
               variant="tonal"
               @click="showPreview = !showPreview"
             >
-              <v-icon>{{ showPreview ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              <v-icon>{{
+                showPreview ? 'mdi-chevron-up' : 'mdi-chevron-down'
+              }}</v-icon>
             </v-btn>
           </div>
-          
+
           <v-expand-transition>
             <div v-show="showPreview" class="preview-wrapper">
               <div class="preview-content">
                 <h3 class="preview-title">거 래 명 세 표</h3>
-                
+
                 <!-- 상단 헤더 -->
                 <div class="preview-top-header">
                   <div class="preview-left-box">
-                    <div class="underline-text">{{ formatKoreanDate(form.date) }}</div>
-                    <div class="underline-text mt-3">{{ form.client || '(거래처명)' }} 귀하</div>
+                    <div class="underline-text">
+                      {{ formatKoreanDate(form.date) }}
+                    </div>
+                    <div class="underline-text mt-3">
+                      {{ form.client || '(거래처명)' }} 귀하
+                    </div>
                     <div class="mt-3">아래와 같이 계산합니다.</div>
                   </div>
 
@@ -307,7 +317,9 @@
                     <table class="preview-supplier-info">
                       <tbody>
                         <tr>
-                          <td class="vertical-label" rowspan="5">공<br />급<br />자</td>
+                          <td class="vertical-label" rowspan="5">
+                            공<br />급<br />자
+                          </td>
                           <td>등록번호</td>
                           <td colspan="3">403-41-01157</td>
                         </tr>
@@ -317,12 +329,19 @@
                           <td>성명</td>
                           <td class="relative supplier-signer">
                             배규석 (인)
-                            <img src="/stamp.png" class="stamp-image-preview" />
+                            <img
+                              src="@/assets/stamp.png"
+                              class="stamp-image-preview"
+                              loading="lazy"
+                            />
                           </td>
                         </tr>
                         <tr>
                           <td>사업장소재지</td>
-                          <td colspan="3">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td>
+                          <td colspan="3">
+                            서울특별시 송파구 송파대로 201, B동 208-71호(문정동,
+                            송파 테라타워2)
+                          </td>
                         </tr>
                         <tr>
                           <td>업태</td>
@@ -343,8 +362,11 @@
                 <table class="preview-sum-table">
                   <tbody>
                     <tr>
-                      <td class="sum-label">합계<br>금액</td>
-                      <td class="sum-amount">{{ convertToKoreanMoney(totalSupply + totalVAT) }}원정 (₩{{ format(totalSupply + totalVAT) }})</td>
+                      <td class="sum-label">합계<br />금액</td>
+                      <td class="sum-amount">
+                        {{ convertToKoreanMoney(totalSupply + totalVAT) }}원정
+                        (₩{{ format(totalSupply + totalVAT) }})
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -364,7 +386,10 @@
                   </thead>
                   <tbody>
                     <tr v-if="form.items.length === 0">
-                      <td colspan="7" style="text-align: center; padding: 20px; color: #999;">
+                      <td
+                        colspan="7"
+                        style="text-align: center; padding: 20px; color: #999"
+                      >
                         품목을 추가해주세요
                       </td>
                     </tr>
@@ -403,8 +428,8 @@
 
         <!-- 🎯 액션 버튼 영역 -->
         <div class="action-buttons-container">
-          <v-btn 
-            color="primary" 
+          <v-btn
+            color="primary"
             size="large"
             class="action-btn primary-btn"
             @click="generatePDF"
@@ -412,8 +437,8 @@
             <v-icon start>mdi-file-pdf-box</v-icon>
             PDF 생성
           </v-btn>
-          <v-btn 
-            color="secondary" 
+          <v-btn
+            color="secondary"
             size="large"
             class="action-btn"
             @click="downloadTransactionImageWithMargin"
@@ -424,12 +449,20 @@
         </div>
 
         <!-- PDF 출력 템플릿 (숨김) -->
-        <div ref="pdfPreview" class="pdf-box" style="position: absolute; left: -9999px;">
+        <div
+          ref="pdfPreview"
+          class="pdf-box"
+          style="position: absolute; left: -9999px"
+        >
           <h3 class="form-title">거 래 명 세 표</h3>
           <div class="top-header">
             <div class="left-box">
-              <div class="underline-text mt-2">{{ formatKoreanDate(form.date) }}</div><br />
-              <div class="underline-text mt-2">{{ form.client }} 귀하</div><br />
+              <div class="underline-text mt-2">
+                {{ formatKoreanDate(form.date) }}
+              </div>
+              <br />
+              <div class="underline-text mt-2">{{ form.client }} 귀하</div>
+              <br />
               <div class="mt-2">아래와 같이 계산합니다.</div>
             </div>
 
@@ -437,7 +470,9 @@
               <table class="supplier-info">
                 <tbody>
                   <tr>
-                    <td class="vertical-label" rowspan="5">공<br />급<br />자</td>
+                    <td class="vertical-label" rowspan="5">
+                      공<br />급<br />자
+                    </td>
                     <td>등록번호</td>
                     <td colspan="3">403-41-01157</td>
                   </tr>
@@ -447,12 +482,19 @@
                     <td>성명</td>
                     <td class="relative supplier-signer">
                       배규석 (인)
-                      <img src="/stamp.png" class="stamp-image" />
+                      <img
+                        src="@/assets/stamp.png"
+                        class="stamp-image"
+                        loading="lazy"
+                      />
                     </td>
                   </tr>
                   <tr>
                     <td>사업장소재지</td>
-                    <td colspan="3">서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파 테라타워2)</td>
+                    <td colspan="3">
+                      서울특별시 송파구 송파대로 201, B동 208-71호(문정동, 송파
+                      테라타워2)
+                    </td>
                   </tr>
                   <tr>
                     <td>업태</td>
@@ -472,8 +514,12 @@
           <table class="sum-table">
             <tbody>
               <tr>
-                <td class="sum-label">합계<br>금액</td>
-                <td class="sum-amount"> {{ convertToKoreanMoney(totalSupply + totalVAT) }}원정 (₩{{ format(totalSupply + totalVAT)}})</td>
+                <td class="sum-label">합계<br />금액</td>
+                <td class="sum-amount">
+                  {{ convertToKoreanMoney(totalSupply + totalVAT) }}원정 (₩{{
+                    format(totalSupply + totalVAT)
+                  }})
+                </td>
               </tr>
             </tbody>
           </table>
@@ -533,10 +579,13 @@ import jsPDF from 'jspdf'
 import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
 import { convertToKoreanMoney } from '@/utils/money'
+import { useUiStore } from '@/stores/ui'
 
 const router = useRouter()
 const loading = ref(false)
 const showPreview = ref(true)
+
+const uiStore = useUiStore()
 
 const form = reactive({
   date: getTodayKST(),
@@ -544,7 +593,7 @@ const form = reactive({
   writer: '',
   items: [],
   remark: '',
-  receiver: ''
+  receiver: '',
 })
 
 function getTodayKST() {
@@ -605,7 +654,7 @@ function updateItem(i) {
 function recalculateAll() {
   totalSupply.value = 0
   totalVAT.value = 0
-  form.items.forEach(item => {
+  form.items.forEach((item) => {
     item.supply = item.qty * item.unit
     item.vat = includeVAT.value ? Math.round(item.supply * 0.1) : 0
     totalSupply.value += item.supply
@@ -625,7 +674,9 @@ function removeItem(i) {
 function selectPresetItem(product) {
   const name = product.name.trim()
   const spec = (product.spec || '').trim()
-  const existing = form.items.find(item => item.name === name && item.spec === spec)
+  const existing = form.items.find(
+    (item) => item.name === name && item.spec === spec
+  )
   if (existing) {
     existing.qty += 1
     updateItem(form.items.indexOf(existing))
@@ -636,7 +687,7 @@ function selectPresetItem(product) {
       qty: 1,
       unit: product.price,
       supply: 0,
-      vat: 0
+      vat: 0,
     })
     recalculateAll()
   }
@@ -645,7 +696,7 @@ function selectPresetItem(product) {
 async function loadProducts() {
   try {
     const snap = await getDocs(collection(db, 'products'))
-    productOptions.value = snap.docs.map(doc => doc.data())
+    productOptions.value = snap.docs.map((doc) => doc.data())
     processProductButtons()
   } catch (err) {
     console.error('제품 로딩 실패:', err)
@@ -654,17 +705,19 @@ async function loadProducts() {
 
 function processProductButtons() {
   const seen = new Set()
-  productButtons.value = productOptions.value.filter(p => {
-    const specTrimmed = (p.spec || '').trim()
-    const key = specTrimmed ? `${p.name}-${specTrimmed}` : p.name
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  }).map(p => {
-    const specTrimmed = (p.spec || '').trim()
-    const displayName = specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
-    return { ...p, displayName }
-  })
+  productButtons.value = productOptions.value
+    .filter((p) => {
+      const specTrimmed = (p.spec || '').trim()
+      const key = specTrimmed ? `${p.name}-${specTrimmed}` : p.name
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .map((p) => {
+      const specTrimmed = (p.spec || '').trim()
+      const displayName = specTrimmed ? `${p.name} - ${specTrimmed}` : p.name
+      return { ...p, displayName }
+    })
 }
 
 async function generatePDF() {
@@ -676,7 +729,7 @@ async function generatePDF() {
       scale: 2,
       useCORS: true,
       width: previewEl.offsetWidth,
-      height: previewEl.offsetHeight
+      height: previewEl.offsetHeight,
     })
 
     const imgData = canvas.toDataURL('image/jpeg', 0.85)
@@ -706,7 +759,7 @@ async function downloadTransactionImageWithMargin() {
     const originalCanvas = await html2canvas(previewEl, {
       scale,
       useCORS: true,
-      backgroundColor: '#fff'
+      backgroundColor: '#fff',
     })
 
     const margin = 76
@@ -726,7 +779,7 @@ async function downloadTransactionImageWithMargin() {
     link.click()
   } catch (err) {
     console.error('이미지 생성 실패:', err)
-    alert('이미지 생성 중 오류가 발생했습니다.')
+    uiStore.showSnackbar('이미지 생성 중 오류가 발생했습니다.', 'error')
   } finally {
     loading.value = false
   }
@@ -814,7 +867,10 @@ onMounted(() => {
 }
 
 /* 카드 공통 스타일 */
-.info-card, .item-selection-card, .total-card, .preview-card {
+.info-card,
+.item-selection-card,
+.total-card,
+.preview-card {
   background: white;
   border-radius: 20px;
   overflow: hidden;

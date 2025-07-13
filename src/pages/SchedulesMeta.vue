@@ -1,19 +1,10 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
-            size="large"
-            class="back-btn mr-3"
-            @click="goHome"
-          >
+          <v-btn icon size="large" class="back-btn mr-3" @click="goHome">
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
@@ -24,15 +15,17 @@
             <div class="header-subtitle">작업자 배정 및 일정 설정</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <!-- 편집/신규 상태 표시 -->
-          <v-chip 
-            :color="isEdit ? 'warning' : 'success'" 
-            size="small" 
+          <v-chip
+            :color="isEdit ? 'warning' : 'success'"
+            size="small"
             class="mr-2"
           >
-            <v-icon start size="14">{{ isEdit ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>
+            <v-icon start size="14">{{
+              isEdit ? 'mdi-pencil' : 'mdi-plus'
+            }}</v-icon>
             {{ isEdit ? '편집 모드' : '신규 등록' }}
           </v-chip>
         </div>
@@ -53,7 +46,10 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 140px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 140px !important; max-width: 1200px"
+      >
         <!-- 🚨 에러 알림 -->
         <v-alert v-if="error" type="error" class="mb-6" prominent>
           <v-icon start>mdi-alert-circle</v-icon>
@@ -61,7 +57,11 @@
         </v-alert>
 
         <!-- 📅 기존 일정 목록 -->
-        <v-card v-if="existingDatesDisplay.length" class="schedule-list-card mb-8" elevation="0">
+        <v-card
+          v-if="existingDatesDisplay.length"
+          class="schedule-list-card mb-8"
+          elevation="0"
+        >
           <div class="card-header">
             <div class="header-icon">
               <v-icon color="primary">mdi-calendar-multiple</v-icon>
@@ -71,28 +71,39 @@
               {{ existingDatesDisplay.length }}개
             </v-chip>
           </div>
-          
+
           <div class="card-content">
             <div class="schedule-scroll">
               <div
                 v-for="item in existingDatesDisplay"
                 :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
                 class="schedule-item"
-                :class="{ 'selected': selectedDate === item.date }"
+                :class="{ selected: selectedDate === item.date }"
                 @click="handleDateSelect(item.date)"
               >
                 <div class="schedule-date">{{ item.display }}</div>
                 <div class="schedule-details">
                   <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1">mdi-clock-outline</v-icon>
-                    <span>{{ metaMap[item.date]?.startTime || '시간 미정' }}</span>
+                    <v-icon size="14" color="grey-darken-1"
+                      >mdi-clock-outline</v-icon
+                    >
+                    <span>{{
+                      metaMap[item.date]?.startTime || '시간 미정'
+                    }}</span>
                   </div>
                   <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1">mdi-account-group</v-icon>
-                    <span>{{ metaMap[item.date]?.workerNames?.join(', ') || '인원 미정' }}</span>
+                    <v-icon size="14" color="grey-darken-1"
+                      >mdi-account-group</v-icon
+                    >
+                    <span>{{
+                      metaMap[item.date]?.workerNames?.join(', ') || '인원 미정'
+                    }}</span>
                   </div>
                 </div>
-                <div v-if="selectedDate === item.date" class="selected-indicator">
+                <div
+                  v-if="selectedDate === item.date"
+                  class="selected-indicator"
+                >
                   <v-icon color="primary">mdi-check-circle</v-icon>
                 </div>
               </div>
@@ -109,7 +120,7 @@
             <h3 class="card-title">작업 날짜</h3>
             <v-chip color="error" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-text-field
               v-model="form.date"
@@ -132,7 +143,7 @@
             <h3 class="card-title">시작 시간</h3>
             <v-chip color="warning" size="small" class="ml-2">선택사항</v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-text-field
               v-model="form.startTime"
@@ -152,15 +163,15 @@
               <v-icon color="primary">mdi-account-group</v-icon>
             </div>
             <h3 class="card-title">작업 인원</h3>
-            <v-chip 
-              :color="form.workers.length > 0 ? 'success' : 'warning'" 
-              size="small" 
+            <v-chip
+              :color="form.workers.length > 0 ? 'success' : 'warning'"
+              size="small"
               class="ml-2"
             >
               {{ form.workers.length }}명 선택됨
             </v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-select
               v-model="form.workers"
@@ -187,7 +198,7 @@
                 </v-chip>
               </template>
             </v-select>
-            
+
             <!-- 선택된 작업자 미리보기 -->
             <div v-if="form.workers.length > 0" class="selected-workers">
               <label class="workers-label">선택된 작업자</label>
@@ -216,7 +227,7 @@
             <h3 class="card-title">공지사항</h3>
             <v-chip color="grey" size="small" class="ml-2">선택사항</v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-textarea
               v-model="form.notice"
@@ -310,8 +321,16 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import {
-  collection, addDoc, getDocs, query, where, doc, getDoc,
-  updateDoc, deleteDoc, serverTimestamp
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
 } from 'firebase/firestore'
 import { getTodayDateKST } from '@/utils/date'
 
@@ -323,7 +342,7 @@ const form = ref({
   startTime: '',
   workers: [],
   notice: '',
-  paidMap: {}
+  paidMap: {},
 })
 
 const userOptions = ref([])
@@ -347,7 +366,7 @@ const getUserName = (userId) => {
 
 async function fetchUsers() {
   const snap = await getDocs(collection(db, 'users'))
-  userOptions.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  userOptions.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   userMap.value = {}
   for (const user of userOptions.value) {
     userMap.value[user.id] = user.name
@@ -366,7 +385,9 @@ async function fetchExistingDates() {
       dates.add(data.date)
       meta[data.date] = {
         startTime: data.startTime,
-        workerNames: (data.workers || []).map(id => userMap.value[id] || '알 수 없음')
+        workerNames: (data.workers || []).map(
+          (id) => userMap.value[id] || '알 수 없음'
+        ),
       }
     }
   }
@@ -381,14 +402,16 @@ async function fetchExistingDates() {
   })
 
   existingDates.value = sortedDates
-  existingDatesDisplay.value = sortedDates.map(dateStr => ({
+  existingDatesDisplay.value = sortedDates.map((dateStr) => ({
     date: dateStr,
-    display: formatDateWithDay(dateStr)
+    display: formatDateWithDay(dateStr),
   }))
 
   metaMap.value = meta
 
-  const firstFutureOrToday = sortedDates.find(d => new Date(d) >= new Date(todayDateStr))
+  const firstFutureOrToday = sortedDates.find(
+    (d) => new Date(d) >= new Date(todayDateStr)
+  )
   if (firstFutureOrToday) {
     selectedDate.value = firstFutureOrToday
     await handleDateSelect(firstFutureOrToday)
@@ -440,28 +463,28 @@ async function handleDateSelect(date) {
 
 async function submit() {
   if (isSaving.value) return
-  
+
   // 기본 검증
   if (!form.value.date) {
     showErrorMessage('날짜를 선택해주세요.')
     return
   }
-  
+
   isSaving.value = true
   error.value = ''
-  
+
   try {
     if (isEdit.value && editDocId) {
       await updateDoc(doc(db, 'schedulesMeta', editDocId), {
         ...form.value,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       })
       showSuccessMessage('일정이 성공적으로 수정되었습니다.')
     } else {
       await addDoc(collection(db, 'schedulesMeta'), {
         ...form.value,
         createdAt: serverTimestamp(),
-        paidMap: {}
+        paidMap: {},
       })
       showSuccessMessage('일정이 성공적으로 등록되었습니다.')
     }
@@ -599,7 +622,8 @@ onMounted(async () => {
 }
 
 /* 📅 일정 목록 카드 */
-.schedule-list-card, .form-card {
+.schedule-list-card,
+.form-card {
   background: white;
   border-radius: 20px;
   overflow: hidden;
@@ -608,7 +632,8 @@ onMounted(async () => {
   transition: all 0.3s ease;
 }
 
-.schedule-list-card:hover, .form-card:hover {
+.schedule-list-card:hover,
+.form-card:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
@@ -803,7 +828,8 @@ onMounted(async () => {
 }
 
 /* 📱 성공/에러 스낵바 */
-.success-snackbar, .error-snackbar {
+.success-snackbar,
+.error-snackbar {
   position: fixed;
   top: 100px;
   left: 50%;
@@ -842,20 +868,20 @@ onMounted(async () => {
   .schedule-scroll {
     gap: 12px;
   }
-  
+
   .schedule-item {
     width: 240px;
     padding: 16px;
   }
-  
+
   .workers-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
-  
+
   .action-btn {
     height: 52px;
   }
@@ -865,24 +891,24 @@ onMounted(async () => {
   .header-title {
     font-size: 20px;
   }
-  
+
   .card-header {
     padding: 16px 20px;
   }
-  
+
   .card-content {
     padding: 20px;
   }
-  
+
   .card-title {
     font-size: 16px;
   }
-  
+
   .schedule-item {
     width: 200px;
     padding: 14px;
   }
-  
+
   .schedule-date {
     font-size: 14px;
   }

@@ -1,8 +1,29 @@
 <template>
   <v-app>
     <router-view />
+
+    <v-snackbar
+      v-model="uiStore.snackbar.show"
+      :color="uiStore.snackbar.color"
+      :timeout="uiStore.snackbar.timeout"
+      location="top right"
+      variant="flat"
+    >
+      {{ uiStore.snackbar.message }}
+      <template v-slot:actions>
+        <v-btn color="white" variant="text" @click="uiStore.hideSnackbar()">
+          닫기
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
+
+<script setup>
+import { useUiStore } from '@/stores/ui'
+
+const uiStore = useUiStore()
+</script>
 
 <style>
 .responsive-padding {

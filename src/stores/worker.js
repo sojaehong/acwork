@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useWorkerStore = defineStore('worker', {
   state: () => ({
     workers: [],
-    selectedWorker: null
+    selectedWorker: null,
   }),
   actions: {
     setWorkers(workers) {
@@ -13,13 +13,13 @@ export const useWorkerStore = defineStore('worker', {
       this.workers.push(worker)
     },
     updateWorker(updatedWorker) {
-      const index = this.workers.findIndex(w => w.id === updatedWorker.id)
+      const index = this.workers.findIndex((w) => w.id === updatedWorker.id)
       if (index !== -1) {
         this.workers[index] = { ...this.workers[index], ...updatedWorker }
       }
     },
     setSelectedWorker(worker) {
       this.selectedWorker = worker
-    }
-  }
+    },
+  },
 })

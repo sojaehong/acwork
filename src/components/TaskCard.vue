@@ -9,22 +9,38 @@
       <!-- 카드 헤더: 건물 정보 + 상태 -->
       <div class="card-header">
         <div class="building-info">
-          <v-icon class="building-icon" color="primary">mdi-office-building-outline</v-icon>
+          <v-icon class="building-icon" color="primary"
+            >mdi-office-building-outline</v-icon
+          >
           <div class="building-text">
             <h4 class="building-name">{{ item.building }}</h4>
             <div class="unit-info">
               <span v-if="item.unit">{{ item.unit }}동</span>
-              <span v-if="item.room" class="room-number">{{ item.room }}호</span>
+              <span v-if="item.room" class="room-number"
+                >{{ item.room }}호</span
+              >
             </div>
           </div>
         </div>
         <div class="status-badges">
-          <v-chip :color="statusColor" size="small" variant="flat" class="status-chip">
+          <v-chip
+            :color="statusColor"
+            size="small"
+            variant="flat"
+            class="status-chip"
+          >
             <v-icon start size="14">{{ statusIcon }}</v-icon>
             {{ displayStatus }}
           </v-chip>
-          <v-chip :color="item.invoice ? 'blue' : 'grey-lighten-2'" size="small" variant="flat" class="invoice-chip">
-            <v-icon start size="14">{{ item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}</v-icon>
+          <v-chip
+            :color="item.invoice ? 'blue' : 'grey-lighten-2'"
+            size="small"
+            variant="flat"
+            class="invoice-chip"
+          >
+            <v-icon start size="14">{{
+              item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
+            }}</v-icon>
             {{ item.invoice ? '계산서' : '미발행' }}
           </v-chip>
         </div>
@@ -50,7 +66,7 @@
             </v-chip>
           </div>
         </div>
-        
+
         <!-- 메모 -->
         <div class="info-row" v-if="item.memo">
           <v-icon class="info-icon" size="18">mdi-note-text-outline</v-icon>
@@ -72,8 +88,8 @@ import { computed } from 'vue'
 const props = defineProps({
   item: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 })
 
 defineEmits(['click'])
@@ -99,48 +115,72 @@ const displayStatus = computed(() => {
 // 상태별 색상 적용
 const statusColor = computed(() => {
   switch (displayStatus.value) {
-    case '완료': return 'success'
-    case '보류': return 'error'
-    case '진행': return 'warning'
-    case '예정': return 'purple'
-    case '취소됨': return 'grey'
-    default: return 'grey'
+    case '완료':
+      return 'success'
+    case '보류':
+      return 'error'
+    case '진행':
+      return 'warning'
+    case '예정':
+      return 'purple'
+    case '취소됨':
+      return 'grey'
+    default:
+      return 'grey'
   }
 })
 
 // 상태별 아이콘
 const statusIcon = computed(() => {
   switch (displayStatus.value) {
-    case '완료': return 'mdi-check-circle'
-    case '보류': return 'mdi-pause-circle'
-    case '진행': return 'mdi-play-circle'
-    case '예정': return 'mdi-clock-outline'
-    case '취소됨': return 'mdi-cancel'
-    default: return 'mdi-help-circle'
+    case '완료':
+      return 'mdi-check-circle'
+    case '보류':
+      return 'mdi-pause-circle'
+    case '진행':
+      return 'mdi-play-circle'
+    case '예정':
+      return 'mdi-clock-outline'
+    case '취소됨':
+      return 'mdi-cancel'
+    default:
+      return 'mdi-help-circle'
   }
 })
 
 // 상태별 카드 클래스
 const statusClass = computed(() => {
   switch (displayStatus.value) {
-    case '완료': return 'status-complete'
-    case '보류': return 'status-hold'
-    case '진행': return 'status-active'
-    case '예정': return 'status-planned'
-    case '취소됨': return 'status-canceled'
-    default: return 'status-default'
+    case '완료':
+      return 'status-complete'
+    case '보류':
+      return 'status-hold'
+    case '진행':
+      return 'status-active'
+    case '예정':
+      return 'status-planned'
+    case '취소됨':
+      return 'status-canceled'
+    default:
+      return 'status-default'
   }
 })
 
 // 상태 인디케이터 클래스
 const statusIndicatorClass = computed(() => {
   switch (displayStatus.value) {
-    case '완료': return 'indicator-complete'
-    case '보류': return 'indicator-hold'
-    case '진행': return 'indicator-active'
-    case '예정': return 'indicator-planned'
-    case '취소됨': return 'indicator-canceled'
-    default: return 'indicator-default'
+    case '완료':
+      return 'indicator-complete'
+    case '보류':
+      return 'indicator-hold'
+    case '진행':
+      return 'indicator-active'
+    case '예정':
+      return 'indicator-planned'
+    case '취소됨':
+      return 'indicator-canceled'
+    default:
+      return 'indicator-default'
   }
 })
 </script>
@@ -217,7 +257,8 @@ const statusIndicatorClass = computed(() => {
   gap: 6px;
 }
 
-.status-chip, .invoice-chip {
+.status-chip,
+.invoice-chip {
   font-weight: 600;
 }
 
@@ -284,23 +325,23 @@ const statusIndicatorClass = computed(() => {
   .task-card {
     padding: 16px;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .status-badges {
     flex-direction: row;
     gap: 8px;
     align-self: flex-start;
   }
-  
+
   .building-name {
     font-size: 16px;
   }
-  
+
   .hover-indicator {
     display: none;
   }

@@ -4,7 +4,7 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     userId: '',
     userName: '',
-    userRole: ''
+    userRole: '',
   }),
   actions: {
     setUser({ id, name, role }) {
@@ -33,6 +33,6 @@ export const useUserStore = defineStore('user', {
       this.userName = ''
       this.userRole = ''
       localStorage.clear()
-    }
-  }
+    },
+  },
 })

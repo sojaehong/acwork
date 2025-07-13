@@ -1,8 +1,5 @@
 <template>
-  <v-container
-    class="fill-height d-flex align-center justify-center"
-    fluid
-  >
+  <v-container class="fill-height d-flex align-center justify-center" fluid>
     <v-card class="pa-6" max-width="400" width="100%">
       <v-card-title class="text-h5 text-center mb-4">
         🔐 작업자 로그인
@@ -41,12 +38,7 @@
         로그인
       </v-btn>
 
-      <v-alert
-        v-if="error"
-        type="error"
-        density="comfortable"
-        class="mt-2"
-      >
+      <v-alert v-if="error" type="error" density="comfortable" class="mt-2">
         {{ error }}
       </v-alert>
     </v-card>
@@ -103,7 +95,7 @@ async function handleLogin() {
     userStore.setUser({
       id: inputId.value,
       name: user.name,
-      role: user.role
+      role: user.role,
     })
 
     // ✅ 5. 초기화 및 이동

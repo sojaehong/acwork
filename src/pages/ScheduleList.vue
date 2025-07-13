@@ -1,19 +1,10 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
-            size="large"
-            class="back-btn mr-3"
-            @click="goHome"
-          >
+          <v-btn icon size="large" class="back-btn mr-3" @click="goHome">
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
@@ -24,22 +15,22 @@
             <div class="header-subtitle">모든 작업을 한눈에</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <!-- 필터 상태 표시 -->
-          <v-chip 
-            v-if="hasActiveFilters" 
-            color="warning" 
-            size="small" 
+          <v-chip
+            v-if="hasActiveFilters"
+            color="warning"
+            size="small"
             class="mr-2"
           >
             <v-icon start size="14">mdi-filter</v-icon>
             필터 적용됨
           </v-chip>
-          
+
           <!-- 필터 토글 버튼 -->
-          <v-btn 
-            icon 
+          <v-btn
+            icon
             size="large"
             class="filter-toggle-btn"
             @click="showFilters = !showFilters"
@@ -52,7 +43,7 @@
 
     <v-main class="main-content">
       <!-- 🌀 로딩 오버레이 -->
-      <div v-if="isLoading" class="loading-overlay">
+      <div v-if="store.isLoading" class="loading-overlay">
         <div class="loading-container">
           <v-progress-circular
             indeterminate
@@ -64,37 +55,46 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 120px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 120px !important; max-width: 1200px"
+      >
         <!-- 🚨 에러 알림 -->
-        <v-alert v-if="error" type="error" class="mb-6" prominent>
+        <v-alert v-if="store.error" type="error" class="mb-6" prominent>
           <v-icon start>mdi-alert-circle</v-icon>
-          {{ error }}
+          {{ store.error }}
         </v-alert>
 
         <!-- 📊 통계 요약 카드 -->
-        <v-card class="stats-card mb-8" elevation="0" v-if="!isLoading">
+        <v-card class="stats-card mb-8" elevation="0" v-if="!store.isLoading">
           <div class="stats-header">
             <div class="stats-icon">
               <v-icon color="primary">mdi-chart-line</v-icon>
             </div>
             <h3 class="stats-title">작업 현황</h3>
           </div>
-          
+
           <div class="stats-grid">
             <div class="stat-item">
               <div class="stat-number">{{ filteredSchedules.length }}</div>
               <div class="stat-label">총 작업</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number text-warning">{{ getStatusCount('진행') }}</div>
+              <div class="stat-number text-warning">
+                {{ getStatusCount('진행') }}
+              </div>
               <div class="stat-label">진행중</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number text-success">{{ getStatusCount('완료') }}</div>
+              <div class="stat-number text-success">
+                {{ getStatusCount('완료') }}
+              </div>
               <div class="stat-label">완료</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number text-error">{{ getStatusCount('보류') }}</div>
+              <div class="stat-number text-error">
+                {{ getStatusCount('보류') }}
+              </div>
               <div class="stat-label">보류</div>
             </div>
           </div>
@@ -103,7 +103,11 @@
         <!-- 📅 작업 목록 -->
         <div v-if="groupedSchedules.length">
           <v-slide-y-transition group>
-            <div v-for="[date, items] in groupedSchedules" :key="date" class="date-group mb-8">
+            <div
+              v-for="[date, items] in groupedSchedules"
+              :key="date"
+              class="date-group mb-8"
+            >
               <!-- 날짜 헤더 -->
               <div class="date-header">
                 <div class="date-icon">
@@ -131,22 +135,40 @@
                     <!-- 카드 헤더: 건물 정보 + 상태 -->
                     <div class="card-header">
                       <div class="building-info">
-                        <v-icon class="building-icon" color="primary">mdi-office-building-outline</v-icon>
+                        <v-icon class="building-icon" color="primary"
+                          >mdi-office-building-outline</v-icon
+                        >
                         <div class="building-text">
                           <h4 class="building-name">{{ item.building }}</h4>
                           <div class="unit-info">
                             <span v-if="item.unit">{{ item.unit }}동</span>
-                            <span v-if="item.room" class="room-number">{{ item.room }}호</span>
+                            <span v-if="item.room" class="room-number"
+                              >{{ item.room }}호</span
+                            >
                           </div>
                         </div>
                       </div>
                       <div class="status-badges">
-                        <v-chip :color="displayStatusColor(item)" size="small" variant="flat" class="status-chip">
-                          <v-icon start size="14">{{ getStatusIcon(item) }}</v-icon>
+                        <v-chip
+                          :color="displayStatusColor(item)"
+                          size="small"
+                          variant="flat"
+                          class="status-chip"
+                        >
+                          <v-icon start size="14">{{
+                            getStatusIcon(item)
+                          }}</v-icon>
                           {{ displayStatusText(item) }}
                         </v-chip>
-                        <v-chip :color="item.invoice ? 'blue' : 'grey-lighten-2'" size="small" variant="flat" class="invoice-chip">
-                          <v-icon start size="14">{{ item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}</v-icon>
+                        <v-chip
+                          :color="item.invoice ? 'blue' : 'grey-lighten-2'"
+                          size="small"
+                          variant="flat"
+                          class="invoice-chip"
+                        >
+                          <v-icon start size="14">{{
+                            item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
+                          }}</v-icon>
                           {{ item.invoice ? '계산서' : '미발행' }}
                         </v-chip>
                       </div>
@@ -158,7 +180,9 @@
                     <div class="card-body">
                       <!-- 작업 내용 -->
                       <div class="info-row" v-if="item.tasks?.length">
-                        <v-icon class="info-icon" size="18">mdi-format-list-checks</v-icon>
+                        <v-icon class="info-icon" size="18"
+                          >mdi-format-list-checks</v-icon
+                        >
                         <div class="task-chips">
                           <v-chip
                             v-for="(task, i) in item.tasks"
@@ -175,7 +199,9 @@
 
                       <!-- 메모 -->
                       <div class="info-row" v-if="item.memo">
-                        <v-icon class="info-icon" size="18">mdi-note-text-outline</v-icon>
+                        <v-icon class="info-icon" size="18"
+                          >mdi-note-text-outline</v-icon
+                        >
                         <p class="memo-text">{{ item.memo }}</p>
                       </div>
                     </div>
@@ -192,20 +218,30 @@
         </div>
 
         <!-- 빈 상태 -->
-        <div v-else-if="!isLoading" class="empty-state">
+        <div v-else-if="!store.isLoading" class="empty-state">
           <div class="empty-icon">
-            <v-icon size="80" color="grey-lighten-2">mdi-calendar-remove</v-icon>
+            <v-icon size="80" color="grey-lighten-2"
+              >mdi-calendar-remove</v-icon
+            >
           </div>
           <h3 class="empty-title">
-            {{ hasActiveFilters ? '필터 조건에 맞는 작업이 없습니다' : '등록된 작업이 없습니다' }}
+            {{
+              hasActiveFilters
+                ? '필터 조건에 맞는 작업이 없습니다'
+                : '등록된 작업이 없습니다'
+            }}
           </h3>
           <p class="empty-description">
-            {{ hasActiveFilters ? '필터를 조정하거나 초기화해보세요.' : '새 작업을 등록하여 시작해보세요!' }}
+            {{
+              hasActiveFilters
+                ? '필터를 조정하거나 초기화해보세요.'
+                : '새 작업을 등록하여 시작해보세요!'
+            }}
           </p>
-          <v-btn 
-            v-if="hasActiveFilters" 
-            color="primary" 
-            @click="resetFilters" 
+          <v-btn
+            v-if="hasActiveFilters"
+            color="primary"
+            @click="resetFilters"
             class="mt-4"
           >
             <v-icon start>mdi-filter-off</v-icon>
@@ -216,7 +252,7 @@
 
       <!-- 🏠 하단 홈 버튼 -->
       <div class="floating-actions" v-if="!showFilters">
-        <v-btn 
+        <v-btn
           block
           size="large"
           variant="outlined"
@@ -236,9 +272,9 @@
               <v-icon start>mdi-filter</v-icon>
               필터 설정
             </h3>
-            <v-btn 
-              icon 
-              variant="text" 
+            <v-btn
+              icon
+              variant="text"
               size="small"
               @click="showFilters = false"
             >
@@ -315,11 +351,7 @@
                   class="filter-chip"
                   @click="() => toggleFilter(group.type, opt)"
                 >
-                  <v-icon 
-                    v-if="group.active(opt)" 
-                    start 
-                    size="14"
-                  >
+                  <v-icon v-if="group.active(opt)" start size="14">
                     mdi-check
                   </v-icon>
                   {{ opt }}
@@ -339,11 +371,7 @@
                 <v-icon start>mdi-refresh</v-icon>
                 필터 초기화
               </v-btn>
-              <v-btn
-                color="primary"
-                block
-                @click="showFilters = false"
-              >
+              <v-btn color="primary" block @click="showFilters = false">
                 <v-icon start>mdi-check</v-icon>
                 필터 적용 완료
               </v-btn>
@@ -358,8 +386,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
-import { db } from '@/firebase/config'
 import { useScheduleStore } from '@/stores/schedule'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
@@ -369,8 +395,6 @@ import debounce from 'lodash/debounce'
 const router = useRouter()
 const store = useScheduleStore()
 
-const error = ref('')
-const isLoading = ref(false)
 const showFilters = ref(false)
 const statuses = ref([])
 const buildings = ref([])
@@ -381,43 +405,40 @@ const dateConfig = { locale: Korean, dateFormat: 'Y-m-d', disableMobile: true }
 
 const toggleFilter = (type, value) => {
   if (type === 'invoice') {
-    store.setFilters({ invoice: store.filters.invoice === value ? null : value })
-    applyFiltersDebounced()
-    return
+    store.setFilters({
+      invoice: store.filters.invoice === value ? null : value,
+    })
+  } else {
+    const target = [...store.filters[type]]
+    const updated = target.includes(value)
+      ? target.filter((v) => v !== value)
+      : [...target, value]
+    store.setFilters({ [type]: updated })
   }
-  const target = [...store.filters[type]]
-  const updated = target.includes(value) ? target.filter(v => v !== value) : [...target, value]
-  store.setFilters({ [type]: updated })
-  applyFiltersDebounced()
 }
 
 const resetFilters = () => {
   store.resetFilters()
-  applyFilters()
 }
 
-const applyFilters = () => {
-  isLoading.value = true
-  setTimeout(() => { isLoading.value = false }, 200)
-}
-const applyFiltersDebounced = debounce(applyFilters, 200)
+const applyFiltersDebounced = debounce(() => {}, 200) // No need to do anything here, computed properties will react
 
-const goToDetail = id => router.push(`/schedule/${id}`)
+const goToDetail = (id) => router.push(`/schedule/${id}`)
 const goHome = () => router.push('/')
 
-const formatDateWithDay = dateStr => {
+const formatDateWithDay = (dateStr) => {
   const date = new Date(dateStr)
   const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
   return `${dateStr} (${day})`
 }
 
-const getDdayText = dateStr => {
+const getDdayText = (dateStr) => {
   const today = new Date().toISOString().split('T')[0]
   const targetDate = new Date(dateStr)
   const todayDate = new Date(today)
   const diffTime = targetDate - todayDate
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) return '오늘'
   if (diffDays === 1) return '내일'
   if (diffDays === -1) return '어제'
@@ -425,20 +446,23 @@ const getDdayText = dateStr => {
   return `D+${Math.abs(diffDays)}`
 }
 
-const displayStatusColor = item => {
+const displayStatusColor = (item) => {
   const today = new Date().toISOString().split('T')[0]
   if (item.status === '진행') {
     if (item.date === today) return 'orange'
     if (item.date > today) return 'purple'
   }
   switch (item.status) {
-    case '완료': return 'green'
-    case '보류': return 'red'
-    default: return 'grey'
+    case '완료':
+      return 'green'
+    case '보류':
+      return 'red'
+    default:
+      return 'grey'
   }
 }
 
-const displayStatusText = item => {
+const displayStatusText = (item) => {
   const today = new Date().toISOString().split('T')[0]
   if (item.status === '진행') {
     if (item.date === today) return '진행'
@@ -447,40 +471,67 @@ const displayStatusText = item => {
   return item.status
 }
 
-const getStatusIcon = item => {
+const getStatusIcon = (item) => {
   const today = new Date().toISOString().split('T')[0]
   if (item.status === '진행') {
     if (item.date === today) return 'mdi-play-circle'
     if (item.date > today) return 'mdi-clock-outline'
   }
   switch (item.status) {
-    case '완료': return 'mdi-check-circle'
-    case '보류': return 'mdi-pause-circle'
-    default: return 'mdi-help-circle'
+    case '완료':
+      return 'mdi-check-circle'
+    case '보류':
+      return 'mdi-pause-circle'
+    default:
+      return 'mdi-help-circle'
   }
 }
 
-const getStatusCount = status => {
-  return filteredSchedules.value.filter(item => item.status === status).length
+const getStatusCount = (status) => {
+  return filteredSchedules.value.filter((item) => item.status === status).length
 }
 
 const hasActiveFilters = computed(() => {
-  const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
+  const { status, building, task, invoice, searchText, startDate, endDate } =
+    store.filters
   return (
-    status.length || building.length || task.length || invoice || searchText || startDate || endDate
+    status.length ||
+    building.length ||
+    task.length ||
+    invoice ||
+    searchText ||
+    startDate ||
+    endDate
   )
 })
 
 const filteredSchedules = computed(() => {
-  return store.schedules.filter(item => {
-    const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
-    const matchStatus = status.length ? status.includes(item.status) : item.status !== '취소됨'
+  return store.schedules.filter((item) => {
+    const { status, building, task, invoice, searchText, startDate, endDate } =
+      store.filters
+    const matchStatus = status.length
+      ? status.includes(item.status)
+      : item.status !== '취소됨'
     const matchBuilding = !building.length || building.includes(item.building)
-    const matchTask = !task.length || item.tasks?.some(t => task.includes(t.name))
-    const matchInvoice = !invoice || (invoice === 'O' ? item.invoice : !item.invoice)
-    const matchSearch = !searchText || (item.room?.includes(searchText) || item.memo?.includes(searchText))
-    const matchDate = (!startDate || new Date(item.date) >= new Date(startDate)) && (!endDate || new Date(item.date) <= new Date(endDate))
-    return matchStatus && matchBuilding && matchInvoice && matchTask && matchSearch && matchDate
+    const matchTask =
+      !task.length || item.tasks?.some((t) => task.includes(t.name))
+    const matchInvoice =
+      !invoice || (invoice === 'O' ? item.invoice : !item.invoice)
+    const matchSearch =
+      !searchText ||
+      item.room?.includes(searchText) ||
+      item.memo?.includes(searchText)
+    const matchDate =
+      (!startDate || new Date(item.date) >= new Date(startDate)) &&
+      (!endDate || new Date(item.date) <= new Date(endDate))
+    return (
+      matchStatus &&
+      matchBuilding &&
+      matchInvoice &&
+      matchTask &&
+      matchSearch &&
+      matchDate
+    )
   })
 })
 
@@ -522,28 +573,23 @@ const filterGroups = computed(() => ({
     type: 'task',
     options: taskTypes.value,
     active: (val) => store.filters.task.includes(val),
-  }
+  },
 }))
 
 onMounted(async () => {
-  try {
-    isLoading.value = true
-    const q = query(collection(db, 'schedules'), orderBy('date', 'desc'))
-    const snapshot = await getDocs(q)
-    const fetchedSchedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    store.setSchedules(fetchedSchedules)
-    statuses.value = [...new Set(fetchedSchedules.map(s => s.status))]
-    buildings.value = [...new Set(fetchedSchedules.map(s => s.building))]
-    taskTypes.value = [...new Set(fetchedSchedules.flatMap(s => s.tasks?.map(t => t.name) || []))]
-  } catch (err) {
-    error.value = '작업을 불러오지 못했습니다.'
-  } finally {
-    isLoading.value = false
-  }
+  await store.fetchSchedules(true) // force fetch all schedules
+  statuses.value = [...new Set(store.schedules.map((s) => s.status))]
+  buildings.value = [...new Set(store.schedules.map((s) => s.building))]
+  taskTypes.value = [
+    ...new Set(
+      store.schedules.flatMap((s) => s.tasks?.map((t) => t.name) || [])
+    ),
+  ]
 })
 </script>
 
 <style scoped>
+/* Styles remain the same */
 /* 🎨 헤더 스타일 - 메인과 동일 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -551,13 +597,15 @@ onMounted(async () => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.back-btn, .filter-toggle-btn {
+.back-btn,
+.filter-toggle-btn {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border-radius: 12px;
 }
 
-.back-btn:hover, .filter-toggle-btn:hover {
+.back-btn:hover,
+.filter-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
@@ -808,7 +856,8 @@ onMounted(async () => {
   gap: 6px;
 }
 
-.status-chip, .invoice-chip {
+.status-chip,
+.invoice-chip {
   font-weight: 600;
 }
 
@@ -1018,41 +1067,41 @@ onMounted(async () => {
     gap: 12px;
     padding: 20px;
   }
-  
+
   .stat-number {
     font-size: 24px;
   }
-  
+
   .schedule-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
+
   .date-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .date-badge {
     align-self: flex-start;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .status-badges {
     flex-direction: row;
     gap: 8px;
   }
-  
+
   .filter-content {
     padding: 20px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
@@ -1062,31 +1111,31 @@ onMounted(async () => {
   .header-title {
     font-size: 20px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .date-title {
     font-size: 18px;
   }
-  
+
   .building-name {
     font-size: 16px;
   }
-  
+
   .schedule-card {
     padding: 16px;
   }
-  
+
   .filter-header {
     padding: 20px;
   }
-  
+
   .filter-content {
     padding: 16px;
   }
-  
+
   .card-hover-indicator {
     display: none;
   }

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write . --ignore-path .gitignore"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "^5.2.6",
@@ -29,6 +31,11 @@
     "sass": "^1.89.0",
     "sass-loader": "^16.0.5",
     "vite": "^6.3.5",
-    "vuetify": "^3.8.7"
+    "vuetify": "^3.8.7",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "eslint-plugin-vue": "^9.23.0",
+    "eslint-config-prettier": "^9.1.0",
+    "@vue/eslint-config-prettier": "^8.0.0"
   }
 }

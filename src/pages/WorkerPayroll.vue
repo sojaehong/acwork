@@ -1,15 +1,11 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
+          <v-btn
+            icon
             size="large"
             class="back-btn mr-3"
             @click="$router.push('/')"
@@ -24,7 +20,7 @@
             <div class="header-subtitle">작업자별 정산 현황</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <div v-if="userStore.userId" class="user-info-chip">
             <v-avatar size="36" class="mr-2">
@@ -50,7 +46,10 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 120px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 120px !important; max-width: 1200px"
+      >
         <!-- 🚨 에러 알림 -->
         <v-alert v-if="error" type="error" class="mb-6" prominent>
           <v-icon start>mdi-alert-circle</v-icon>
@@ -68,7 +67,7 @@
               {{ workers.length }}명
             </v-chip>
           </div>
-          
+
           <div class="worker-grid">
             <v-btn
               v-for="worker in workers"
@@ -79,7 +78,11 @@
               @click="selectWorker(worker.id)"
             >
               <v-icon start>
-                {{ selectedWorker === worker.id ? 'mdi-account-check' : 'mdi-account' }}
+                {{
+                  selectedWorker === worker.id
+                    ? 'mdi-account-check'
+                    : 'mdi-account'
+                }}
               </v-icon>
               {{ worker.name }}
             </v-btn>
@@ -89,10 +92,14 @@
         <!-- 📋 작업자 미선택 상태 -->
         <div v-if="!selectedWorker" class="empty-state">
           <div class="empty-icon">
-            <v-icon size="80" color="grey-lighten-2">mdi-account-question</v-icon>
+            <v-icon size="80" color="grey-lighten-2"
+              >mdi-account-question</v-icon
+            >
           </div>
           <h3 class="empty-title">작업자를 선택해주세요</h3>
-          <p class="empty-description">정산을 확인할 작업자를 선택하면 상세 정보를 볼 수 있습니다.</p>
+          <p class="empty-description">
+            정산을 확인할 작업자를 선택하면 상세 정보를 볼 수 있습니다.
+          </p>
         </div>
 
         <!-- 📊 정산 현황 -->
@@ -104,18 +111,18 @@
                 <v-icon color="white">mdi-currency-usd-off</v-icon>
               </div>
               <h3 class="section-title">정산 대기</h3>
-              <v-chip 
-                :color="unpaid.length > 0 ? 'warning' : 'success'" 
-                size="small" 
+              <v-chip
+                :color="unpaid.length > 0 ? 'warning' : 'success'"
+                size="small"
                 class="ml-2"
               >
                 {{ unpaid.length }}건
               </v-chip>
             </div>
 
-            <v-alert 
-              v-if="unpaid.length === 0" 
-              type="success" 
+            <v-alert
+              v-if="unpaid.length === 0"
+              type="success"
               class="success-alert"
               prominent
             >
@@ -128,7 +135,7 @@
                 v-for="item in unpaid"
                 :key="`${item.id}-${item.dday}`"
                 class="payroll-card unpaid-card"
-                :class="{ 'selected': selectedUnpaid.includes(item.id) }"
+                :class="{ selected: selectedUnpaid.includes(item.id) }"
                 @click="toggleUnpaid(item.id)"
               >
                 <div class="card-content">
@@ -138,22 +145,26 @@
                       <h4 class="work-date">{{ item.date }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div v-if="item.notice" class="notice-section">
                     <v-icon size="16" color="info">mdi-information</v-icon>
                     <span class="notice-text">{{ item.notice }}</span>
                   </div>
-                  
+
                   <div class="status-section">
                     <v-chip color="warning" size="small" variant="flat">
                       <v-icon start size="14">mdi-clock-alert</v-icon>
@@ -161,8 +172,11 @@
                     </v-chip>
                   </div>
                 </div>
-                
-                <div class="selection-indicator" v-if="selectedUnpaid.includes(item.id)">
+
+                <div
+                  class="selection-indicator"
+                  v-if="selectedUnpaid.includes(item.id)"
+                >
                   <v-icon color="primary">mdi-check-circle</v-icon>
                 </div>
               </v-card>
@@ -195,9 +209,9 @@
               </v-chip>
             </div>
 
-            <v-alert 
-              v-if="paid.length === 0" 
-              type="info" 
+            <v-alert
+              v-if="paid.length === 0"
+              type="info"
               class="info-alert"
               prominent
             >
@@ -210,7 +224,7 @@
                 v-for="item in paid"
                 :key="`${item.id}-${item.dday}-paid`"
                 class="payroll-card paid-card"
-                :class="{ 'selected': selectedPaid.includes(item.id) }"
+                :class="{ selected: selectedPaid.includes(item.id) }"
                 @click="togglePaid(item.id)"
               >
                 <div class="card-content">
@@ -220,22 +234,26 @@
                       <h4 class="work-date">{{ item.date }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div v-if="item.notice" class="notice-section">
                     <v-icon size="16" color="info">mdi-information</v-icon>
                     <span class="notice-text">{{ item.notice }}</span>
                   </div>
-                  
+
                   <div class="status-section">
                     <v-chip color="success" size="small" variant="flat">
                       <v-icon start size="14">mdi-check</v-icon>
@@ -243,8 +261,11 @@
                     </v-chip>
                   </div>
                 </div>
-                
-                <div class="selection-indicator" v-if="selectedPaid.includes(item.id)">
+
+                <div
+                  class="selection-indicator"
+                  v-if="selectedPaid.includes(item.id)"
+                >
                   <v-icon color="error">mdi-close-circle</v-icon>
                 </div>
               </v-card>
@@ -269,7 +290,7 @@
 
       <!-- 🏠 하단 홈 버튼 -->
       <div class="floating-actions">
-        <v-btn 
+        <v-btn
           block
           size="large"
           variant="outlined"
@@ -287,7 +308,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { db } from '@/firebase/config'
-import { collection, getDocs, query, orderBy, updateDoc, doc, getDoc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
+  getDoc,
+} from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -314,7 +343,9 @@ function toKSTDate(dateStr) {
   return new Date(dateStr + 'T00:00:00+09:00')
 }
 function calcDday(dateStr) {
-  return Math.floor((toKSTDate(todayKST) - toKSTDate(dateStr)) / (1000 * 60 * 60 * 24))
+  return Math.floor(
+    (toKSTDate(todayKST) - toKSTDate(dateStr)) / (1000 * 60 * 60 * 24)
+  )
 }
 
 function selectWorker(id) {
@@ -325,26 +356,33 @@ function selectWorker(id) {
 
 async function fetchUsers() {
   const userSnap = await getDocs(collection(db, 'users'))
-  workers.value = userSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name || doc.id }))
-  userMap.value = Object.fromEntries(workers.value.map(u => [u.id, u.name]))
+  workers.value = userSnap.docs.map((doc) => ({
+    id: doc.id,
+    name: doc.data().name || doc.id,
+  }))
+  userMap.value = Object.fromEntries(workers.value.map((u) => [u.id, u.name]))
   if (!selectedWorker.value && workers.value.length > 0) {
     const currentUserId = userStore.userId
-    const match = workers.value.find(w => w.id === currentUserId)
+    const match = workers.value.find((w) => w.id === currentUserId)
     selectedWorker.value = match ? match.id : workers.value[0].id
   }
 }
 
 async function fetchMeta() {
   loadingMeta.value = true
-  const snap = await getDocs(query(collection(db, 'schedulesMeta'), orderBy('date', 'desc')))
-  meta.value = snap.docs.map(d => {
+  const snap = await getDocs(
+    query(collection(db, 'schedulesMeta'), orderBy('date', 'desc'))
+  )
+  meta.value = snap.docs.map((d) => {
     const data = d.data()
     return {
       id: d.id,
       ...data,
       paidMap: data.paidMap || {},
-      workerNames: (data.workers || []).map(uid => userMap.value[uid] || '알 수 없음'),
-      dday: calcDday(data.date)
+      workerNames: (data.workers || []).map(
+        (uid) => userMap.value[uid] || '알 수 없음'
+      ),
+      dday: calcDday(data.date),
     }
   })
   loadingMeta.value = false
@@ -352,16 +390,16 @@ async function fetchMeta() {
 
 const unpaid = computed(() => {
   return meta.value.filter(
-    m =>
+    (m) =>
       m.workers.includes(selectedWorker.value) &&
-      (!m.paidMap[selectedWorker.value]) &&
+      !m.paidMap[selectedWorker.value] &&
       m.date <= todayKST
   )
 })
 
 const paid = computed(() => {
   return meta.value.filter(
-    m =>
+    (m) =>
       m.workers.includes(selectedWorker.value) &&
       m.paidMap[selectedWorker.value] === true
   )
@@ -369,13 +407,13 @@ const paid = computed(() => {
 
 function toggleUnpaid(id) {
   selectedUnpaid.value.includes(id)
-    ? selectedUnpaid.value = selectedUnpaid.value.filter(i => i !== id)
+    ? (selectedUnpaid.value = selectedUnpaid.value.filter((i) => i !== id))
     : selectedUnpaid.value.push(id)
 }
 
 function togglePaid(id) {
   selectedPaid.value.includes(id)
-    ? selectedPaid.value = selectedPaid.value.filter(i => i !== id)
+    ? (selectedPaid.value = selectedPaid.value.filter((i) => i !== id))
     : selectedPaid.value.push(id)
 }
 
@@ -391,7 +429,7 @@ async function markAsPaid() {
       const paidMap = data.paidMap || {}
       paidMap[selectedWorker.value] = true
       await updateDoc(docRef, { paidMap })
-      const metaItem = meta.value.find(m => m.id === id)
+      const metaItem = meta.value.find((m) => m.id === id)
       if (metaItem) metaItem.paidMap[selectedWorker.value] = true
     }
     selectedUnpaid.value = []
@@ -416,7 +454,7 @@ async function cancelPaid() {
       const paidMap = data.paidMap || {}
       paidMap[selectedWorker.value] = false
       await updateDoc(docRef, { paidMap })
-      const metaItem = meta.value.find(m => m.id === id)
+      const metaItem = meta.value.find((m) => m.id === id)
       if (metaItem) metaItem.paidMap[selectedWorker.value] = false
     }
     selectedPaid.value = []
@@ -888,25 +926,25 @@ onMounted(async () => {
     gap: 8px;
     padding: 20px;
   }
-  
+
   .worker-btn {
     height: 52px;
     font-size: 14px;
   }
-  
+
   .card-main-info {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .date-badge {
     align-self: flex-start;
   }
-  
+
   .section-title {
     font-size: 20px;
   }
-  
+
   .work-date {
     font-size: 16px;
   }
@@ -916,24 +954,24 @@ onMounted(async () => {
   .header-title {
     font-size: 20px;
   }
-  
+
   .worker-grid {
     grid-template-columns: 1fr;
     padding: 16px;
   }
-  
+
   .payroll-card {
     padding: 16px;
   }
-  
+
   .card-header {
     padding: 20px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
-  
+
   .selection-indicator {
     top: 12px;
     right: 12px;

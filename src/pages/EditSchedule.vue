@@ -1,19 +1,10 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
-            size="large"
-            class="back-btn mr-3"
-            @click="goBack"
-          >
+          <v-btn icon size="large" class="back-btn mr-3" @click="goBack">
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
@@ -24,15 +15,10 @@
             <div class="header-subtitle">작업 정보를 업데이트하세요</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <!-- 저장 상태 표시 -->
-          <v-chip 
-            v-if="hasChanges" 
-            color="warning" 
-            size="small" 
-            class="mr-2"
-          >
+          <v-chip v-if="hasChanges" color="warning" size="small" class="mr-2">
             <v-icon start size="14">mdi-circle-edit-outline</v-icon>
             수정됨
           </v-chip>
@@ -41,8 +27,10 @@
     </v-app-bar>
 
     <v-main class="main-content">
-      <v-container class="pa-6" style="padding-bottom: 140px !important; max-width: 1000px;">
-        
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 140px !important; max-width: 1000px"
+      >
         <!-- 📅 날짜 선택 카드 -->
         <v-card class="form-card mb-6" elevation="0">
           <div class="card-header">
@@ -52,13 +40,13 @@
             <h3 class="card-title">날짜 선택</h3>
             <v-chip color="info" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <div class="date-picker-wrapper">
-              <flat-pickr 
-                v-model="form.date" 
-                :config="dateConfig" 
-                class="date-input" 
+              <flat-pickr
+                v-model="form.date"
+                :config="dateConfig"
+                class="date-input"
                 placeholder="작업 날짜를 선택하세요"
               />
             </div>
@@ -74,7 +62,7 @@
             <h3 class="card-title">건물 선택</h3>
             <v-chip color="info" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <div class="option-grid">
               <v-btn
@@ -89,7 +77,7 @@
                 {{ b }}
               </v-btn>
             </div>
-            
+
             <v-expand-transition>
               <div v-if="form.building === '기타'" class="mt-4">
                 <v-text-field
@@ -113,7 +101,7 @@
             <h3 class="card-title">동 선택</h3>
             <v-chip color="info" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <div class="option-grid">
               <v-btn
@@ -128,7 +116,7 @@
                 {{ u }}
               </v-btn>
             </div>
-            
+
             <v-expand-transition>
               <div v-if="form.unit === '기타'" class="mt-4">
                 <v-text-field
@@ -152,7 +140,7 @@
             <h3 class="card-title">호수 입력</h3>
             <v-chip color="info" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-text-field
               v-model="form.room"
@@ -171,11 +159,15 @@
               <v-icon color="primary">mdi-wrench</v-icon>
             </div>
             <h3 class="card-title">작업 내용 및 수량</h3>
-            <v-chip :color="form.tasks.length > 0 ? 'success' : 'warning'" size="small" class="ml-2">
+            <v-chip
+              :color="form.tasks.length > 0 ? 'success' : 'warning'"
+              size="small"
+              class="ml-2"
+            >
               {{ form.tasks.length }}개
             </v-chip>
           </div>
-          
+
           <div class="card-content">
             <transition-group name="task-fade" tag="div">
               <div
@@ -185,7 +177,7 @@
               >
                 <!-- 작업 번호 -->
                 <div class="task-number">{{ index + 1 }}</div>
-                
+
                 <!-- 작업 종류 선택 -->
                 <div class="task-type-section">
                   <label class="task-label">작업 종류</label>
@@ -199,7 +191,9 @@
                       class="type-btn"
                       @click="task.name = t"
                     >
-                      <v-icon start v-if="task.name === t" size="14">mdi-check</v-icon>
+                      <v-icon start v-if="task.name === t" size="14"
+                        >mdi-check</v-icon
+                      >
                       {{ t }}
                     </v-btn>
                   </div>
@@ -270,7 +264,7 @@
             <h3 class="card-title">작업 상태</h3>
             <v-chip color="info" size="small" class="ml-2">필수</v-chip>
           </div>
-          
+
           <div class="card-content">
             <div class="status-grid">
               <v-btn
@@ -296,7 +290,7 @@
             </div>
             <h3 class="card-title">세금계산서 발행</h3>
           </div>
-          
+
           <div class="card-content">
             <div class="invoice-grid">
               <v-btn
@@ -330,7 +324,7 @@
             <h3 class="card-title">메모</h3>
             <v-chip color="grey" size="small" class="ml-2">선택사항</v-chip>
           </div>
-          
+
           <div class="card-content">
             <v-textarea
               v-model="form.memo"
@@ -365,7 +359,7 @@
               size="large"
               block
               class="action-btn save-btn"
-              :loading="isSaving"
+              :loading="scheduleStore.isLoading"
               @click="submit"
             >
               <v-icon start>mdi-content-save</v-icon>
@@ -379,134 +373,169 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import { useRoute, useRouter } from 'vue-router'
-import { db } from '@/firebase/config'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { useScheduleStore } from '@/stores/schedule'
+import { useUiStore } from '@/stores/ui'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
 const route = useRoute()
 const scheduleStore = useScheduleStore()
+const uiStore = useUiStore()
+const { selectedSchedule } = storeToRefs(scheduleStore)
 
-const buildings = ['테라타워1', '테라타워2', 'SKV1', '현대지식산업', '현대비지니스파크', '대명벨리온', '기타']
+const buildings = [
+  '테라타워1',
+  '테라타워2',
+  'SKV1',
+  '현대지식산업',
+  '현대비지니스파크',
+  '대명벨리온',
+  '기타',
+]
 const units = ['A', 'B', 'C', 'D', '기타']
-const types = ['설치', '수리','점검', '청소', '기타']
+const types = ['설치', '수리', '점검', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
 
 const form = ref({
-  building: '', buildingEtc: '', unit: '', unitEtc: '', room: '',
+  building: '',
+  buildingEtc: '',
+  unit: '',
+  unitEtc: '',
+  room: '',
   tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
-  status: '진행', date: '', memo: '', invoice: 'N'
+  status: '진행',
+  date: '',
+  memo: '',
+  invoice: 'N',
 })
 
-const isSaving = ref(false)
 const original = ref({})
 
 const dateConfig = {
-  locale: Korean, 
-  dateFormat: 'Y-m-d', 
+  locale: Korean,
+  dateFormat: 'Y-m-d',
   disableMobile: true,
-  allowInput: true
+  allowInput: true,
 }
 
 // 변경사항 감지
 const hasChanges = computed(() => {
   if (!original.value.id) return false
-  
+
   const currentData = {
-    building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
+    building:
+      form.value.building === '기타'
+        ? form.value.buildingEtc
+        : form.value.building,
     unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
     room: form.value.room,
     status: form.value.status,
     date: form.value.date,
     memo: form.value.memo,
-    invoice: form.value.invoice === 'Y'
+    invoice: form.value.invoice === 'Y',
   }
-  
-  return JSON.stringify(currentData) !== JSON.stringify({
-    building: original.value.building,
-    unit: original.value.unit,
-    room: original.value.room,
-    status: original.value.status,
-    date: original.value.date,
-    memo: original.value.memo,
-    invoice: original.value.invoice
-  })
+
+  return (
+    JSON.stringify(currentData) !==
+    JSON.stringify({
+      building: original.value.building,
+      unit: original.value.unit,
+      room: original.value.room,
+      status: original.value.status,
+      date: original.value.date,
+      memo: original.value.memo,
+      invoice: original.value.invoice,
+    })
+  )
 })
 
 const getStatusColor = (status, isSelected) => {
   if (!isSelected) return 'grey'
   switch (status) {
-    case '진행': return 'warning'
-    case '완료': return 'success'
-    case '보류': return 'error'
-    default: return 'grey'
+    case '진행':
+      return 'warning'
+    case '완료':
+      return 'success'
+    case '보류':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case '진행': return 'mdi-play-circle'
-    case '완료': return 'mdi-check-circle'
-    case '보류': return 'mdi-pause-circle'
-    default: return 'mdi-help-circle'
+    case '진행':
+      return 'mdi-play-circle'
+    case '완료':
+      return 'mdi-check-circle'
+    case '보류':
+      return 'mdi-pause-circle'
+    default:
+      return 'mdi-help-circle'
+  }
+}
+
+function initializeForm(source) {
+  if (!source) return
+  original.value = JSON.parse(JSON.stringify(source)) // Deep copy for comparison
+  form.value = {
+    building: buildings.includes(source.building) ? source.building : '기타',
+    buildingEtc: buildings.includes(source.building) ? '' : source.building,
+    unit: units.includes(source.unit) ? source.unit : '기타',
+    unitEtc: units.includes(source.unit) ? '' : source.unit,
+    room: source.room,
+    tasks: (source.tasks || []).map((t) => ({
+      id: Date.now() + Math.random(),
+      name: types.includes(t.name) ? t.name : '기타',
+      etc: types.includes(t.name) ? '' : t.name,
+      count: t.count || 1,
+    })),
+    status: source.status,
+    date: source.date,
+    memo: source.memo,
+    invoice: source.invoice ? 'Y' : 'N',
   }
 }
 
 onMounted(async () => {
   const id = route.params.id
-  const storeSchedule = scheduleStore.schedules.find(s => s.id === id)
-
-  if (storeSchedule) {
-    original.value = storeSchedule
-    initializeForm()
+  const scheduleFromStore = scheduleStore.getScheduleById(id)
+  if (scheduleFromStore) {
+    initializeForm(scheduleFromStore)
   } else {
-    const snap = await getDoc(doc(db, 'schedules', id))
-    if (!snap.exists()) {
-      showErrorMessage('존재하지 않는 작업입니다')
-      router.back()
-      return
-    }
-    original.value = { id: snap.id, ...snap.data() }
-    scheduleStore.setSchedules([...scheduleStore.schedules, original.value])
-    initializeForm()
+    await scheduleStore.fetchScheduleById(id)
+    // After fetching, the selectedSchedule ref will be updated.
   }
 })
 
-function initializeForm() {
-  form.value = {
-    building: buildings.includes(original.value.building) ? original.value.building : '기타',
-    buildingEtc: buildings.includes(original.value.building) ? '' : original.value.building,
-    unit: units.includes(original.value.unit) ? original.value.unit : '기타',
-    unitEtc: units.includes(original.value.unit) ? '' : original.value.unit,
-    room: original.value.room,
-    tasks: (original.value.tasks || []).map(t => ({
-      id: Date.now() + Math.random(),
-      name: types.includes(t.name) ? t.name : '기타',
-      etc: types.includes(t.name) ? '' : t.name,
-      count: t.count || 1
-    })),
-    status: original.value.status,
-    date: original.value.date,
-    memo: original.value.memo,
-    invoice: original.value.invoice ? 'Y' : 'N'
+// Watch for changes in the store's selectedSchedule
+watch(selectedSchedule, (newSchedule) => {
+  if (newSchedule && newSchedule.id === route.params.id) {
+    initializeForm(newSchedule)
   }
-}
+})
 
 function addTask() {
-  form.value.tasks.push({ id: Date.now() + Math.random(), name: '', count: 1, etc: '' })
+  form.value.tasks.push({
+    id: Date.now() + Math.random(),
+    name: '',
+    count: 1,
+    etc: '',
+  })
 }
 
 function removeTask(id) {
   if (form.value.tasks.length === 1) {
-    showErrorMessage('최소 1개의 작업은 입력해야 합니다.')
+    uiStore.showSnackbar('최소 1개의 작업은 입력해야 합니다.', 'error')
     return
   }
-  form.value.tasks = form.value.tasks.filter(t => t.id !== id)
+  form.value.tasks = form.value.tasks.filter((t) => t.id !== id)
 }
 
 function goBack() {
@@ -514,80 +543,51 @@ function goBack() {
 }
 
 async function submit() {
-  if (isSaving.value) return
-  isSaving.value = true
-  
-  try {
-    // 필수 검증
-    if (!form.value.building || !form.value.unit || !form.value.room || !form.value.status || !form.value.date) {
-      showErrorMessage('필수 항목을 모두 입력해주세요.')
-      return
-    }
-
-    const cleanedTasks = form.value.tasks
-      .filter(task => task.name)
-      .map(task => ({
-        name: task.name === '기타' ? task.etc : task.name,
-        count: task.count
-      }))
-      
-    const data = {
-      building: form.value.building === '기타' ? form.value.buildingEtc : form.value.building,
-      unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
-      room: form.value.room,
-      tasks: cleanedTasks,
-      status: form.value.status,
-      date: form.value.date,
-      memo: form.value.memo,
-      invoice: form.value.invoice === 'Y'
-    }
-    
-    await updateDoc(doc(db, 'schedules', route.params.id), data)
-    showSuccessMessage('작업이 성공적으로 수정되었습니다!')
-
-    const index = scheduleStore.schedules.findIndex(s => s.id === original.value.id)
-    if (index !== -1) {
-      scheduleStore.schedules[index] = {
-        ...scheduleStore.schedules[index],
-        ...data
-      }
-    }
-
-    setTimeout(() => router.back(), 1000)
-  } catch (err) {
-    console.error(err)
-    showErrorMessage('수정 중 오류가 발생했습니다.')
-  } finally {
-    isSaving.value = false
+  if (
+    !form.value.building ||
+    !form.value.unit ||
+    !form.value.room ||
+    !form.value.status ||
+    !form.value.date
+  ) {
+    uiStore.showSnackbar('필수 항목을 모두 입력해주세요.', 'error')
+    return
   }
-}
 
-function showSuccessMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'success-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
-}
+  const cleanedTasks = form.value.tasks
+    .filter((task) => task.name)
+    .map((task) => ({
+      name: task.name === '기타' ? task.etc : task.name,
+      count: task.count,
+    }))
 
-function showErrorMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'error-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
+  const data = {
+    id: route.params.id,
+    building:
+      form.value.building === '기타'
+        ? form.value.buildingEtc
+        : form.value.building,
+    unit: form.value.unit === '기타' ? form.value.unitEtc : form.value.unit,
+    room: form.value.room,
+    tasks: cleanedTasks,
+    status: form.value.status,
+    date: form.value.date,
+    memo: form.value.memo,
+    invoice: form.value.invoice === 'Y',
+  }
+
+  try {
+    await scheduleStore.updateSchedule(data)
+    uiStore.showSnackbar('작업이 성공적으로 수정되었습니다!', 'success')
+    router.back()
+  } catch (err) {
+    uiStore.showSnackbar('수정 중 오류가 발생했습니다.', 'error')
+  }
 }
 </script>
 
 <style scoped>
+/* Styles remain the same */
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -752,7 +752,9 @@ function showErrorMessage(message) {
   font-weight: 700;
 }
 
-.task-type-section, .task-etc-section, .task-count-section {
+.task-type-section,
+.task-etc-section,
+.task-count-section {
   margin-bottom: 16px;
 }
 
@@ -904,7 +906,8 @@ function showErrorMessage(message) {
 }
 
 /* 📱 성공/에러 스낵바 */
-.success-snackbar, .error-snackbar {
+.success-snackbar,
+.error-snackbar {
   position: fixed;
   top: 100px;
   left: 50%;
@@ -944,42 +947,42 @@ function showErrorMessage(message) {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 8px;
   }
-  
+
   .option-btn {
     height: 44px;
     font-size: 14px;
   }
-  
+
   .task-item {
     padding: 16px;
   }
-  
+
   .task-type-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .status-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  
+
   .status-btn {
     height: 52px;
   }
-  
+
   .invoice-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
+
   .invoice-btn {
     height: 52px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
-  
+
   .action-btn {
     height: 52px;
   }
@@ -989,32 +992,32 @@ function showErrorMessage(message) {
   .header-title {
     font-size: 20px;
   }
-  
+
   .card-header {
     padding: 16px 20px;
   }
-  
+
   .card-content {
     padding: 20px;
   }
-  
+
   .card-title {
     font-size: 16px;
   }
-  
+
   .task-item {
     padding: 14px;
   }
-  
+
   .task-type-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .type-btn {
     height: 36px;
     font-size: 13px;
   }
-  
+
   .date-input {
     padding: 14px 16px;
     font-size: 14px;
@@ -1047,12 +1050,12 @@ function showErrorMessage(message) {
   color: white;
 }
 
-:deep(.flatpickr-prev-month), 
+:deep(.flatpickr-prev-month),
 :deep(.flatpickr-next-month) {
   color: white;
 }
 
-:deep(.flatpickr-prev-month):hover, 
+:deep(.flatpickr-prev-month):hover,
 :deep(.flatpickr-next-month):hover {
   color: rgba(255, 255, 255, 0.8);
 }

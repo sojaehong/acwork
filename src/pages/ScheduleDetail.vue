@@ -1,19 +1,10 @@
 <template>
   <v-app>
     <!-- 🎨 일관된 헤더 디자인 -->
-    <v-app-bar 
-      :elevation="0" 
-      class="custom-header"
-      height="80"
-    >
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn 
-            icon 
-            size="large"
-            class="back-btn mr-3"
-            @click="goBack"
-          >
+          <v-btn icon size="large" class="back-btn mr-3" @click="goBack">
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
@@ -24,16 +15,18 @@
             <div class="header-subtitle">작업 정보 및 관리</div>
           </div>
         </div>
-        
+
         <div class="d-flex align-center">
           <!-- 작업 상태 표시 -->
-          <v-chip 
-            v-if="schedule?.status" 
-            :color="getStatusColor(schedule.status)" 
-            size="small" 
+          <v-chip
+            v-if="schedule?.status"
+            :color="getStatusColor(schedule.status)"
+            size="small"
             class="mr-2"
           >
-            <v-icon start size="14">{{ getStatusIcon(schedule.status) }}</v-icon>
+            <v-icon start size="14">{{
+              getStatusIcon(schedule.status)
+            }}</v-icon>
             {{ schedule.status }}
           </v-chip>
         </div>
@@ -42,7 +35,7 @@
 
     <v-main class="main-content">
       <!-- 🌀 로딩 오버레이 -->
-      <div v-if="isLoading" class="loading-overlay">
+      <div v-if="scheduleStore.isLoading" class="loading-overlay">
         <div class="loading-container">
           <v-progress-circular
             indeterminate
@@ -54,8 +47,11 @@
         </div>
       </div>
 
-      <v-container class="pa-6" style="padding-bottom: 140px !important; max-width: 1000px;" v-if="!isLoading">
-        
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 140px !important; max-width: 1000px"
+        v-if="!scheduleStore.isLoading && schedule"
+      >
         <!-- 📅 기본 정보 카드 -->
         <v-card class="detail-card mb-6" elevation="0">
           <div class="card-header">
@@ -64,7 +60,7 @@
             </div>
             <h3 class="card-title">기본 정보</h3>
           </div>
-          
+
           <div class="card-content">
             <div class="info-grid">
               <!-- 날짜 정보 -->
@@ -75,7 +71,9 @@
                 <div class="info-content">
                   <div class="info-label">작업 날짜</div>
                   <div class="info-value">{{ formatDate(schedule?.date) }}</div>
-                  <div class="info-extra">{{ getDdayText(schedule?.date) }}</div>
+                  <div class="info-extra">
+                    {{ getDdayText(schedule?.date) }}
+                  </div>
                 </div>
               </div>
 
@@ -95,13 +93,19 @@
               <div class="info-item">
                 <div class="info-icon">
                   <v-icon :color="schedule?.invoice ? 'blue' : 'grey'">
-                    {{ schedule?.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}
+                    {{
+                      schedule?.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
+                    }}
                   </v-icon>
                 </div>
                 <div class="info-content">
                   <div class="info-label">세금계산서</div>
-                  <div class="info-value">{{ schedule?.invoice ? '발행함' : '미발행' }}</div>
-                  <div class="info-extra">{{ schedule?.invoice ? 'O' : 'X' }}</div>
+                  <div class="info-value">
+                    {{ schedule?.invoice ? '발행함' : '미발행' }}
+                  </div>
+                  <div class="info-extra">
+                    {{ schedule?.invoice ? 'O' : 'X' }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -119,7 +123,7 @@
               {{ schedule?.tasks?.length || 0 }}개
             </v-chip>
           </div>
-          
+
           <div class="card-content">
             <div v-if="schedule?.tasks?.length" class="task-chips">
               <v-chip
@@ -135,7 +139,9 @@
               </v-chip>
             </div>
             <div v-else class="empty-tasks">
-              <v-icon size="48" color="grey-lighten-2">mdi-wrench-outline</v-icon>
+              <v-icon size="48" color="grey-lighten-2"
+                >mdi-wrench-outline</v-icon
+              >
               <div class="empty-text">등록된 작업이 없습니다</div>
             </div>
           </div>
@@ -149,7 +155,7 @@
             </div>
             <h3 class="card-title">상태 관리</h3>
           </div>
-          
+
           <div class="card-content">
             <div class="status-section">
               <label class="status-label">작업 상태 변경</label>
@@ -157,11 +163,11 @@
                 <v-btn
                   v-for="s in statusOptions"
                   :key="s"
-                  :variant="status === s ? 'flat' : 'outlined'"
-                  :color="getStatusColor(s, status === s)"
+                  :variant="schedule.status === s ? 'flat' : 'outlined'"
+                  :color="getStatusColor(s, schedule.status === s)"
                   class="status-btn"
                   @click="updateStatus(s)"
-                  :loading="isSaving && status !== s"
+                  :loading="scheduleStore.isLoading && schedule.status !== s"
                 >
                   <v-icon start>{{ getStatusIcon(s) }}</v-icon>
                   {{ s }}
@@ -171,7 +177,10 @@
 
             <!-- 보류 시 날짜 변경 -->
             <v-expand-transition>
-              <div v-if="status === '보류'" class="date-change-section">
+              <div
+                v-if="schedule.status === '보류'"
+                class="date-change-section"
+              >
                 <label class="status-label">변경할 날짜 선택</label>
                 <v-text-field
                   v-model="displayDate"
@@ -196,7 +205,7 @@
             </div>
             <h3 class="card-title">메모</h3>
           </div>
-          
+
           <div class="card-content">
             <div v-if="schedule?.memo" class="memo-content">
               {{ schedule.memo }}
@@ -217,27 +226,27 @@
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </div>
-            
-            <v-date-picker 
-              v-model="newDate" 
-              :min="today" 
-              color="primary" 
+
+            <v-date-picker
+              v-model="newDate"
+              :min="today"
+              color="primary"
               header-color="primary"
               class="custom-date-picker"
             />
-            
+
             <v-card-actions class="pa-4">
               <v-spacer />
-              <v-btn 
-                variant="outlined" 
+              <v-btn
+                variant="outlined"
                 @click="pickerOpen = false"
-                :disabled="isSaving"
+                :disabled="scheduleStore.isLoading"
               >
                 취소
               </v-btn>
-              <v-btn 
-                color="primary" 
-                :loading="isSaving" 
+              <v-btn
+                color="primary"
+                :loading="scheduleStore.isLoading"
                 @click="applyNewDate"
               >
                 적용
@@ -269,7 +278,7 @@
               size="large"
               block
               class="action-btn delete-btn"
-              :loading="isSaving"
+              :loading="scheduleStore.isLoading"
               @click="deleteSchedule"
             >
               <v-icon start>mdi-delete</v-icon>
@@ -281,7 +290,7 @@
               size="large"
               block
               class="action-btn cancel-btn"
-              :loading="isSaving"
+              :loading="scheduleStore.isLoading"
               @click="cancelSchedule"
             >
               <v-icon start>mdi-cancel</v-icon>
@@ -307,44 +316,52 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { db } from '@/firebase/config'
-import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { useScheduleStore } from '@/stores/schedule'
+import { storeToRefs } from 'pinia'
+import { useUiStore } from '@/stores/ui'
 
 const route = useRoute()
 const router = useRouter()
 const scheduleStore = useScheduleStore()
+const { selectedSchedule: schedule } = storeToRefs(scheduleStore)
+const uiStore = useUiStore()
 
-const schedule = ref({})
-const status = ref('')
 const newDate = ref('')
 const displayDate = ref('')
 const pickerOpen = ref(false)
-const isLoading = ref(true)
-const isSaving = ref(false)
 const statusOptions = ['진행', '보류', '완료']
 const today = new Date().toISOString().split('T')[0]
 
 const getStatusColor = (status, isSelected = false) => {
   if (!isSelected && arguments.length > 1) return 'grey'
   switch (status) {
-    case '진행': return 'warning'
-    case '완료': return 'success'
-    case '보류': return 'error'
-    case '취소됨': return 'grey'
-    default: return 'grey'
+    case '진행':
+      return 'warning'
+    case '완료':
+      return 'success'
+    case '보류':
+      return 'error'
+    case '취소됨':
+      return 'grey'
+    default:
+      return 'grey'
   }
 }
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case '진행': return 'mdi-play-circle'
-    case '완료': return 'mdi-check-circle'
-    case '보류': return 'mdi-pause-circle'
-    case '취소됨': return 'mdi-cancel'
-    default: return 'mdi-help-circle'
+    case '진행':
+      return 'mdi-play-circle'
+    case '완료':
+      return 'mdi-check-circle'
+    case '보류':
+      return 'mdi-pause-circle'
+    case '취소됨':
+      return 'mdi-cancel'
+    default:
+      return 'mdi-help-circle'
   }
 }
 
@@ -362,7 +379,7 @@ const getDdayText = (dateStr) => {
   const todayDate = new Date(today)
   const diffTime = targetDate - todayDate
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) return '오늘'
   if (diffDays === 1) return '내일'
   if (diffDays === -1) return '어제'
@@ -380,32 +397,16 @@ const getLocationText = () => {
 
 onMounted(async () => {
   const id = route.params.id
-  try {
-    isLoading.value = true
-    if (!scheduleStore.schedules.length) {
-      const snapshot = await getDocs(query(collection(db, 'schedules'), orderBy('date', 'desc')))
-      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      scheduleStore.setSchedules(fetched)
-    }
-    let target = scheduleStore.schedules.find(s => s.id === id)
-    if (!target) {
-      const snap = await getDoc(doc(db, 'schedules', id))
-      if (snap.exists()) {
-        target = { id: snap.id, ...snap.data() }
-        scheduleStore.setSchedules([...scheduleStore.schedules, target])
-      } else {
-        showErrorMessage('해당 일정을 찾을 수 없습니다.')
-        return router.push('/schedules')
-      }
-    }
-    schedule.value = target
-    status.value = target.status || '진행'
-    displayDate.value = target.date
-  } catch (err) {
-    showErrorMessage('일정 데이터를 불러오는 중 오류가 발생했습니다.')
-    router.push('/schedules')
-  } finally {
-    isLoading.value = false
+  const scheduleFromStore = scheduleStore.getScheduleById(id)
+  if (!scheduleFromStore) {
+    await scheduleStore.fetchScheduleById(id)
+  }
+  scheduleStore.setSelectedSchedule(scheduleStore.getScheduleById(id))
+})
+
+watch(schedule, (newVal) => {
+  if (newVal) {
+    displayDate.value = newVal.date
   }
 })
 
@@ -416,20 +417,17 @@ function formatDateToYYYYMMDD(date) {
 }
 
 async function updateStatus(newStatus) {
-  if (isSaving.value || !schedule.value.id || status.value === newStatus) return
-  isSaving.value = true
+  if (
+    scheduleStore.isLoading ||
+    !schedule.value.id ||
+    schedule.value.status === newStatus
+  )
+    return
   try {
-    const docRef = doc(db, 'schedules', schedule.value.id)
-    await updateDoc(docRef, { status: newStatus })
-    schedule.value.status = newStatus
-    status.value = newStatus
-    const index = scheduleStore.schedules.findIndex(s => s.id === schedule.value.id)
-    if (index !== -1) scheduleStore.schedules[index].status = newStatus
-    showSuccessMessage(`작업 상태가 '${newStatus}'로 변경되었습니다.`)
+    await scheduleStore.updateSchedule({ ...schedule.value, status: newStatus })
+    alert(`작업 상태가 '${newStatus}'로 변경되었습니다.`)
   } catch (err) {
-    showErrorMessage('상태 변경 중 오류가 발생했습니다.')
-  } finally {
-    isSaving.value = false
+    alert('상태 변경 중 오류가 발생했습니다.')
   }
 }
 
@@ -437,64 +435,48 @@ async function applyNewDate() {
   if (!newDate.value) return
   const formatted = formatDateToYYYYMMDD(newDate.value)
   if (formatted < today) {
-    showErrorMessage('오늘 이전 날짜는 선택할 수 없습니다.')
+    alert('오늘 이전 날짜는 선택할 수 없습니다.')
     return
   }
-  isSaving.value = true
   try {
-    const docRef = doc(db, 'schedules', schedule.value.id)
-    await updateDoc(docRef, { date: formatted, status: '진행' })
-    schedule.value.date = formatted
-    schedule.value.status = '진행'
-    status.value = '진행'
-    displayDate.value = formatted
-    const index = scheduleStore.schedules.findIndex(s => s.id === schedule.value.id)
-    if (index !== -1) {
-      scheduleStore.schedules[index].date = formatted
-      scheduleStore.schedules[index].status = '진행'
-    }
-    showSuccessMessage('일정이 성공적으로 변경되었습니다.')
+    await scheduleStore.updateSchedule({
+      ...schedule.value,
+      date: formatted,
+      status: '진행',
+    })
+    alert('일정이 성공적으로 변경되었습니다.')
   } catch (err) {
-    showErrorMessage('일정 변경 중 오류가 발생했습니다.')
+    alert('일정 변경 중 오류가 발생했습니다.')
   } finally {
-    isSaving.value = false
     pickerOpen.value = false
   }
 }
 
 async function cancelSchedule() {
-  if (isSaving.value) return
+  if (scheduleStore.isLoading) return
   const ok = confirm('정말 이 작업을 취소하시겠습니까?')
   if (!ok) return
-  isSaving.value = true
   try {
-    const docRef = doc(db, 'schedules', schedule.value.id)
-    await updateDoc(docRef, { status: '취소됨' })
-    const index = scheduleStore.schedules.findIndex(s => s.id === schedule.value.id)
-    if (index !== -1) scheduleStore.schedules[index].status = '취소됨'
-    showSuccessMessage('작업이 취소되었습니다.')
-    setTimeout(() => router.back(), 1000)
+    await scheduleStore.updateSchedule({ ...schedule.value, status: '취소됨' })
+    alert('작업이 취소되었습니다.')
+    router.back()
   } catch (err) {
-    showErrorMessage('작업 취소 중 오류가 발생했습니다.')
-  } finally {
-    isSaving.value = false
+    alert('작업 취소 중 오류가 발생했습니다.')
   }
 }
 
 async function deleteSchedule() {
-  if (isSaving.value || !schedule.value.id) return
-  const ok = confirm('정말 이 취소된 작업을 완전히 삭제하시겠습니까? 복구할 수 없습니다.')
+  if (scheduleStore.isLoading || !schedule.value.id) return
+  const ok = confirm(
+    '정말 이 취소된 작업을 완전히 삭제하시겠습니까? 복구할 수 없습니다.'
+  )
   if (!ok) return
-  isSaving.value = true
   try {
-    await deleteDoc(doc(db, 'schedules', schedule.value.id))
-    scheduleStore.setSchedules(scheduleStore.schedules.filter(s => s.id !== schedule.value.id))
-    showSuccessMessage('작업이 완전히 삭제되었습니다.')
-    setTimeout(() => router.push('/schedules'), 1000)
+    await scheduleStore.deleteSchedule(schedule.value.id)
+    alert('작업이 완전히 삭제되었습니다.')
+    router.push('/schedules')
   } catch (err) {
-    showErrorMessage('삭제 중 오류가 발생했습니다.')
-  } finally {
-    isSaving.value = false
+    uiStore.showSnackbar('삭제 중 오류가 발생했습니다.', 'error')
   }
 }
 
@@ -505,33 +487,10 @@ function goToEdit() {
 function goBack() {
   router.back()
 }
-
-function showSuccessMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'success-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
-}
-
-function showErrorMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'error-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
-}
 </script>
 
 <style scoped>
+/* Styles remain the same */
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -726,7 +685,8 @@ function showErrorMessage(message) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.empty-tasks, .empty-memo {
+.empty-tasks,
+.empty-memo {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -742,7 +702,8 @@ function showErrorMessage(message) {
 }
 
 /* 📌 상태 관리 */
-.status-section, .date-change-section {
+.status-section,
+.date-change-section {
   margin-bottom: 20px;
 }
 
@@ -862,12 +823,14 @@ function showErrorMessage(message) {
   color: #1e293b !important;
 }
 
-.cancel-btn, .delete-btn {
+.cancel-btn,
+.delete-btn {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
 }
 
-.cancel-btn:hover, .delete-btn:hover {
+.cancel-btn:hover,
+.delete-btn:hover {
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
@@ -881,7 +844,8 @@ function showErrorMessage(message) {
 }
 
 /* 📱 성공/에러 스낵바 */
-.success-snackbar, .error-snackbar {
+.success-snackbar,
+.error-snackbar {
   position: fixed;
   top: 100px;
   left: 50%;
@@ -921,42 +885,43 @@ function showErrorMessage(message) {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .info-item {
     padding: 16px;
   }
-  
+
   .info-value {
     font-size: 16px;
   }
-  
+
   .task-chips {
     gap: 8px;
   }
-  
+
   .task-chip {
     height: 44px;
     font-size: 14px;
   }
-  
+
   .status-buttons {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  
+
   .status-btn {
     height: 52px;
   }
-  
+
   .floating-actions {
     padding: 16px;
   }
-  
+
   .action-btn {
     height: 52px;
   }
-  
-  .empty-tasks, .empty-memo {
+
+  .empty-tasks,
+  .empty-memo {
     padding: 30px;
   }
 }
@@ -965,50 +930,51 @@ function showErrorMessage(message) {
   .header-title {
     font-size: 20px;
   }
-  
+
   .card-header {
     padding: 16px 20px;
   }
-  
+
   .card-content {
     padding: 20px;
   }
-  
+
   .card-title {
     font-size: 16px;
   }
-  
+
   .info-item {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
-  
+
   .info-icon {
     align-self: center;
   }
-  
+
   .status-label {
     font-size: 14px;
   }
-  
+
   .memo-content {
     font-size: 14px;
     padding: 16px;
   }
-  
+
   .dialog-header {
     padding: 16px 20px;
   }
-  
+
   .dialog-title {
     font-size: 18px;
   }
-  
-  .empty-tasks, .empty-memo {
+
+  .empty-tasks,
+  .empty-memo {
     padding: 20px;
   }
-  
+
   .empty-text {
     font-size: 14px;
   }
