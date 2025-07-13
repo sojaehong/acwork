@@ -481,15 +481,17 @@ async function deleteSchedule() {
 }
 
 function goToEdit() {
-  router.push(`/schedule/${schedule.value.id}/edit`)
+  const originalFrom = route.query.from || 'schedules'
+  router.push(`/schedule/${schedule.value.id}/edit?originalFrom=${originalFrom}`)
 }
 
 function goBack() {
-  // 이전 페이지 정보를 체크해서 적절히 이동
-  if (document.referrer.includes('/schedules')) {
-    router.push('/schedules')
+  const fromPage = route.query.from
+  
+  if (fromPage === 'home') {
+    router.push('/')
   } else {
-    router.back()
+    router.push('/schedules')
   }
 }
 </script>

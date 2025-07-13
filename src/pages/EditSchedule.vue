@@ -504,7 +504,6 @@ function initializeForm(source) {
 }
 
 onMounted(async () => {
-  console.log('EditSchedule: onMounted - Current route:', router.currentRoute.value.fullPath, 'History length:', window.history.length)
   const id = route.params.id
   const scheduleFromStore = scheduleStore.getScheduleById(id)
   if (scheduleFromStore) {
@@ -578,7 +577,8 @@ async function submit() {
   try {
     await scheduleStore.updateSchedule(data)
     uiStore.showSnackbar('작업이 성공적으로 수정되었습니다!', 'success')
-    router.replace(`/schedule/${route.params.id}`)
+     const originalFrom = route.query.originalFrom || 'schedules'
+    router.push(`/schedule/${route.params.id}?from=${originalFrom}`)
   } catch (err) {
     uiStore.showSnackbar('수정 중 오류가 발생했습니다.', 'error')
   }

@@ -399,7 +399,7 @@ const goToAddDate = () => {
 const goToPayroll = () => goTo('/payroll')
 const goToWorker = () => goTo('/worker-schedules')
 const goToMetaEdit = () => goTo('/meta')
-const goToDetail = (id) => goTo(`/schedule/${id}`)
+const goToDetail = (id) => goTo(`/schedule/${id}?from=home`)
 const goToEstimateForm = () => goTo('/estimate')
 const goToStatementForm = () => goTo('/statement')
 

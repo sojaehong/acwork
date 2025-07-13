@@ -423,9 +423,8 @@ const resetFilters = () => {
 
 const applyFiltersDebounced = debounce(() => {}, 200) // No need to do anything here, computed properties will react
 
-const goToDetail = (id) => router.push(`/schedule/${id}`)
+const goToDetail = (id) => router.push(`/schedule/${id}?from=schedules`)
 const goHome = () => router.push('/')
-
 const formatDateWithDay = (dateStr) => {
   const date = new Date(dateStr)
   const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
