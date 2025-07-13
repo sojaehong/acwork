@@ -485,7 +485,12 @@ function goToEdit() {
 }
 
 function goBack() {
-  router.back()
+  // 이전 페이지 정보를 체크해서 적절히 이동
+  if (document.referrer.includes('/schedules')) {
+    router.push('/schedules')
+  } else {
+    router.back()
+  }
 }
 </script>
 
