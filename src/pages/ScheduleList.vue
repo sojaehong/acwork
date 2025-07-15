@@ -4,7 +4,15 @@
     <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-4">
         <div class="d-flex align-center">
-          <v-btn icon size="large" class="back-btn mr-3" @click="goHome">
+          <v-btn 
+            icon 
+            size="large" 
+            class="back-btn mr-3" 
+            @click="goHome"
+            @keydown.enter="goHome"
+            @keydown.space="goHome"
+            aria-label="홈으로 돌아가기"
+          >
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
@@ -33,7 +41,10 @@
             icon
             size="large"
             class="filter-toggle-btn"
-            @click="showFilters = !showFilters"
+            @click="toggleFilters"
+            @keydown.enter="toggleFilters"
+            @keydown.space="toggleFilters"
+            :aria-label="showFilters ? '필터 닫기' : '필터 열기'"
           >
             <v-icon>{{ showFilters ? 'mdi-filter-off' : 'mdi-filter' }}</v-icon>
           </v-btn>
@@ -60,9 +71,16 @@
         style="padding-bottom: 120px !important; max-width: 1200px"
       >
         <!-- 🚨 에러 알림 -->
-        <v-alert v-if="store.error" type="error" class="mb-6" prominent>
+        <v-alert 
+          v-if="error" 
+          type="error" 
+          class="mb-6" 
+          prominent
+          closable
+          @click:close="clearError"
+        >
           <v-icon start>mdi-alert-circle</v-icon>
-          {{ store.error }}
+          {{ error }}
         </v-alert>
 
         <!-- 📊 통계 요약 카드 -->
@@ -76,7 +94,7 @@
 
           <div class="stats-grid">
             <div class="stat-item">
-              <div class="stat-number">{{ filteredSchedules.length }}</div>
+              <div class="stat-number">{{ safeFilteredSchedules.length }}</div>
               <div class="stat-label">총 작업</div>
             </div>
             <div class="stat-item">
@@ -101,10 +119,10 @@
         </v-card>
 
         <!-- 📅 작업 목록 -->
-        <div v-if="groupedSchedules.length">
+        <div v-if="paginatedGroupedSchedules.length">
           <v-slide-y-transition group>
             <div
-              v-for="[date, items] in groupedSchedules"
+              v-for="[date, items] in paginatedGroupedSchedules"
               :key="date"
               class="date-group mb-8"
             >
@@ -130,6 +148,11 @@
                   class="schedule-card"
                   elevation="0"
                   @click="goToDetail(item.id)"
+                  @keydown.enter="goToDetail(item.id)"
+                  @keydown.space.prevent="goToDetail(item.id)"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="`${item.building} ${item.room}호 작업 상세보기`"
                 >
                   <div class="card-content-wrapper">
                     <!-- 카드 헤더: 건물 정보 + 상태 -->
@@ -215,6 +238,21 @@
               </div>
             </div>
           </v-slide-y-transition>
+
+          <!-- 더 보기 버튼 -->
+          <div v-if="hasMoreItems" class="text-center mt-6">
+            <v-btn
+              color="primary"
+              variant="outlined"
+              size="large"
+              @click="loadMore"
+              :loading="isLoadingMore"
+              class="load-more-btn"
+            >
+              <v-icon start>mdi-plus</v-icon>
+              더 보기 ({{ remainingItemsCount }}개 남음)
+            </v-btn>
+          </div>
         </div>
 
         <!-- 빈 상태 -->
@@ -258,6 +296,8 @@
           variant="outlined"
           class="home-btn"
           @click="goHome"
+          @keydown.enter="goHome"
+          @keydown.space="goHome"
         >
           <v-icon start>mdi-home</v-icon>
           홈으로 돌아가기
@@ -276,7 +316,8 @@
               icon
               variant="text"
               size="small"
-              @click="showFilters = false"
+              @click="toggleFilters"
+              aria-label="필터 닫기"
             >
               <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -350,6 +391,11 @@
                   size="small"
                   class="filter-chip"
                   @click="() => toggleFilter(group.type, opt)"
+                  @keydown.enter="() => toggleFilter(group.type, opt)"
+                  @keydown.space.prevent="() => toggleFilter(group.type, opt)"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="`${group.label} ${opt} ${group.active(opt) ? '선택됨' : '선택 안됨'}`"
                 >
                   <v-icon v-if="group.active(opt)" start size="14">
                     mdi-check
@@ -371,7 +417,7 @@
                 <v-icon start>mdi-refresh</v-icon>
                 필터 초기화
               </v-btn>
-              <v-btn color="primary" block @click="showFilters = false">
+              <v-btn color="primary" block @click="toggleFilters">
                 <v-icon start>mdi-check</v-icon>
                 필터 적용 완료
               </v-btn>
@@ -384,7 +430,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScheduleStore } from '@/stores/schedule'
 import FlatPickr from 'vue-flatpickr-component'
@@ -395,104 +441,223 @@ import debounce from 'lodash/debounce'
 const router = useRouter()
 const store = useScheduleStore()
 
+// 반응형 상태
 const showFilters = ref(false)
 const statuses = ref([])
 const buildings = ref([])
 const taskTypes = ref([])
+const currentPage = ref(1)
+const isLoadingMore = ref(false)
+const error = ref(null)
+
+// 상수
 const invoiceOptions = ['O', 'X']
+const ITEMS_PER_PAGE = 20
+const dateConfig = { 
+  locale: Korean, 
+  dateFormat: 'Y-m-d', 
+  disableMobile: true,
+  allowInput: true
+}
 
-const dateConfig = { locale: Korean, dateFormat: 'Y-m-d', disableMobile: true }
+// 타입 가드 함수
+const isValidScheduleItem = (item) => {
+  return item && 
+         typeof item.id !== 'undefined' && 
+         typeof item.building === 'string' && 
+         typeof item.status === 'string' &&
+         typeof item.date === 'string'
+}
 
+// 필터 관련 함수
 const toggleFilter = (type, value) => {
-  if (type === 'invoice') {
-    store.setFilters({
-      invoice: store.filters.invoice === value ? null : value,
-    })
-  } else {
-    const target = [...store.filters[type]]
-    const updated = target.includes(value)
-      ? target.filter((v) => v !== value)
-      : [...target, value]
-    store.setFilters({ [type]: updated })
+  try {
+    if (type === 'invoice') {
+      store.setFilters({
+        invoice: store.filters.invoice === value ? null : value,
+      })
+    } else {
+      const target = [...store.filters[type]]
+      const updated = target.includes(value)
+        ? target.filter((v) => v !== value)
+        : [...target, value]
+      store.setFilters({ [type]: updated })
+    }
+  } catch (err) {
+    console.error('필터 토글 중 오류:', err)
+    error.value = '필터 설정 중 오류가 발생했습니다.'
   }
 }
 
 const resetFilters = () => {
-  store.resetFilters()
+  try {
+    store.resetFilters()
+    currentPage.value = 1
+  } catch (err) {
+    console.error('필터 리셋 중 오류:', err)
+    error.value = '필터 초기화 중 오류가 발생했습니다.'
+  }
 }
 
-const applyFiltersDebounced = debounce(() => {}, 200) // No need to do anything here, computed properties will react
+const applyFiltersDebounced = debounce(() => {
+  try {
+    currentPage.value = 1
+    // URL 쿼리 파라미터에 필터 상태 저장
+    const query = {}
+    const filters = store.filters
+    
+    if (filters.searchText) query.search = filters.searchText
+    if (filters.status.length) query.status = filters.status.join(',')
+    if (filters.building.length) query.building = filters.building.join(',')
+    if (filters.task.length) query.task = filters.task.join(',')
+    if (filters.invoice) query.invoice = filters.invoice
+    if (filters.startDate) query.startDate = filters.startDate
+    if (filters.endDate) query.endDate = filters.endDate
+    
+    router.replace({ query }).catch(() => {
+      // 라우터 에러 무시 (동일한 라우트로의 이동)
+    })
+  } catch (err) {
+    console.error('필터 적용 중 오류:', err)
+  }
+}, 300)
 
-const goToDetail = (id) => router.push(`/schedule/${id}?from=schedules`)
-const goHome = () => router.push('/')
+// 네비게이션 함수
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
+}
+
+const goToDetail = (id) => {
+  try {
+    router.push(`/schedule/${id}?from=schedules`)
+  } catch (err) {
+    console.error('상세 페이지 이동 중 오류:', err)
+    error.value = '페이지 이동 중 오류가 발생했습니다.'
+  }
+}
+
+const goHome = () => {
+  try {
+    router.push('/')
+  } catch (err) {
+    console.error('홈 이동 중 오류:', err)
+    error.value = '홈으로 이동 중 오류가 발생했습니다.'
+  }
+}
+
+const clearError = () => {
+  error.value = null
+}
+
+// 페이지네이션 함수
+const loadMore = () => {
+  isLoadingMore.value = true
+  setTimeout(() => {
+    currentPage.value += 1
+    isLoadingMore.value = false
+  }, 300)
+}
+
+// 날짜 관련 함수
 const formatDateWithDay = (dateStr) => {
-  const date = new Date(dateStr)
-  const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
-  return `${dateStr} (${day})`
+  try {
+    const date = new Date(dateStr)
+    const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
+    return `${dateStr} (${day})`
+  } catch (err) {
+    console.error('날짜 포맷 오류:', err)
+    return dateStr
+  }
 }
 
 const getDdayText = (dateStr) => {
-  const today = new Date().toISOString().split('T')[0]
-  const targetDate = new Date(dateStr)
-  const todayDate = new Date(today)
-  const diffTime = targetDate - todayDate
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const targetDate = new Date(dateStr)
+    const todayDate = new Date(today)
+    const diffTime = targetDate - todayDate
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return '오늘'
-  if (diffDays === 1) return '내일'
-  if (diffDays === -1) return '어제'
-  if (diffDays > 0) return `D-${diffDays}`
-  return `D+${Math.abs(diffDays)}`
+    if (diffDays === 0) return '오늘'
+    if (diffDays === 1) return '내일'
+    if (diffDays === -1) return '어제'
+    if (diffDays > 0) return `D-${diffDays}`
+    return `D+${Math.abs(diffDays)}`
+  } catch (err) {
+    console.error('D-day 계산 오류:', err)
+    return ''
+  }
 }
 
+// 상태 관련 함수
 const displayStatusColor = (item) => {
-  const today = new Date().toISOString().split('T')[0]
-  if (item.status === '진행') {
-    if (item.date === today) return 'orange'
-    if (item.date > today) return 'purple'
-  }
-  switch (item.status) {
-    case '완료':
-      return 'green'
-    case '보류':
-      return 'red'
-    default:
-      return 'grey'
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    if (item.status === '진행') {
+      if (item.date === today) return 'orange'
+      if (item.date > today) return 'purple'
+    }
+    switch (item.status) {
+      case '완료':
+        return 'green'
+      case '보류':
+        return 'red'
+      default:
+        return 'grey'
+    }
+  } catch (err) {
+    console.error('상태 색상 계산 오류:', err)
+    return 'grey'
   }
 }
 
 const displayStatusText = (item) => {
-  const today = new Date().toISOString().split('T')[0]
-  if (item.status === '진행') {
-    if (item.date === today) return '진행'
-    if (item.date > today) return '예정'
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    if (item.status === '진행') {
+      if (item.date === today) return '진행'
+      if (item.date > today) return '예정'
+    }
+    return item.status
+  } catch (err) {
+    console.error('상태 텍스트 계산 오류:', err)
+    return item.status || '알 수 없음'
   }
-  return item.status
 }
 
 const getStatusIcon = (item) => {
-  const today = new Date().toISOString().split('T')[0]
-  if (item.status === '진행') {
-    if (item.date === today) return 'mdi-play-circle'
-    if (item.date > today) return 'mdi-clock-outline'
-  }
-  switch (item.status) {
-    case '완료':
-      return 'mdi-check-circle'
-    case '보류':
-      return 'mdi-pause-circle'
-    default:
-      return 'mdi-help-circle'
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    if (item.status === '진행') {
+      if (item.date === today) return 'mdi-play-circle'
+      if (item.date > today) return 'mdi-clock-outline'
+    }
+    switch (item.status) {
+      case '완료':
+        return 'mdi-check-circle'
+      case '보류':
+        return 'mdi-pause-circle'
+      default:
+        return 'mdi-help-circle'
+    }
+  } catch (err) {
+    console.error('상태 아이콘 계산 오류:', err)
+    return 'mdi-help-circle'
   }
 }
 
 const getStatusCount = (status) => {
-  return filteredSchedules.value.filter((item) => item.status === status).length
+  try {
+    return safeFilteredSchedules.value.filter((item) => item.status === status).length
+  } catch (err) {
+    console.error('상태 카운트 계산 오류:', err)
+    return 0
+  }
 }
 
+// 계산된 속성들
 const hasActiveFilters = computed(() => {
-  const { status, building, task, invoice, searchText, startDate, endDate } =
-    store.filters
+  const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
   return (
     status.length ||
     building.length ||
@@ -505,43 +670,85 @@ const hasActiveFilters = computed(() => {
 })
 
 const filteredSchedules = computed(() => {
-  return store.schedules.filter((item) => {
-    const { status, building, task, invoice, searchText, startDate, endDate } =
-      store.filters
-    const matchStatus = status.length
-      ? status.includes(item.status)
-      : item.status !== '취소됨'
-    const matchBuilding = !building.length || building.includes(item.building)
-    const matchTask =
-      !task.length || item.tasks?.some((t) => task.includes(t.name))
-    const matchInvoice =
-      !invoice || (invoice === 'O' ? item.invoice : !item.invoice)
-    const matchSearch =
-      !searchText ||
-      item.room?.includes(searchText) ||
-      item.memo?.includes(searchText)
-    const matchDate =
-      (!startDate || new Date(item.date) >= new Date(startDate)) &&
-      (!endDate || new Date(item.date) <= new Date(endDate))
-    return (
-      matchStatus &&
-      matchBuilding &&
-      matchInvoice &&
-      matchTask &&
-      matchSearch &&
-      matchDate
-    )
-  })
+  try {
+    return store.schedules.filter((item) => {
+      const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
+      
+      const matchStatus = status.length
+        ? status.includes(item.status)
+        : item.status !== '취소됨'
+      const matchBuilding = !building.length || building.includes(item.building)
+      const matchTask = !task.length || item.tasks?.some((t) => task.includes(t.name))
+      const matchInvoice = !invoice || (invoice === 'O' ? item.invoice : !item.invoice)
+      const matchSearch = !searchText ||
+        item.room?.includes(searchText) ||
+        item.memo?.toLowerCase().includes(searchText.toLowerCase())
+      const matchDate = (!startDate || new Date(item.date) >= new Date(startDate)) &&
+        (!endDate || new Date(item.date) <= new Date(endDate))
+      
+      return matchStatus && matchBuilding && matchInvoice && matchTask && matchSearch && matchDate
+    })
+  } catch (err) {
+    console.error('필터링 중 오류:', err)
+    error.value = '데이터 필터링 중 오류가 발생했습니다.'
+    return []
+  }
+})
+
+const safeFilteredSchedules = computed(() => {
+  return filteredSchedules.value.filter(isValidScheduleItem)
 })
 
 const groupedSchedules = computed(() => {
-  const groups = {}
-  for (const item of filteredSchedules.value) {
-    const date = item.date
-    if (!groups[date]) groups[date] = []
-    groups[date].push(item)
+  try {
+    const groups = {}
+    for (const item of safeFilteredSchedules.value) {
+      const date = item.date
+      if (!groups[date]) groups[date] = []
+      groups[date].push(item)
+    }
+    return Object.entries(groups).sort((a, b) => new Date(b[0]) - new Date(a[0]))
+  } catch (err) {
+    console.error('그룹화 중 오류:', err)
+    return []
   }
-  return Object.entries(groups).sort((a, b) => new Date(b[0]) - new Date(a[0]))
+})
+
+const paginatedGroupedSchedules = computed(() => {
+  try {
+    const totalItems = currentPage.value * ITEMS_PER_PAGE
+    let itemCount = 0
+    const result = []
+    
+    for (const [date, items] of groupedSchedules.value) {
+      if (itemCount >= totalItems) break
+      
+      const remainingItems = totalItems - itemCount
+      const itemsToShow = items.slice(0, remainingItems)
+      
+      if (itemsToShow.length > 0) {
+        result.push([date, itemsToShow])
+        itemCount += itemsToShow.length
+      }
+    }
+    
+    return result
+  } catch (err) {
+    console.error('페이지네이션 중 오류:', err)
+    return []
+  }
+})
+
+const hasMoreItems = computed(() => {
+  const totalItems = safeFilteredSchedules.value.length
+  const currentItems = currentPage.value * ITEMS_PER_PAGE
+  return currentItems < totalItems
+})
+
+const remainingItemsCount = computed(() => {
+  const totalItems = safeFilteredSchedules.value.length
+  const currentItems = currentPage.value * ITEMS_PER_PAGE
+  return Math.max(0, totalItems - currentItems)
 })
 
 const filterGroups = computed(() => ({
@@ -575,20 +782,79 @@ const filterGroups = computed(() => ({
   },
 }))
 
+// URL 쿼리에서 필터 복원
+const restoreFiltersFromQuery = () => {
+  try {
+    const query = router.currentRoute.value.query
+    if (Object.keys(query).length === 0) return
+
+    const filters = {}
+    if (query.search) filters.searchText = query.search
+    if (query.status) filters.status = query.status.split(',')
+    if (query.building) filters.building = query.building.split(',')
+    if (query.task) filters.task = query.task.split(',')
+    if (query.invoice) filters.invoice = query.invoice
+    if (query.startDate) filters.startDate = query.startDate
+    if (query.endDate) filters.endDate = query.endDate
+
+    if (Object.keys(filters).length > 0) {
+      store.setFilters(filters)
+    }
+  } catch (err) {
+    console.error('URL에서 필터 복원 중 오류:', err)
+  }
+}
+
+// 라이프사이클 훅
 onMounted(async () => {
-  await store.fetchAllSchedules()
-  statuses.value = [...new Set(store.schedules.map((s) => s.status))]
-  buildings.value = [...new Set(store.schedules.map((s) => s.building))]
-  taskTypes.value = [
-    ...new Set(
-      store.schedules.flatMap((s) => s.tasks?.map((t) => t.name) || [])
-    ),
-  ]
+  try {
+    await store.fetchAllSchedules()
+    
+    // 필터 옵션 설정
+    statuses.value = [...new Set(store.schedules.map((s) => s.status).filter(Boolean))]
+    buildings.value = [...new Set(store.schedules.map((s) => s.building).filter(Boolean))]
+    taskTypes.value = [
+      ...new Set(
+        store.schedules.flatMap((s) => s.tasks?.map((t) => t.name) || []).filter(Boolean)
+      ),
+    ]
+    
+    // URL 쿼리에서 필터 복원
+    restoreFiltersFromQuery()
+  } catch (err) {
+    console.error('데이터 로딩 중 오류 발생:', err)
+    error.value = '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+  }
 })
+
+onUnmounted(() => {
+  // debounced 함수 취소
+  if (applyFiltersDebounced.cancel) {
+    applyFiltersDebounced.cancel()
+  }
+})
+
+// 필터 변경 감지 및 URL 동기화
+watch(
+  () => store.filters,
+  () => {
+    applyFiltersDebounced()
+  },
+  { deep: true }
+)
+
+// 에러 상태 감지
+watch(
+  () => store.error,
+  (newError) => {
+    if (newError) {
+      error.value = newError
+    }
+  }
+)
 </script>
 
 <style scoped>
-/* Styles remain the same */
 /* 🎨 헤더 스타일 - 메인과 동일 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -601,11 +867,15 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
 .back-btn:hover,
-.filter-toggle-btn:hover {
+.filter-toggle-btn:hover,
+.back-btn:focus,
+.filter-toggle-btn:focus {
   background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .header-icon-wrapper {
@@ -784,6 +1054,12 @@ onMounted(async () => {
 }
 
 /* 📋 스케줄 카드 */
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
 .schedule-card {
   background: white;
   border-radius: 16px;
@@ -799,6 +1075,11 @@ onMounted(async () => {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(79, 70, 229, 0.15);
   border-color: #4f46e5;
+}
+
+.schedule-card:focus {
+  outline: 3px solid rgba(79, 70, 229, 0.3);
+  outline-offset: 2px;
 }
 
 .card-content-wrapper {
@@ -918,6 +1199,20 @@ onMounted(async () => {
   right: 16px;
 }
 
+/* 더 보기 버튼 */
+.load-more-btn {
+  border-radius: 16px;
+  height: 48px;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.2);
+}
+
 /* 📋 빈 상태 */
 .empty-state {
   text-align: center;
@@ -966,7 +1261,8 @@ onMounted(async () => {
   transition: all 0.3s ease;
 }
 
-.home-btn:hover {
+.home-btn:hover,
+.home-btn:focus {
   background: #f8fafc;
   border-color: #cbd5e1;
   transform: translateY(-2px);
@@ -1054,9 +1350,33 @@ onMounted(async () => {
   transform: translateY(-1px);
 }
 
+.filter-chip:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
+}
+
 .filter-actions {
   padding-top: 24px;
   border-top: 1px solid #e2e8f0;
+}
+
+/* 🎯 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+  .schedule-card:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-hover-indicator {
+    display: none !important;
+  }
+  
+  .stat-item:hover,
+  .filter-chip:hover,
+  .load-more-btn:hover,
+  .home-btn:hover {
+    transform: none;
+  }
 }
 
 /* 🎯 반응형 디자인 */
@@ -1167,5 +1487,36 @@ onMounted(async () => {
 .v-slide-y-transition-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+/* 스크롤바 스타일링 */
+.filter-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.filter-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.filter-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 포커스 가능한 요소들의 아웃라인 */
+*:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
+}
+
+/* 버튼 포커스 스타일 개선 */
+.v-btn:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
 }
 </style>
