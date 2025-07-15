@@ -8,7 +8,10 @@
             icon
             size="large"
             class="back-btn mr-3"
-            @click="$router.push('/')"
+            @click="goHome"
+            @keydown.enter="goHome"
+            @keydown.space="goHome"
+            aria-label="홈으로 돌아가기"
           >
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
@@ -38,7 +41,7 @@
 
     <v-main class="main-content">
       <!-- 🌀 로딩 오버레이 -->
-      <div v-if="loadingMeta" class="loading-overlay">
+      <div v-if="loading || loadingMeta" class="loading-overlay">
         <div class="loading-container">
           <v-progress-circular
             indeterminate
@@ -55,7 +58,14 @@
         style="padding-bottom: 120px !important; max-width: 1200px"
       >
         <!-- 🚨 에러 알림 -->
-        <v-alert v-if="error" type="error" class="mb-6" prominent>
+        <v-alert 
+          v-if="error" 
+          type="error" 
+          class="mb-6" 
+          prominent
+          closable
+          @click:close="clearError"
+        >
           <v-icon start>mdi-alert-circle</v-icon>
           {{ error }}
         </v-alert>
@@ -291,7 +301,9 @@
           size="large"
           variant="outlined"
           class="home-btn"
-          @click="$router.push('/')"
+          @click="goHome"
+          @keydown.enter="goHome"
+          @keydown.space="goHome"
         >
           <v-icon start>mdi-home</v-icon>
           홈으로 돌아가기
@@ -306,6 +318,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
+import { getAuth, signInAnonymously } from 'firebase/auth'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -343,6 +356,7 @@ const selectedWorker = ref(null)
 const workers = ref([])
 const metaList = ref([])
 const userMap = ref({})
+const loading = ref(false)
 const loadingMeta = ref(false)
 const error = ref('')
 const today = getTodayKST()
@@ -353,18 +367,18 @@ const selectedWorkerName = computed(() => {
   return worker ? worker.name : ''
 })
 
-onMounted(async () => {
-  await fetchUsers()
-  const queryId = route.query.worker
-  const currentUserId = userStore.userId
-  if (queryId && workers.value.find((w) => w.id === queryId)) {
-    selectedWorker.value = queryId
-  } else if (!selectedWorker.value && currentUserId) {
-    const match = workers.value.find((w) => w.id === currentUserId)
-    selectedWorker.value = match ? match.id : null
+const clearError = () => {
+  error.value = ''
+}
+
+const goHome = () => {
+  try {
+    router.push('/')
+  } catch (err) {
+    console.error('홈 이동 중 오류:', err)
+    error.value = '홈으로 이동 중 오류가 발생했습니다.'
   }
-  await fetchMeta()
-})
+}
 
 const selectWorker = (id) => {
   selectedWorker.value = selectedWorker.value === id ? null : id
@@ -424,48 +438,157 @@ const pastMeta = computed(() => {
     .map((m) => ({ ...m, dday: dateDiff(m.date, today) }))
     .sort((a, b) => new Date(b.date) - new Date(a.date))
 })
+
+onMounted(async () => {
+  loading.value = true
+  
+  try {
+    // 🔐 Firebase 인증 확인 (홈화면과 동일한 방식)
+    const auth = getAuth()
+    if (!auth.currentUser) {
+      console.log('Firebase 재인증 중...')
+      await signInAnonymously(auth)
+    }
+
+    // 👤 사용자 정보 복원 (홈화면과 동일한 방식)
+    if (!userStore.userId) {
+      const userData = {
+        id: localStorage.getItem('user_id'),
+        name: localStorage.getItem('user_name'),
+        role: localStorage.getItem('user_role')
+      }
+      
+      if (userData.id && userData.name && userData.role) {
+        userStore.setUser(userData)
+      } else {
+        console.error('사용자 정보를 찾을 수 없습니다.')
+        await router.push('/login')
+        return
+      }
+    }
+
+    // 🔄 재시도 로직이 포함된 데이터 로딩
+    let retryCount = 0
+    const maxRetries = 3
+    
+    while (retryCount <= maxRetries) {
+      try {
+        await fetchUsers()
+        
+        // URL 쿼리에서 작업자 선택 또는 현재 사용자로 기본 설정
+        const queryId = route.query.worker
+        const currentUserId = userStore.userId
+        if (queryId && workers.value.find((w) => w.id === queryId)) {
+          selectedWorker.value = queryId
+        } else if (!selectedWorker.value && currentUserId) {
+          const match = workers.value.find((w) => w.id === currentUserId)
+          selectedWorker.value = match ? match.id : null
+        }
+        
+        await fetchMeta()
+        break // 성공하면 루프 종료
+      } catch (err) {
+        retryCount++
+        console.error(`데이터 로딩 실패 (${retryCount}/${maxRetries}):`, err)
+        
+        if (retryCount > maxRetries) {
+          throw new Error('데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.')
+        }
+        
+        // 재시도 전 대기
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount))
+      }
+    }
+    
+  } catch (err) {
+    console.error('초기화 실패:', err)
+    error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+    
+    // 3초 후 로그인 페이지로 리다이렉트
+    setTimeout(() => {
+      router.push('/login')
+    }, 3000)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 - 메인과 동일 */
+/* 🎨 헤더 스타일 - 강화된 안정성 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* v-app-bar 기본 스타일 오버라이드 */
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.back-btn:hover,
+.back-btn:focus {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px);
 }
 
 .header-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 .header-title {
-  color: white;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Vuetify 기본 스타일 오버라이드 */
+.v-app-bar .v-btn {
+  color: inherit !important;
+}
+
+.v-app-bar .v-icon {
+  color: inherit !important;
+}
+
+/* 추가 안정성을 위한 스타일 */
+.custom-header * {
+  color: white !important;
+}
+
+.custom-header .v-btn--icon {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.custom-header .v-chip {
+  background: rgba(255, 200, 0, 0.9) !important;
+  color: #1a1a1a !important;
 }
 
 /* 🌀 로딩 및 메인 컨텐츠 */
@@ -838,7 +961,8 @@ const pastMeta = computed(() => {
   transition: all 0.3s ease;
 }
 
-.home-btn:hover {
+.home-btn:hover,
+.home-btn:focus {
   background: #f8fafc;
   border-color: #cbd5e1;
   transform: translateY(-2px);
@@ -871,6 +995,16 @@ const pastMeta = computed(() => {
 .schedule-fade-leave-to {
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
+}
+
+/* 🎯 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+  .schedule-card:hover,
+  .worker-btn:hover,
+  .stat-item:hover,
+  .home-btn:hover {
+    transform: none;
+  }
 }
 
 /* 🎯 반응형 디자인 */
@@ -955,5 +1089,17 @@ const pastMeta = computed(() => {
   .home-btn {
     height: 52px;
   }
+}
+
+/* 포커스 가능한 요소들의 아웃라인 */
+*:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
+}
+
+/* 버튼 포커스 스타일 개선 */
+.v-btn:focus {
+  outline: 2px solid rgba(79, 70, 229, 0.5);
+  outline-offset: 2px;
 }
 </style>

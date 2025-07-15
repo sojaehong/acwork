@@ -54,7 +54,7 @@
 
     <v-main class="main-content">
       <!-- 🌀 로딩 오버레이 -->
-      <div v-if="store.isLoading" class="loading-overlay">
+      <div v-if="loading || store.isLoading" class="loading-overlay">
         <div class="loading-container">
           <v-progress-circular
             indeterminate
@@ -84,7 +84,7 @@
         </v-alert>
 
         <!-- 📊 통계 요약 카드 -->
-        <v-card class="stats-card mb-8" elevation="0" v-if="!store.isLoading">
+        <v-card class="stats-card mb-8" elevation="0" v-if="!loading && !store.isLoading">
           <div class="stats-header">
             <div class="stats-icon">
               <v-icon color="primary">mdi-chart-line</v-icon>
@@ -266,7 +266,7 @@
         </div>
 
         <!-- 빈 상태 -->
-        <div v-else-if="!store.isLoading" class="empty-state">
+        <div v-else-if="!loading && !store.isLoading" class="empty-state">
           <div class="empty-icon">
             <v-icon size="80" color="grey-lighten-2"
               >mdi-calendar-remove</v-icon
@@ -442,6 +442,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { useScheduleStore } from '@/stores/schedule'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
@@ -449,9 +450,11 @@ import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import debounce from 'lodash/debounce'
 
 const router = useRouter()
+const userStore = useUserStore()
 const store = useScheduleStore()
 
 // 반응형 상태
+const loading = ref(false)
 const showFilters = ref(false)
 const statuses = ref([])
 const buildings = ref([])
@@ -861,8 +864,21 @@ const restoreFiltersFromQuery = () => {
 
 // 라이프사이클 훅
 onMounted(async () => {
+  loading.value = true
+  
   try {
-    await store.fetchAllSchedules()
+    // 🚀 향상된 인증 초기화
+    const authResult = await userStore.initializeAuth(router)
+    
+    if (!authResult.success) {
+      error.value = authResult.error
+      return // 로그인 페이지로 이미 리다이렉트됨
+    }
+
+    // 🔄 재시도 로직이 포함된 데이터 로딩
+    await userStore.withRetry(async () => {
+      await store.fetchAllSchedules()
+    })
     
     // 필터 옵션 설정
     statuses.value = [...new Set(store.schedules.map((s) => s.status).filter(Boolean))]
@@ -875,9 +891,12 @@ onMounted(async () => {
     
     // URL 쿼리에서 필터 복원
     restoreFiltersFromQuery()
+    
   } catch (err) {
-    console.error('데이터 로딩 중 오류 발생:', err)
-    error.value = '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+    console.error('초기화 실패:', err)
+    error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+  } finally {
+    loading.value = false
   }
 })
 
@@ -909,51 +928,83 @@ watch(
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 - 메인과 동일 */
+/* 🎨 헤더 스타일 - 강화된 안정성 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* v-app-bar 기본 스타일 오버라이드 */
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
 .back-btn,
 .filter-toggle-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
 }
 
 .back-btn:hover,
 .filter-toggle-btn:hover,
 .back-btn:focus,
 .filter-toggle-btn:focus {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2) !important;
   transform: translateY(-1px);
 }
 
 .header-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 .header-title {
-  color: white;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Vuetify 기본 스타일 오버라이드 */
+.v-app-bar .v-btn {
+  color: inherit !important;
+}
+
+.v-app-bar .v-icon {
+  color: inherit !important;
+}
+
+/* 추가 안정성을 위한 스타일 */
+.custom-header * {
+  color: white !important;
+}
+
+.custom-header .v-btn--icon {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.custom-header .v-chip {
+  background: rgba(255, 200, 0, 0.9) !important;
+  color: #1a1a1a !important;
 }
 
 /* 🌀 로딩 및 메인 컨텐츠 */
