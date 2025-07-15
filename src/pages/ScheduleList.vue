@@ -124,117 +124,127 @@
             <div
               v-for="[date, items] in paginatedGroupedSchedules"
               :key="date"
-              class="date-group mb-8"
+              class="date-section mb-10"
             >
-              <!-- 날짜 헤더 -->
-              <div class="date-header">
-                <div class="date-icon">
-                  <v-icon color="primary">mdi-calendar</v-icon>
+              <!-- 강화된 날짜 헤더 -->
+              <div class="enhanced-date-header">
+                <div class="date-header-main">
+                  <div class="date-icon">
+                    <v-icon color="white" size="24">mdi-calendar</v-icon>
+                  </div>
+                  <div class="date-info">
+                    <h3 class="date-title">{{ formatDateWithDay(date) }}</h3>
+                    <div class="date-meta">
+                      <span class="date-count">{{ items.length }}건의 작업</span>
+                      <span class="date-separator">•</span>
+                      <span class="date-badge">{{ getDdayText(date) }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="date-info">
-                  <h3 class="date-title">{{ formatDateWithDay(date) }}</h3>
-                  <div class="date-count">{{ items.length }}건의 작업</div>
-                </div>
-                <div class="date-badge">
-                  {{ getDdayText(date) }}
-                </div>
+                <div class="date-line"></div>
               </div>
 
-              <!-- 작업 카드들 -->
-              <div class="schedule-grid">
-                <v-card
-                  v-for="item in items"
-                  :key="item.id"
-                  class="schedule-card"
-                  elevation="0"
-                  @click="goToDetail(item.id)"
-                  @keydown.enter="goToDetail(item.id)"
-                  @keydown.space.prevent="goToDetail(item.id)"
-                  tabindex="0"
-                  role="button"
-                  :aria-label="`${item.building} ${item.room}호 작업 상세보기`"
-                >
-                  <div class="card-content-wrapper">
-                    <!-- 카드 헤더: 건물 정보 + 상태 -->
-                    <div class="card-header">
-                      <div class="building-info">
-                        <v-icon class="building-icon" color="primary"
-                          >mdi-office-building-outline</v-icon
-                        >
-                        <div class="building-text">
-                          <h4 class="building-name">{{ item.building }}</h4>
-                          <div class="unit-info">
-                            <span v-if="item.unit">{{ item.unit }}동</span>
-                            <span v-if="item.room" class="room-number"
-                              >{{ item.room }}호</span
-                            >
+              <!-- 작업 카드들 컨테이너 -->
+              <div class="schedule-cards-container">
+                <div class="schedule-grid">
+                  <v-card
+                    v-for="item in items"
+                    :key="item.id"
+                    class="schedule-card"
+                    elevation="0"
+                    @click="goToDetail(item.id)"
+                    @keydown.enter="goToDetail(item.id)"
+                    @keydown.space.prevent="goToDetail(item.id)"
+                    tabindex="0"
+                    role="button"
+                    :aria-label="`${item.building} ${item.room}호 작업 상세보기`"
+                  >
+                    <div class="card-content-wrapper">
+                      <!-- 카드 헤더: 건물 정보 + 상태 -->
+                      <div class="card-header">
+                        <div class="building-info">
+                          <v-icon class="building-icon" color="primary"
+                            >mdi-office-building-outline</v-icon
+                          >
+                          <div class="building-text">
+                            <h4 class="building-name">{{ item.building }}</h4>
+                            <div class="unit-info">
+                              <span v-if="item.unit">{{ item.unit }}동</span>
+                              <span v-if="item.room" class="room-number"
+                                >{{ item.room }}호</span
+                              >
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div class="status-badges">
-                        <v-chip
-                          :color="displayStatusColor(item)"
-                          size="small"
-                          variant="flat"
-                          class="status-chip"
-                        >
-                          <v-icon start size="14">{{
-                            getStatusIcon(item)
-                          }}</v-icon>
-                          {{ displayStatusText(item) }}
-                        </v-chip>
-                        <v-chip
-                          :color="item.invoice ? 'blue' : 'grey-lighten-2'"
-                          size="small"
-                          variant="flat"
-                          class="invoice-chip"
-                        >
-                          <v-icon start size="14">{{
-                            item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
-                          }}</v-icon>
-                          {{ item.invoice ? '계산서' : '미발행' }}
-                        </v-chip>
-                      </div>
-                    </div>
-
-                    <v-divider class="my-3"></v-divider>
-
-                    <!-- 카드 본문: 작업 내용 + 메모 -->
-                    <div class="card-body">
-                      <!-- 작업 내용 -->
-                      <div class="info-row" v-if="item.tasks?.length">
-                        <v-icon class="info-icon" size="18"
-                          >mdi-format-list-checks</v-icon
-                        >
-                        <div class="task-chips">
+                        
+                        <!-- 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 -->
+                        <div class="status-badges">
                           <v-chip
-                            v-for="(task, i) in item.tasks"
-                            :key="`${task.name}-${i}`"
-                            size="small"
-                            variant="tonal"
-                            color="secondary"
-                            class="task-chip"
+                            :color="displayStatusColor(item)"
+                            :size="badgeSize"
+                            variant="flat"
+                            class="status-chip"
                           >
-                            {{ task.name }} ({{ task.count }})
+                            <v-icon :start="!isMobile" :size="iconSize">{{
+                              getStatusIcon(item)
+                            }}</v-icon>
+                            <span v-if="!isMobile">{{ displayStatusText(item) }}</span>
+                            <span v-else class="mobile-status-text">{{ getShortStatus(displayStatusText(item)) }}</span>
+                          </v-chip>
+                          <v-chip
+                            :color="item.invoice ? 'blue' : 'grey-lighten-2'"
+                            :size="badgeSize"
+                            variant="flat"
+                            class="invoice-chip"
+                          >
+                            <v-icon :start="!isMobile" :size="iconSize">{{
+                              item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
+                            }}</v-icon>
+                            <span v-if="!isMobile">{{ item.invoice ? '계산서' : '미발행' }}</span>
+                            <span v-else class="mobile-invoice-text">{{ item.invoice ? '계산서' : '미발행' }}</span>
                           </v-chip>
                         </div>
                       </div>
 
-                      <!-- 메모 -->
-                      <div class="info-row" v-if="item.memo">
-                        <v-icon class="info-icon" size="18"
-                          >mdi-note-text-outline</v-icon
-                        >
-                        <p class="memo-text">{{ item.memo }}</p>
+                      <v-divider class="my-3"></v-divider>
+
+                      <!-- 카드 본문: 작업 내용 + 메모 -->
+                      <div class="card-body">
+                        <!-- 작업 내용 -->
+                        <div class="info-row" v-if="item.tasks?.length">
+                          <v-icon class="info-icon" size="18"
+                            >mdi-format-list-checks</v-icon
+                          >
+                          <div class="task-chips">
+                            <v-chip
+                              v-for="(task, i) in item.tasks"
+                              :key="`${task.name}-${i}`"
+                              size="small"
+                              variant="tonal"
+                              color="secondary"
+                              class="task-chip"
+                            >
+                              {{ task.name }} ({{ task.count }})
+                            </v-chip>
+                          </div>
+                        </div>
+
+                        <!-- 메모 -->
+                        <div class="info-row" v-if="item.memo">
+                          <v-icon class="info-icon" size="18"
+                            >mdi-note-text-outline</v-icon
+                          >
+                          <p class="memo-text">{{ item.memo }}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <!-- 카드 호버 인디케이터 -->
-                  <div class="card-hover-indicator">
-                    <v-icon>mdi-chevron-right</v-icon>
-                  </div>
-                </v-card>
+                    <!-- 카드 호버 인디케이터 -->
+                    <div class="card-hover-indicator">
+                      <v-icon>mdi-chevron-right</v-icon>
+                    </div>
+                  </v-card>
+                </div>
               </div>
             </div>
           </v-slide-y-transition>
@@ -458,6 +468,50 @@ const dateConfig = {
   dateFormat: 'Y-m-d', 
   disableMobile: true,
   allowInput: true
+}
+
+// 모바일 감지
+const isMobile = computed(() => {
+  if (typeof window !== 'undefined') {
+    return window.innerWidth <= 768
+  }
+  return false
+})
+
+// 뱃지 크기 반응형
+const badgeSize = computed(() => {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth <= 480) return 'x-small'
+    if (window.innerWidth <= 768) return 'small'
+  }
+  return 'small'
+})
+
+// 아이콘 크기 반응형
+const iconSize = computed(() => {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth <= 480) return '12'
+    if (window.innerWidth <= 768) return '14'
+  }
+  return '14'
+})
+
+// 짧은 상태 텍스트
+const getShortStatus = (status) => {
+  switch (status) {
+    case '진행':
+      return '진행'
+    case '완료':
+      return '완료'
+    case '보류':
+      return '보류'
+    case '예정':
+      return '예정'
+    case '취소됨':
+      return '취소'
+    default:
+      return status
+  }
 }
 
 // 타입 가드 함수
@@ -1000,60 +1054,97 @@ watch(
   font-weight: 600;
 }
 
-/* 📅 날짜 그룹 */
-.date-group {
+/* 📅 강화된 날짜 섹션 */
+.date-section {
+  margin-bottom: 40px;
+}
+
+.enhanced-date-header {
+  position: relative;
   margin-bottom: 32px;
 }
 
-.date-header {
+.date-header-main {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  gap: 20px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  padding: 24px 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.2);
+  position: relative;
+  z-index: 2;
 }
 
 .date-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
 }
 
 .date-info {
   flex: 1;
+  color: white;
 }
 
 .date-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 4px 0;
+  color: white;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.date-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .date-count {
-  font-size: 14px;
-  color: #64748b;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.date-separator {
+  opacity: 0.6;
 }
 
 .date-badge {
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
   border-radius: 12px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
+  backdrop-filter: blur(5px);
 }
 
-/* 📋 스케줄 카드 */
+.date-line {
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
+  z-index: 1;
+}
+
+/* 📋 작업 카드들 컨테이너 */
+.schedule-cards-container {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
 .schedule-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -1069,6 +1160,7 @@ watch(
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .schedule-card:hover {
@@ -1092,24 +1184,36 @@ watch(
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  min-height: 44px;
 }
 
 .building-info {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .building-icon {
   font-size: 28px !important;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.building-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .building-name {
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .unit-info {
@@ -1118,7 +1222,7 @@ watch(
   gap: 8px;
   font-size: 14px;
   color: #64748b;
-  margin-top: 2px;
+  flex-wrap: wrap;
 }
 
 .room-number {
@@ -1127,17 +1231,30 @@ watch(
   border-radius: 6px;
   font-weight: 600;
   color: #475569;
+  white-space: nowrap;
 }
 
+/* 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 */
 .status-badges {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .status-chip,
 .invoice-chip {
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-status-text,
+.mobile-invoice-text {
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -1156,6 +1273,7 @@ watch(
 .info-icon {
   color: #94a3b8;
   margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .task-chips {
@@ -1396,25 +1514,30 @@ watch(
     gap: 12px;
   }
 
-  .date-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .date-header-main {
+    padding: 20px 24px;
+    gap: 16px;
   }
 
-  .date-badge {
-    align-self: flex-start;
+  .date-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .date-title {
+    font-size: 20px;
+  }
+
+  .schedule-cards-container {
+    padding: 20px;
   }
 
   .card-header {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 12px;
   }
 
   .status-badges {
-    flex-direction: row;
-    gap: 8px;
+    gap: 4px;
   }
 
   .filter-content {
@@ -1423,6 +1546,10 @@ watch(
 
   .floating-actions {
     padding: 16px;
+  }
+
+  .hover-indicator {
+    display: none;
   }
 }
 
@@ -1435,6 +1562,16 @@ watch(
     grid-template-columns: 1fr;
   }
 
+  .date-header-main {
+    padding: 16px 20px;
+    gap: 12px;
+  }
+
+  .date-icon {
+    width: 40px;
+    height: 40px;
+  }
+
   .date-title {
     font-size: 18px;
   }
@@ -1445,6 +1582,29 @@ watch(
 
   .schedule-card {
     padding: 16px;
+  }
+
+  .schedule-cards-container {
+    padding: 16px;
+  }
+
+  .card-header {
+    gap: 8px;
+    min-height: 40px;
+  }
+
+  .building-info {
+    gap: 10px;
+  }
+
+  .status-badges {
+    gap: 3px;
+    margin-top: 0;
+  }
+
+  .mobile-status-text,
+  .mobile-invoice-text {
+    font-size: 10px;
   }
 
   .filter-header {

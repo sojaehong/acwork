@@ -22,26 +22,30 @@
             </div>
           </div>
         </div>
+        
+        <!-- 상태 뱃지들 - 항상 오른쪽에 가로로 배치 -->
         <div class="status-badges">
           <v-chip
             :color="statusColor"
-            size="small"
+            :size="badgeSize"
             variant="flat"
             class="status-chip"
           >
-            <v-icon start size="14">{{ statusIcon }}</v-icon>
-            {{ displayStatus }}
+            <v-icon :start="!isMobile" :size="iconSize">{{ statusIcon }}</v-icon>
+            <span v-if="!isMobile">{{ displayStatus }}</span>
+            <span v-else class="mobile-status-text">{{ shortStatus }}</span>
           </v-chip>
           <v-chip
             :color="item.invoice ? 'blue' : 'grey-lighten-2'"
-            size="small"
+            :size="badgeSize"
             variant="flat"
             class="invoice-chip"
           >
-            <v-icon start size="14">{{
+            <v-icon :start="!isMobile" :size="iconSize">{{
               item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
             }}</v-icon>
-            {{ item.invoice ? '계산서' : '미발행' }}
+            <span v-if="!isMobile">{{ item.invoice ? '계산서' : '미발행' }}</span>
+            <span v-else class="mobile-invoice-text">{{ item.invoice ? '계산서' : '미발행' }}</span>
           </v-chip>
         </div>
       </div>
@@ -104,12 +108,56 @@ function getTodayKST() {
 
 const todayStr = getTodayKST()
 
+// 모바일 감지
+const isMobile = computed(() => {
+  if (typeof window !== 'undefined') {
+    return window.innerWidth <= 768
+  }
+  return false
+})
+
+// 뱃지 크기 반응형
+const badgeSize = computed(() => {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth <= 480) return 'x-small'
+    if (window.innerWidth <= 768) return 'small'
+  }
+  return 'small'
+})
+
+// 아이콘 크기 반응형
+const iconSize = computed(() => {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth <= 480) return '12'
+    if (window.innerWidth <= 768) return '14'
+  }
+  return '14'
+})
+
 // displayStatus: '예정' 적용 로직 포함
 const displayStatus = computed(() => {
   if (props.item.status === '진행' && props.item.date > todayStr) {
     return '예정'
   }
   return props.item.status
+})
+
+// 모바일용 짧은 상태 텍스트
+const shortStatus = computed(() => {
+  switch (displayStatus.value) {
+    case '완료':
+      return '완료'
+    case '보류':
+      return '보류'
+    case '진행':
+      return '진행'
+    case '예정':
+      return '예정'
+    case '취소됨':
+      return '취소'
+    default:
+      return displayStatus.value
+  }
 })
 
 // 상태별 색상 적용
@@ -165,24 +213,6 @@ const statusClass = computed(() => {
       return 'status-default'
   }
 })
-
-// 상태 인디케이터 클래스
-const statusIndicatorClass = computed(() => {
-  switch (displayStatus.value) {
-    case '완료':
-      return 'indicator-complete'
-    case '보류':
-      return 'indicator-hold'
-    case '진행':
-      return 'indicator-active'
-    case '예정':
-      return 'indicator-planned'
-    case '취소됨':
-      return 'indicator-canceled'
-    default:
-      return 'indicator-default'
-  }
-})
 </script>
 
 <style scoped>
@@ -213,24 +243,36 @@ const statusIndicatorClass = computed(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  min-height: 44px; /* 최소 높이 보장 */
 }
 
 .building-info {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   flex: 1;
+  min-width: 0; /* flex 아이템 축소 허용 */
 }
 
 .building-icon {
   font-size: 28px !important;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.building-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .building-name {
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .unit-info {
@@ -239,7 +281,7 @@ const statusIndicatorClass = computed(() => {
   gap: 8px;
   font-size: 14px;
   color: #64748b;
-  margin-top: 2px;
+  flex-wrap: wrap;
 }
 
 .room-number {
@@ -248,17 +290,30 @@ const statusIndicatorClass = computed(() => {
   border-radius: 6px;
   font-weight: 600;
   color: #475569;
+  white-space: nowrap;
 }
 
+/* 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 */
 .status-badges {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
+  flex-shrink: 0; /* 절대 축소되지 않음 */
+  margin-top: 2px;
 }
 
 .status-chip,
 .invoice-chip {
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-status-text,
+.mobile-invoice-text {
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -277,6 +332,7 @@ const statusIndicatorClass = computed(() => {
 .info-icon {
   color: #94a3b8;
   margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .task-chips {
@@ -320,26 +376,34 @@ const statusIndicatorClass = computed(() => {
   right: 16px;
 }
 
-/* 반응형 디자인 */
+/* 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+  .task-card:hover {
+    transform: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hover-indicator {
+    display: none !important;
+  }
+}
+
+/* 태블릿 크기 (768px 이하) */
 @media (max-width: 768px) {
   .task-card {
     padding: 16px;
   }
 
+  .building-name {
+    font-size: 16px;
+  }
+
   .card-header {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 12px;
   }
 
   .status-badges {
-    flex-direction: row;
-    gap: 8px;
-    align-self: flex-start;
-  }
-
-  .building-name {
-    font-size: 16px;
+    gap: 4px;
   }
 
   .hover-indicator {
@@ -347,9 +411,70 @@ const statusIndicatorClass = computed(() => {
   }
 }
 
+/* 모바일 크기 (480px 이하) */
 @media (max-width: 480px) {
+  .task-card {
+    padding: 14px;
+  }
+
   .building-name {
     font-size: 15px;
+  }
+
+  .building-icon {
+    font-size: 24px !important;
+  }
+
+  .card-header {
+    gap: 8px;
+    min-height: 40px;
+  }
+
+  .building-info {
+    gap: 10px;
+  }
+
+  .status-badges {
+    gap: 3px;
+    margin-top: 0;
+  }
+
+  .unit-info {
+    font-size: 13px;
+  }
+
+  .room-number {
+    font-size: 12px;
+    padding: 1px 6px;
+  }
+
+  .mobile-status-text,
+  .mobile-invoice-text {
+    font-size: 10px;
+  }
+}
+
+/* 아주 작은 화면 (360px 이하) */
+@media (max-width: 360px) {
+  .building-name {
+    font-size: 14px;
+  }
+
+  .status-badges {
+    gap: 2px;
+  }
+
+  .mobile-status-text,
+  .mobile-invoice-text {
+    font-size: 9px;
+  }
+
+  .task-chip {
+    font-size: 11px;
+  }
+
+  .memo-text {
+    font-size: 13px;
   }
 }
 </style>
