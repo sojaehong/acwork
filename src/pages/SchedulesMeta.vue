@@ -50,11 +50,33 @@
         class="pa-6"
         style="padding-bottom: 140px !important; max-width: 1200px"
       >
-        <!-- 🚨 에러 알림 -->
-        <v-alert v-if="error" type="error" class="mb-6" prominent>
+        <!-- 🚨 에러 알림 - Snackbar로 변경 -->
+        <v-snackbar
+          v-model="showError"
+          color="error"
+          location="top"
+          timeout="4000"
+          multi-line
+        >
           <v-icon start>mdi-alert-circle</v-icon>
           {{ error }}
-        </v-alert>
+          <template #actions>
+            <v-btn variant="text" @click="showError = false">
+              닫기
+            </v-btn>
+          </template>
+        </v-snackbar>
+
+        <!-- 성공 메시지 -->
+        <v-snackbar
+          v-model="showSuccess"
+          color="success"
+          location="top"
+          timeout="3000"
+        >
+          <v-icon start>mdi-check-circle</v-icon>
+          {{ successMessage }}
+        </v-snackbar>
 
         <!-- 📅 기존 일정 목록 -->
         <v-card
@@ -70,40 +92,54 @@
             <v-chip color="info" size="small" class="ml-2">
               {{ existingDatesDisplay.length }}개
             </v-chip>
+            <!-- 정렬 옵션 추가 -->
+            <v-spacer />
+            <v-btn-toggle v-model="sortOption" dense size="small" class="ml-2">
+              <v-btn value="date" size="small">
+                <v-icon size="14">mdi-calendar</v-icon>
+                날짜순
+              </v-btn>
+              <v-btn value="future" size="small">
+                <v-icon size="14">mdi-trending-up</v-icon>
+                예정순
+              </v-btn>
+            </v-btn-toggle>
           </div>
 
           <div class="card-content">
             <div class="schedule-scroll">
               <div
-                v-for="item in existingDatesDisplay"
+                v-for="item in sortedExistingDates"
                 :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
                 class="schedule-item"
-                :class="{ selected: selectedDate === item.date }"
+                :class="{ 
+                  selected: selectedDate === item.date,
+                  'past-schedule': isPastDate(item.date)
+                }"
                 @click="handleDateSelect(item.date)"
               >
                 <div class="schedule-date">{{ item.display }}</div>
                 <div class="schedule-details">
                   <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1"
-                      >mdi-clock-outline</v-icon
-                    >
-                    <span>{{
-                      metaMap[item.date]?.startTime || '시간 미정'
-                    }}</span>
+                    <v-icon size="14" color="grey-darken-1">mdi-clock-outline</v-icon>
+                    <span>{{ metaMap[item.date]?.startTime || '시간 미정' }}</span>
                   </div>
                   <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1"
-                      >mdi-account-group</v-icon
+                    <v-icon size="14" color="grey-darken-1">mdi-account-group</v-icon>
+                    <span>{{ metaMap[item.date]?.workerNames?.join(', ') || '인원 미정' }}</span>
+                  </div>
+                  <!-- 일정 상태 표시 -->
+                  <div class="detail-row">
+                    <v-chip 
+                      :color="isPastDate(item.date) ? 'grey' : 'success'" 
+                      size="x-small"
+                      variant="flat"
                     >
-                    <span>{{
-                      metaMap[item.date]?.workerNames?.join(', ') || '인원 미정'
-                    }}</span>
+                      {{ isPastDate(item.date) ? '완료' : '예정' }}
+                    </v-chip>
                   </div>
                 </div>
-                <div
-                  v-if="selectedDate === item.date"
-                  class="selected-indicator"
-                >
+                <div v-if="selectedDate === item.date" class="selected-indicator">
                   <v-icon color="primary">mdi-check-circle</v-icon>
                 </div>
               </div>
@@ -129,8 +165,40 @@
               variant="outlined"
               density="compact"
               prepend-inner-icon="mdi-calendar"
+              :rules="dateRules"
               @change="handleDateChange"
             />
+            <!-- 과거 일정 수정 경고 -->
+            <v-alert
+              v-if="form.date && isPastDate(form.date)"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mt-3"
+            >
+              <v-icon start>mdi-alert</v-icon>
+              과거 일정을 수정하고 있습니다. 신중하게 변경해주세요.
+            </v-alert>
+            <!-- 오늘 날짜 빠른 선택 -->
+            <div class="mt-3">
+              <v-btn
+                size="small"
+                variant="outlined"
+                prepend-icon="mdi-today"
+                @click="setToday"
+                class="mr-2"
+              >
+                오늘
+              </v-btn>
+              <v-btn
+                size="small"
+                variant="outlined"
+                prepend-icon="mdi-calendar-plus"
+                @click="setTomorrow"
+              >
+                내일
+              </v-btn>
+            </div>
           </div>
         </v-card>
 
@@ -153,6 +221,21 @@
               density="compact"
               prepend-inner-icon="mdi-clock-outline"
             />
+            <!-- 자주 사용하는 시간 빠른 선택 -->
+            <div class="mt-3">
+              <div class="time-preset-label">자주 사용하는 시간</div>
+              <v-chip-group v-model="selectedTimePreset" class="mt-2">
+                <v-chip
+                  v-for="time in timePresets"
+                  :key="time"
+                  :value="time"
+                  size="small"
+                  @click="form.startTime = time"
+                >
+                  {{ time }}
+                </v-chip>
+              </v-chip-group>
+            </div>
           </div>
         </v-card>
 
@@ -184,6 +267,8 @@
               label="작업자를 선택하세요"
               prepend-inner-icon="mdi-account-multiple"
               clearable
+              :loading="!userOptions.length"
+              no-data-text="작업자가 없습니다"
             >
               <template #chip="{ props, item }">
                 <v-chip
@@ -192,12 +277,36 @@
                   variant="flat"
                   size="small"
                   class="ma-1"
+                  closable
                 >
                   <v-icon start size="14">mdi-account</v-icon>
                   {{ item.title }}
                 </v-chip>
               </template>
             </v-select>
+
+            <!-- 전체 선택/해제 버튼 -->
+            <div class="mt-3">
+              <v-btn
+                size="small"
+                variant="outlined"
+                prepend-icon="mdi-account-multiple-plus"
+                @click="selectAllWorkers"
+                class="mr-2"
+                :disabled="form.workers.length === userOptions.length"
+              >
+                전체 선택
+              </v-btn>
+              <v-btn
+                size="small"
+                variant="outlined"
+                prepend-icon="mdi-account-multiple-minus"
+                @click="clearAllWorkers"
+                :disabled="form.workers.length === 0"
+              >
+                전체 해제
+              </v-btn>
+            </div>
 
             <!-- 선택된 작업자 미리보기 -->
             <div v-if="form.workers.length > 0" class="selected-workers">
@@ -236,6 +345,8 @@
               rows="4"
               auto-grow
               prepend-inner-icon="mdi-note-text"
+              counter="500"
+              :rules="noticeRules"
             />
           </div>
         </v-card>
@@ -263,7 +374,7 @@
               block
               class="action-btn cancel-btn"
               :loading="isSaving"
-              @click="cancelSchedule"
+              @click="confirmDelete"
             >
               <v-icon start>mdi-delete</v-icon>
               일정 삭제
@@ -276,6 +387,7 @@
               block
               class="action-btn save-btn"
               :loading="isSaving"
+              :disabled="!isFormValid"
               @click="submit"
             >
               <v-icon start>mdi-content-save</v-icon>
@@ -304,6 +416,7 @@
               block
               class="action-btn save-btn"
               :loading="isSaving"
+              :disabled="!isFormValid"
               @click="submit"
             >
               <v-icon start>mdi-plus</v-icon>
@@ -312,31 +425,58 @@
           </v-col>
         </v-row>
       </div>
+
+      <!-- 삭제 확인 다이얼로그 -->
+      <v-dialog v-model="showDeleteDialog" max-width="400">
+        <v-card>
+          <v-card-title class="text-h6">
+            <v-icon color="error" class="mr-2">mdi-alert-circle</v-icon>
+            일정 삭제 확인
+          </v-card-title>
+          <v-card-text>
+            선택한 일정을 삭제하시겠습니까?<br>
+            <strong>{{ form.date }}</strong> 일정이 완전히 삭제됩니다.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="showDeleteDialog = false">
+              취소
+            </v-btn>
+            <v-btn color="error" @click="deleteSchedule">
+              삭제
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { db } from '@/firebase/config'
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  doc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-} from 'firebase/firestore'
 import { getTodayDateKST } from '@/utils/date'
+
+// Pinia Stores
+import { useScheduleStore } from '@/stores/schedule'
+import { useUserStore } from '@/stores/user'
+import { useUiStore } from '@/stores/ui'
+import { useWorkerStore } from '@/stores/worker'
+
+// Firebase
+import { db } from '@/firebase/config'
+import { collection, getDocs } from 'firebase/firestore'
 
 const router = useRouter()
 const today = getTodayDateKST()
 
+// Store 인스턴스
+const scheduleStore = useScheduleStore()
+const userStore = useUserStore()
+const uiStore = useUiStore()
+const workerStore = useWorkerStore()
+
+// 폼 데이터
 const form = ref({
   date: today,
   startTime: '',
@@ -345,82 +485,220 @@ const form = ref({
   paidMap: {},
 })
 
+// 사용자 관련
 const userOptions = ref([])
 const userMap = ref({})
 
+// 일정 관련
 const existingDates = ref([])
 const existingDatesDisplay = ref([])
 const selectedDate = ref(today)
 const metaMap = ref({})
 
+// 상태 관리
 const isEdit = ref(false)
 let editDocId = null
 
 const isLoading = ref(false)
 const isSaving = ref(false)
-const error = ref('')
 
+// 에러 및 성공 메시지 (Vuetify의 Snackbar 사용)
+const error = ref('')
+const showError = ref(false)
+const successMessage = ref('')
+const showSuccess = ref(false)
+
+// 삭제 확인 다이얼로그
+const showDeleteDialog = ref(false)
+
+// 정렬 옵션
+const sortOption = ref('future')
+
+// 시간 프리셋
+const timePresets = ['09:00', '10:00', '13:00', '14:00', '16:00', '18:00']
+const selectedTimePreset = ref(null)
+
+// 유효성 검사 규칙 (과거 날짜 제한 완화)
+const dateRules = [
+  (v) => !!v || '날짜를 선택해주세요'
+  // 과거 날짜도 허용 (수정 필요할 수 있음)
+]
+
+const noticeRules = [
+  (v) => !v || v.length <= 500 || '공지사항은 500자 이내로 입력해주세요'
+]
+
+// 계산된 속성들 (과거 날짜 제한 완화)
+const isFormValid = computed(() => {
+  return form.value.date && 
+         (!form.value.notice || form.value.notice.length <= 500)
+})
+
+const sortedExistingDates = computed(() => {
+  if (sortOption.value === 'date') {
+    return [...existingDatesDisplay.value].sort((a, b) => new Date(a.date) - new Date(b.date))
+  } else {
+    // future 정렬: 오늘 이후 일정을 앞에, 과거 일정을 뒤에
+    const todayDateStr = getTodayDateKST()
+    return [...existingDatesDisplay.value].sort((a, b) => {
+      const isAFuture = new Date(a.date) >= new Date(todayDateStr)
+      const isBFuture = new Date(b.date) >= new Date(todayDateStr)
+      
+      if (isAFuture && isBFuture) return new Date(a.date) - new Date(b.date)
+      if (!isAFuture && !isBFuture) return new Date(b.date) - new Date(a.date)
+      return isAFuture ? -1 : 1
+    })
+  }
+})
+
+// 메서드들
 const getUserName = (userId) => {
   return userMap.value[userId] || '알 수 없음'
 }
 
+const isPastDate = (dateStr) => {
+  return new Date(dateStr) < new Date(getTodayDateKST())
+}
+
+const setToday = () => {
+  form.value.date = getTodayDateKST()
+  handleDateChange()
+}
+
+const setTomorrow = () => {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  form.value.date = tomorrow.toISOString().split('T')[0]
+  handleDateChange()
+}
+
+const selectAllWorkers = () => {
+  form.value.workers = userOptions.value.map(user => user.id)
+}
+
+const clearAllWorkers = () => {
+  form.value.workers = []
+}
+
+const confirmDelete = () => {
+  showDeleteDialog.value = true
+}
+
+const deleteSchedule = async () => {
+  showDeleteDialog.value = false
+  await cancelSchedule()
+}
+
+// 🔥 개선된 사용자 데이터 로딩 (인증 포함)
 async function fetchUsers() {
-  const snap = await getDocs(collection(db, 'users'))
-  userOptions.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  userMap.value = {}
-  for (const user of userOptions.value) {
-    userMap.value[user.id] = user.name
+  try {
+    // 인증 상태 확인 및 초기화
+    const authResult = await userStore.executeWithAuth(async () => {
+      return await getDocs(collection(db, 'users'))
+    }, router)
+
+    if (!authResult.success) {
+      if (authResult.shouldRedirect) {
+        // 인증 실패 시 리다이렉트 처리됨
+        return
+      }
+      throw new Error(authResult.error || '인증에 실패했습니다.')
+    }
+
+    const snap = authResult.data
+    userOptions.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    userMap.value = {}
+    
+    for (const user of userOptions.value) {
+      userMap.value[user.id] = user.name
+    }
+
+    // Worker Store에도 업데이트
+    workerStore.setWorkers(userOptions.value)
+    
+    console.log('사용자 정보 로딩 완료:', userOptions.value.length + '명')
+    
+  } catch (err) {
+    console.error('사용자 정보 로딩 오류:', err)
+    
+    // 권한 오류인 경우 특별 처리
+    if (err.code === 'permission-denied') {
+      showErrorMessage('사용자 정보에 접근할 권한이 없습니다. 관리자에게 문의하세요.')
+    } else if (err.message?.includes('Missing or insufficient permissions')) {
+      showErrorMessage('Firebase 권한이 부족합니다. 로그인을 다시 시도해주세요.')
+      // 3초 후 로그인 페이지로 리다이렉트
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    } else {
+      showErrorMessage('사용자 정보를 불러오는데 실패했습니다: ' + (err.message || '알 수 없는 오류'))
+    }
   }
 }
 
+// 🔥 개선된 기존 일정 데이터 로딩 (Store 활용)
 async function fetchExistingDates() {
   isLoading.value = true
-  const snap = await getDocs(collection(db, 'schedulesMeta'))
-  const dates = new Set()
-  const meta = {}
+  scheduleStore.clearError()
+  
+  try {
+    // Store의 에러 핸들링을 활용한 안전한 데이터 로딩
+    await userStore.executeWithAuth(async () => {
+      const snap = await getDocs(collection(db, 'schedulesMeta'))
+      const dates = new Set()
+      const meta = {}
 
-  for (const docSnap of snap.docs) {
-    const data = docSnap.data()
-    if (data.date) {
-      dates.add(data.date)
-      meta[data.date] = {
-        startTime: data.startTime,
-        workerNames: (data.workers || []).map(
-          (id) => userMap.value[id] || '알 수 없음'
-        ),
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data()
+        if (data.date) {
+          dates.add(data.date)
+          meta[data.date] = {
+            id: docSnap.id,
+            startTime: data.startTime,
+            workerNames: (data.workers || []).map(
+              (id) => userMap.value[id] || '알 수 없음'
+            ),
+            ...data
+          }
+        }
       }
-    }
+
+      const todayDateStr = getTodayDateKST()
+      const sortedDates = Array.from(dates).sort((a, b) => {
+        const isAFuture = new Date(a) >= new Date(todayDateStr)
+        const isBFuture = new Date(b) >= new Date(todayDateStr)
+        if (isAFuture && isBFuture) return new Date(a) - new Date(b)
+        if (!isAFuture && !isBFuture) return new Date(b) - new Date(a)
+        return isAFuture ? -1 : 1
+      })
+
+      existingDates.value = sortedDates
+      existingDatesDisplay.value = sortedDates.map((dateStr) => ({
+        date: dateStr,
+        display: formatDateWithDay(dateStr),
+      }))
+
+      metaMap.value = meta
+
+      const firstFutureOrToday = sortedDates.find(
+        (d) => new Date(d) >= new Date(todayDateStr)
+      )
+      if (firstFutureOrToday) {
+        selectedDate.value = firstFutureOrToday
+        await handleDateSelect(firstFutureOrToday)
+      } else {
+        form.value.date = todayDateStr
+        selectedDate.value = todayDateStr
+        clearForm()
+      }
+    }, router)
+    
+  } catch (err) {
+    console.error('일정 정보 로딩 오류:', err)
+    showErrorMessage('일정 정보를 불러오는데 실패했습니다: ' + (err.message || '알 수 없는 오류'))
+  } finally {
+    isLoading.value = false
   }
-
-  const todayDateStr = getTodayDateKST()
-  const sortedDates = Array.from(dates).sort((a, b) => {
-    const isAFuture = new Date(a) >= new Date(todayDateStr)
-    const isBFuture = new Date(b) >= new Date(todayDateStr)
-    if (isAFuture && isBFuture) return new Date(a) - new Date(b)
-    if (!isAFuture && !isBFuture) return new Date(b) - new Date(a)
-    return isAFuture ? -1 : 1
-  })
-
-  existingDates.value = sortedDates
-  existingDatesDisplay.value = sortedDates.map((dateStr) => ({
-    date: dateStr,
-    display: formatDateWithDay(dateStr),
-  }))
-
-  metaMap.value = meta
-
-  const firstFutureOrToday = sortedDates.find(
-    (d) => new Date(d) >= new Date(todayDateStr)
-  )
-  if (firstFutureOrToday) {
-    selectedDate.value = firstFutureOrToday
-    await handleDateSelect(firstFutureOrToday)
-  } else {
-    form.value.date = todayDateStr
-    selectedDate.value = todayDateStr
-    clearForm()
-  }
-  isLoading.value = false
 }
 
 function formatDateWithDay(dateStr) {
@@ -436,6 +714,7 @@ function clearForm() {
   form.value.paidMap = {}
   editDocId = null
   isEdit.value = false
+  selectedTimePreset.value = null
 }
 
 async function handleDateChange() {
@@ -443,75 +722,76 @@ async function handleDateChange() {
 }
 
 async function handleDateSelect(date) {
-  form.value.date = date
-  selectedDate.value = date
-  const q = query(collection(db, 'schedulesMeta'), where('date', '==', date))
-  const snap = await getDocs(q)
-  if (!snap.empty) {
-    const docSnap = snap.docs[0]
-    const existing = docSnap.data()
-    form.value.startTime = existing.startTime
-    form.value.workers = existing.workers
-    form.value.notice = existing.notice
-    form.value.paidMap = existing.paidMap || {}
-    editDocId = docSnap.id
-    isEdit.value = true
-  } else {
-    clearForm()
+  try {
+    form.value.date = date
+    selectedDate.value = date
+    
+    // 기존 메타 데이터가 있는지 확인
+    const existingMeta = metaMap.value[date]
+    if (existingMeta) {
+      form.value.startTime = existingMeta.startTime || ''
+      form.value.workers = existingMeta.workers || []
+      form.value.notice = existingMeta.notice || ''
+      form.value.paidMap = existingMeta.paidMap || {}
+      editDocId = existingMeta.id
+      isEdit.value = true
+      
+      // 시간 프리셋 업데이트
+      selectedTimePreset.value = timePresets.includes(existingMeta.startTime) ? existingMeta.startTime : null
+    } else {
+      clearForm()
+    }
+  } catch (err) {
+    console.error('일정 선택 오류:', err)
+    showErrorMessage('일정 정보를 불러오는데 실패했습니다.')
   }
 }
 
+// 🔥 개선된 저장 로직 (Store 활용)
 async function submit() {
-  if (isSaving.value) return
-
-  // 기본 검증
-  if (!form.value.date) {
-    showErrorMessage('날짜를 선택해주세요.')
-    return
-  }
+  if (isSaving.value || !isFormValid.value) return
 
   isSaving.value = true
-  error.value = ''
 
   try {
     if (isEdit.value && editDocId) {
-      await updateDoc(doc(db, 'schedulesMeta', editDocId), {
-        ...form.value,
-        updatedAt: serverTimestamp(),
-      })
+      await scheduleStore.updateScheduleMeta(editDocId, form.value)
+      uiStore.showSnackbar('일정이 성공적으로 수정되었습니다.', 'success')
       showSuccessMessage('일정이 성공적으로 수정되었습니다.')
     } else {
-      await addDoc(collection(db, 'schedulesMeta'), {
-        ...form.value,
-        createdAt: serverTimestamp(),
-        paidMap: {},
-      })
+      await scheduleStore.addScheduleMeta(form.value)
+      uiStore.showSnackbar('일정이 성공적으로 등록되었습니다.', 'success')
       showSuccessMessage('일정이 성공적으로 등록되었습니다.')
     }
     await fetchExistingDates()
   } catch (err) {
     console.error('저장 중 오류:', err)
-    showErrorMessage('저장 중 오류가 발생했습니다.')
+    const errorMsg = scheduleStore.error || '저장 중 오류가 발생했습니다.'
+    uiStore.showSnackbar(errorMsg, 'error')
+    showErrorMessage(errorMsg)
   } finally {
     isSaving.value = false
   }
 }
 
+// 🔥 개선된 삭제 로직 (Store 활용)
 async function cancelSchedule() {
   if (isSaving.value) return
-  if (editDocId && confirm('정말 이 일정을 삭제하시겠습니까?')) {
-    isSaving.value = true
-    error.value = ''
-    try {
-      await deleteDoc(doc(db, 'schedulesMeta', editDocId))
-      showSuccessMessage('일정이 삭제되었습니다.')
-      await fetchExistingDates()
-    } catch (err) {
-      console.error('삭제 중 오류:', err)
-      showErrorMessage('삭제 중 오류가 발생했습니다.')
-    } finally {
-      isSaving.value = false
-    }
+  if (!editDocId) return
+
+  isSaving.value = true
+  try {
+    await scheduleStore.deleteScheduleMeta(editDocId, form.value.date)
+    uiStore.showSnackbar('일정이 삭제되었습니다.', 'success')
+    showSuccessMessage('일정이 삭제되었습니다.')
+    await fetchExistingDates()
+  } catch (err) {
+    console.error('삭제 중 오류:', err)
+    const errorMsg = scheduleStore.error || '삭제 중 오류가 발생했습니다.'
+    uiStore.showSnackbar(errorMsg, 'error')
+    showErrorMessage(errorMsg)
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -520,75 +800,108 @@ function goHome() {
 }
 
 function showSuccessMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'success-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
+  successMessage.value = message
+  showSuccess.value = true
 }
 
 function showErrorMessage(message) {
-  const snackbar = document.createElement('div')
-  snackbar.className = 'error-snackbar'
-  snackbar.textContent = message
-  document.body.appendChild(snackbar)
-  setTimeout(() => {
-    if (document.body.contains(snackbar)) {
-      document.body.removeChild(snackbar)
-    }
-  }, 3000)
+  error.value = message
+  showError.value = true
 }
 
+// Watch로 에러 상태 모니터링
+watch(showError, (newVal) => {
+  if (!newVal) {
+    error.value = ''
+  }
+})
+
+// Watch Store 에러 상태
+watch(() => scheduleStore.error, (newError) => {
+  if (newError) {
+    showErrorMessage(newError)
+  }
+})
+
+// 🚀 개선된 초기화 로직
 onMounted(async () => {
-  await fetchUsers()
-  await fetchExistingDates()
+  // 1. 인증 상태 먼저 확인
+  const authResult = await userStore.initializeAuth(router)
+  
+  if (!authResult.success) {
+    if (authResult.shouldRedirect) {
+      // 인증 실패시 리다이렉트가 처리됨
+      return
+    }
+    showErrorMessage(authResult.error || '인증에 실패했습니다.')
+    return
+  }
+
+  // 2. 재시도 로직으로 안전한 데이터 로딩
+  try {
+    await userStore.withRetry(async () => {
+      await fetchUsers()
+    }, 2, 1000)
+    
+    await userStore.withRetry(async () => {
+      await fetchExistingDates()
+    }, 2, 1000)
+    
+  } catch (err) {
+    console.error('초기 데이터 로딩 실패:', err)
+    showErrorMessage('초기 데이터 로딩에 실패했습니다. 페이지를 새로고침 해주세요.')
+  }
 })
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 - 일관성 유지 */
+/* 🎨 헤더 스타일 - !important로 강제 적용 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.custom-header .v-toolbar__content {
+  padding: 0 !important;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border-radius: 12px !important;
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.back-btn .v-icon {
+  color: white !important;
 }
 
 .header-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 .header-title {
-  color: white;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
 }
 
 /* 🌀 로딩 및 메인 컨텐츠 */
@@ -621,7 +934,7 @@ onMounted(async () => {
   min-height: 100vh;
 }
 
-/* 📅 일정 목록 카드 */
+/* 📅 카드 스타일 */
 .schedule-list-card,
 .form-card {
   background: white;
@@ -676,6 +989,24 @@ onMounted(async () => {
   padding-bottom: 12px;
 }
 
+.schedule-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.schedule-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.schedule-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.schedule-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .schedule-item {
   flex-shrink: 0;
   width: 280px;
@@ -686,6 +1017,7 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .schedule-item:hover {
@@ -725,6 +1057,38 @@ onMounted(async () => {
   position: absolute;
   top: 16px;
   right: 16px;
+}
+
+/* 과거 일정 스타일 - 완전히 숨기지 않고 구분만 */
+.past-schedule {
+  opacity: 0.8;
+  position: relative;
+  border-left: 4px solid #f59e0b !important;
+}
+
+.past-schedule::before {
+  content: '완료';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f59e0b;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.past-schedule .schedule-date {
+  color: #92400e;
+  font-weight: 600;
+}
+
+.past-schedule:hover {
+  opacity: 0.9;
+  border-color: #d97706 !important;
+  transform: translateY(-1px);
 }
 
 /* 👥 작업자 선택 */
@@ -769,6 +1133,14 @@ onMounted(async () => {
   color: #1e293b;
 }
 
+/* 시간 프리셋 스타일 */
+.time-preset-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
 /* 🎯 플로팅 액션 버튼 */
 .floating-actions {
   position: fixed;
@@ -792,6 +1164,11 @@ onMounted(async () => {
 
 .action-btn:hover {
   transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  transform: none;
 }
 
 .home-btn {
@@ -827,40 +1204,85 @@ onMounted(async () => {
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
 }
 
-/* 📱 성공/에러 스낵바 */
-.success-snackbar,
-.error-snackbar {
-  position: fixed;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  z-index: 10000;
-  animation: slideInDown 0.3s ease;
+/* 폼 검증 관련 스타일 */
+.v-input--error .v-field {
+  border-color: #ef4444 !important;
 }
 
-.success-snackbar {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+.v-input--error .v-field__outline {
+  border-color: #ef4444 !important;
 }
 
-.error-snackbar {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+/* 정렬 버튼 스타일 */
+.v-btn-toggle .v-btn {
+  border-radius: 8px !important;
+  font-size: 12px;
 }
 
-@keyframes slideInDown {
+.v-btn-toggle .v-btn--active {
+  background: #4f46e5 !important;
+  color: white !important;
+}
+
+/* 삭제 다이얼로그 스타일 */
+.v-dialog .v-card {
+  border-radius: 16px;
+}
+
+.v-dialog .v-card-title {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-bottom: 1px solid #fecaca;
+}
+
+/* 스낵바 커스터마이징 */
+.v-snackbar {
+  border-radius: 12px !important;
+}
+
+.v-snackbar .v-snackbar__wrapper {
+  backdrop-filter: blur(10px);
+}
+
+/* 로딩 상태 개선 */
+.v-select .v-field--loading .v-progress-linear {
+  border-radius: 0 0 4px 4px;
+}
+
+/* 칩 스타일 개선 */
+.v-chip--closable .v-chip__close {
+  margin-left: 8px;
+}
+
+.v-chip-group .v-chip {
+  margin: 2px;
+  transition: all 0.2s ease;
+}
+
+.v-chip-group .v-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 애니메이션 */
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
+}
+
+/* 포커스 상태 개선 */
+.v-field--focused .v-field__outline {
+  border-width: 2px;
+  border-color: #4f46e5 !important;
+}
+
+.v-btn:focus {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 /* 🎯 반응형 디자인 */
@@ -884,6 +1306,21 @@ onMounted(async () => {
 
   .action-btn {
     height: 52px;
+    font-size: 14px;
+  }
+
+  .v-btn-toggle .v-btn {
+    font-size: 11px;
+    padding: 0 8px;
+  }
+
+  .header-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-icon-wrapper .v-icon {
+    font-size: 24px !important;
   }
 }
 
@@ -892,8 +1329,14 @@ onMounted(async () => {
     font-size: 20px;
   }
 
+  .header-subtitle {
+    font-size: 11px;
+  }
+
   .card-header {
     padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .card-content {
@@ -912,5 +1355,113 @@ onMounted(async () => {
   .schedule-date {
     font-size: 14px;
   }
+
+  .floating-actions .v-row {
+    margin: 0;
+  }
+
+  .floating-actions .v-col {
+    padding: 0 4px;
+  }
+
+  .action-btn {
+    height: 48px;
+    font-size: 13px;
+  }
+
+  .action-btn .v-icon {
+    font-size: 16px !important;
+  }
+
+  /* 모바일에서 시간 프리셋을 세로로 배치 */
+  .v-chip-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .v-chip-group .v-chip {
+    justify-content: center;
+    margin: 4px 0;
+  }
 }
+
+/* Vuetify 오버라이드 - 헤더 스타일 강제 적용 */
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.v-app-bar.custom-header .v-btn {
+  color: white !important;
+}
+
+.v-app-bar.custom-header .v-chip {
+  backdrop-filter: blur(5px);
+}
+
+/* 다크모드 대응 */
+.v-theme--dark .schedule-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.v-theme--dark .schedule-item.selected {
+  background: linear-gradient(135deg, #312e81 0%, #3730a3 100%);
+}
+
+.v-theme--dark .worker-item {
+  background: #334155;
+}
+
+.v-theme--dark .past-schedule::after {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .schedule-item {
+    border-width: 3px;
+  }
+  
+  .schedule-item.selected {
+    border-width: 4px;
+  }
+  
+  .action-btn {
+    border: 2px solid;
+  }
+}
+
+/* 동작 줄임 설정 존중 */
+@media (prefers-reduced-motion: reduce) {
+  .schedule-item,
+  .worker-item,
+  .action-btn,
+  .v-chip {
+    transition: none;
+  }
+  
+  .schedule-item {
+    animation: none;
+  }
+}
+
+/* 인쇄 스타일 */
+@media print {
+  .floating-actions,
+  .custom-header,
+  .v-snackbar {
+    display: none !important;
+  }
+  
+  .main-content {
+    background: white !important;
+  }
+  
+  .schedule-list-card,
+  .form-card {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+}
+
 </style>
