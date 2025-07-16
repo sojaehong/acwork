@@ -33,119 +33,127 @@
     </v-app-bar>
 
     <v-main class="main-content">
-      <!-- 🌀 로딩 오버레이 -->
-      <div v-if="isLoading" class="loading-overlay">
-        <div class="loading-container">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-            width="6"
-          />
-          <div class="loading-text mt-4">일정 정보 로딩 중...</div>
-        </div>
-      </div>
-
       <v-container
         class="pa-6"
         style="padding-bottom: 140px !important; max-width: 1200px"
       >
-        <!-- 🚨 에러 알림 - Snackbar로 변경 -->
-        <v-snackbar
-          v-model="showError"
-          color="error"
-          location="top"
-          timeout="4000"
-          multi-line
+        <!-- 🚨 에러 및 성공 메시지 -->
+        <v-alert 
+          v-if="error" 
+          type="error" 
+          class="mb-4" 
+          prominent
+          closable
+          @click:close="clearError"
         >
           <v-icon start>mdi-alert-circle</v-icon>
           {{ error }}
-          <template #actions>
-            <v-btn variant="text" @click="showError = false">
-              닫기
-            </v-btn>
-          </template>
-        </v-snackbar>
+        </v-alert>
 
-        <!-- 성공 메시지 -->
-        <v-snackbar
-          v-model="showSuccess"
-          color="success"
-          location="top"
-          timeout="3000"
+        <v-alert 
+          v-if="successMessage" 
+          type="success" 
+          class="mb-4" 
+          prominent
+          closable
+          @click:close="successMessage = ''"
         >
           <v-icon start>mdi-check-circle</v-icon>
           {{ successMessage }}
-        </v-snackbar>
+        </v-alert>
 
-        <!-- 📅 기존 일정 목록 -->
-        <v-card
-          v-if="existingDatesDisplay.length"
-          class="schedule-list-card mb-8"
-          elevation="0"
-        >
-          <div class="card-header">
-            <div class="header-icon">
-              <v-icon color="primary">mdi-calendar-multiple</v-icon>
+        <!-- 📅 기존 일정 목록 - 스켈레톤 로딩 적용 -->
+        <template v-if="!isInitialLoading">
+          <v-card
+            v-if="existingDatesDisplay.length"
+            class="schedule-list-card mb-8"
+            elevation="0"
+          >
+            <div class="card-header">
+              <div class="header-icon">
+                <v-icon color="primary">mdi-calendar-multiple</v-icon>
+              </div>
+              <h3 class="card-title">기존 일정 목록</h3>
+              <v-chip color="info" size="small" class="ml-2">
+                {{ existingDatesDisplay.length }}개
+              </v-chip>
+              <!-- 정렬 옵션 -->
+              <v-spacer />
+              <v-btn-toggle v-model="sortOption" dense size="small" class="ml-2">
+                <v-btn value="date" size="small">
+                  <v-icon size="14">mdi-calendar</v-icon>
+                  날짜순
+                </v-btn>
+                <v-btn value="future" size="small">
+                  <v-icon size="14">mdi-trending-up</v-icon>
+                  예정순
+                </v-btn>
+              </v-btn-toggle>
             </div>
-            <h3 class="card-title">기존 일정 목록</h3>
-            <v-chip color="info" size="small" class="ml-2">
-              {{ existingDatesDisplay.length }}개
-            </v-chip>
-            <!-- 정렬 옵션 추가 -->
-            <v-spacer />
-            <v-btn-toggle v-model="sortOption" dense size="small" class="ml-2">
-              <v-btn value="date" size="small">
-                <v-icon size="14">mdi-calendar</v-icon>
-                날짜순
-              </v-btn>
-              <v-btn value="future" size="small">
-                <v-icon size="14">mdi-trending-up</v-icon>
-                예정순
-              </v-btn>
-            </v-btn-toggle>
-          </div>
 
-          <div class="card-content">
-            <div class="schedule-scroll">
-              <div
-                v-for="item in sortedExistingDates"
-                :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
-                class="schedule-item"
-                :class="{ 
-                  selected: selectedDate === item.date,
-                  'past-schedule': isPastDate(item.date)
-                }"
-                @click="handleDateSelect(item.date)"
-              >
-                <div class="schedule-date">{{ item.display }}</div>
-                <div class="schedule-details">
-                  <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1">mdi-clock-outline</v-icon>
-                    <span>{{ metaMap[item.date]?.startTime || '시간 미정' }}</span>
+            <div class="card-content">
+              <div class="schedule-scroll">
+                <div
+                  v-for="item in sortedExistingDates"
+                  :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
+                  class="schedule-item"
+                  :class="{ 
+                    selected: selectedDate === item.date,
+                    'past-schedule': isPastDate(item.date)
+                  }"
+                  @click="handleDateSelect(item.date)"
+                >
+                  <div class="schedule-date">{{ item.display }}</div>
+                  <div class="schedule-details">
+                    <div class="detail-row">
+                      <v-icon size="14" color="grey-darken-1">mdi-clock-outline</v-icon>
+                      <span>{{ metaMap[item.date]?.startTime || '시간 미정' }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <v-icon size="14" color="grey-darken-1">mdi-account-group</v-icon>
+                      <span>{{ metaMap[item.date]?.workerNames?.join(', ') || '인원 미정' }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <v-chip 
+                        :color="isPastDate(item.date) ? 'grey' : 'success'" 
+                        size="x-small"
+                        variant="flat"
+                      >
+                        {{ isPastDate(item.date) ? '완료' : '예정' }}
+                      </v-chip>
+                    </div>
                   </div>
-                  <div class="detail-row">
-                    <v-icon size="14" color="grey-darken-1">mdi-account-group</v-icon>
-                    <span>{{ metaMap[item.date]?.workerNames?.join(', ') || '인원 미정' }}</span>
-                  </div>
-                  <!-- 일정 상태 표시 -->
-                  <div class="detail-row">
-                    <v-chip 
-                      :color="isPastDate(item.date) ? 'grey' : 'success'" 
-                      size="x-small"
-                      variant="flat"
-                    >
-                      {{ isPastDate(item.date) ? '완료' : '예정' }}
-                    </v-chip>
+                  <div v-if="selectedDate === item.date" class="selected-indicator">
+                    <v-icon color="primary">mdi-check-circle</v-icon>
                   </div>
                 </div>
-                <div v-if="selectedDate === item.date" class="selected-indicator">
-                  <v-icon color="primary">mdi-check-circle</v-icon>
+              </div>
+            </div>
+          </v-card>
+        </template>
+
+        <!-- 🌀 기존 일정 로딩 중 스켈레톤 -->
+        <template v-else>
+          <div class="schedule-skeleton-card mb-8">
+            <div class="skeleton-header">
+              <div class="skeleton-icon"></div>
+              <div class="skeleton-title"></div>
+              <div class="skeleton-count"></div>
+            </div>
+            <div class="skeleton-content">
+              <div class="skeleton-scroll">
+                <div v-for="i in 3" :key="i" class="skeleton-schedule-item">
+                  <div class="skeleton-date"></div>
+                  <div class="skeleton-details">
+                    <div class="skeleton-detail-row"></div>
+                    <div class="skeleton-detail-row"></div>
+                    <div class="skeleton-chip"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </v-card>
+        </template>
 
         <!-- 📅 날짜 선택 카드 -->
         <v-card class="form-card mb-6" elevation="0">
@@ -168,7 +176,7 @@
               :rules="dateRules"
               @change="handleDateChange"
             />
-            <!-- 과거 일정 수정 경고 -->
+            
             <v-alert
               v-if="form.date && isPastDate(form.date)"
               type="warning"
@@ -179,7 +187,7 @@
               <v-icon start>mdi-alert</v-icon>
               과거 일정을 수정하고 있습니다. 신중하게 변경해주세요.
             </v-alert>
-            <!-- 오늘 날짜 빠른 선택 -->
+            
             <div class="mt-3">
               <v-btn
                 size="small"
@@ -221,7 +229,7 @@
               density="compact"
               prepend-inner-icon="mdi-clock-outline"
             />
-            <!-- 자주 사용하는 시간 빠른 선택 -->
+            
             <div class="mt-3">
               <div class="time-preset-label">자주 사용하는 시간</div>
               <v-chip-group v-model="selectedTimePreset" class="mt-2">
@@ -256,74 +264,86 @@
           </div>
 
           <div class="card-content">
-            <v-select
-              v-model="form.workers"
-              :items="userOptions"
-              item-title="name"
-              item-value="id"
-              multiple
-              chips
-              variant="outlined"
-              label="작업자를 선택하세요"
-              prepend-inner-icon="mdi-account-multiple"
-              clearable
-              :loading="!userOptions.length"
-              no-data-text="작업자가 없습니다"
-            >
-              <template #chip="{ props, item }">
-                <v-chip
-                  v-bind="props"
-                  color="primary"
-                  variant="flat"
-                  size="small"
-                  class="ma-1"
-                  closable
-                >
-                  <v-icon start size="14">mdi-account</v-icon>
-                  {{ item.title }}
-                </v-chip>
-              </template>
-            </v-select>
-
-            <!-- 전체 선택/해제 버튼 -->
-            <div class="mt-3">
-              <v-btn
-                size="small"
-                variant="outlined"
-                prepend-icon="mdi-account-multiple-plus"
-                @click="selectAllWorkers"
-                class="mr-2"
-                :disabled="form.workers.length === userOptions.length"
-              >
-                전체 선택
-              </v-btn>
-              <v-btn
-                size="small"
-                variant="outlined"
-                prepend-icon="mdi-account-multiple-minus"
-                @click="clearAllWorkers"
-                :disabled="form.workers.length === 0"
-              >
-                전체 해제
-              </v-btn>
-            </div>
-
-            <!-- 선택된 작업자 미리보기 -->
-            <div v-if="form.workers.length > 0" class="selected-workers">
-              <label class="workers-label">선택된 작업자</label>
-              <div class="workers-grid">
-                <div
-                  v-for="workerId in form.workers"
-                  :key="workerId"
-                  class="worker-item"
-                >
-                  <v-avatar size="32" color="primary">
-                    <v-icon color="white">mdi-account</v-icon>
-                  </v-avatar>
-                  <span class="worker-name">{{ getUserName(workerId) }}</span>
+            <!-- 🌀 사용자 로딩 중 스켈레톤 -->
+            <template v-if="isLoadingUsers">
+              <div class="user-skeleton">
+                <div class="skeleton-select"></div>
+                <div class="skeleton-buttons">
+                  <div class="skeleton-button"></div>
+                  <div class="skeleton-button"></div>
                 </div>
               </div>
-            </div>
+            </template>
+
+            <!-- 실제 사용자 선택 -->
+            <template v-else>
+              <v-select
+                v-model="form.workers"
+                :items="userOptions"
+                item-title="name"
+                item-value="id"
+                multiple
+                chips
+                variant="outlined"
+                label="작업자를 선택하세요"
+                prepend-inner-icon="mdi-account-multiple"
+                clearable
+                no-data-text="작업자가 없습니다"
+              >
+                <template #chip="{ props, item }">
+                  <v-chip
+                    v-bind="props"
+                    color="primary"
+                    variant="flat"
+                    size="small"
+                    class="ma-1"
+                    closable
+                  >
+                    <v-icon start size="14">mdi-account</v-icon>
+                    {{ item.title }}
+                  </v-chip>
+                </template>
+              </v-select>
+
+              <div class="mt-3">
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  prepend-icon="mdi-account-multiple-plus"
+                  @click="selectAllWorkers"
+                  class="mr-2"
+                  :disabled="form.workers.length === userOptions.length"
+                >
+                  전체 선택
+                </v-btn>
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  prepend-icon="mdi-account-multiple-minus"
+                  @click="clearAllWorkers"
+                  :disabled="form.workers.length === 0"
+                >
+                  전체 해제
+                </v-btn>
+              </div>
+
+              <!-- 선택된 작업자 미리보기 -->
+              <div v-if="form.workers.length > 0" class="selected-workers">
+                <label class="workers-label">선택된 작업자</label>
+                <div class="workers-grid">
+                  <div
+                    v-for="workerId in form.workers"
+                    :key="workerId"
+                    class="worker-item"
+                  >
+                    <v-avatar size="32" color="primary">
+                      <v-icon color="white">mdi-account</v-icon>
+                    </v-avatar>
+                    <span class="worker-name">{{ getUserName(workerId) }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </v-card>
 
@@ -468,7 +488,6 @@ import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
 
 const router = useRouter()
-const today = getTodayDateKST()
 
 // Store 인스턴스
 const scheduleStore = useScheduleStore()
@@ -476,9 +495,12 @@ const userStore = useUserStore()
 const uiStore = useUiStore()
 const workerStore = useWorkerStore()
 
+// 🚀 최적화: 오늘 날짜 캐싱
+const TODAY_KST = getTodayDateKST()
+
 // 폼 데이터
 const form = ref({
-  date: today,
+  date: TODAY_KST,
   startTime: '',
   workers: [],
   notice: '',
@@ -488,49 +510,42 @@ const form = ref({
 // 사용자 관련
 const userOptions = ref([])
 const userMap = ref({})
+const isLoadingUsers = ref(false)
 
 // 일정 관련
 const existingDates = ref([])
 const existingDatesDisplay = ref([])
-const selectedDate = ref(today)
+const selectedDate = ref(TODAY_KST)
 const metaMap = ref({})
 
-// 상태 관리
+// 상태 관리 - 세분화
+const isInitialLoading = ref(true)
+const isSaving = ref(false)
 const isEdit = ref(false)
 let editDocId = null
 
-const isLoading = ref(false)
-const isSaving = ref(false)
-
-// 에러 및 성공 메시지 (Vuetify의 Snackbar 사용)
+// 에러 및 성공 메시지
 const error = ref('')
-const showError = ref(false)
 const successMessage = ref('')
-const showSuccess = ref(false)
 
-// 삭제 확인 다이얼로그
+// 기타
 const showDeleteDialog = ref(false)
-
-// 정렬 옵션
 const sortOption = ref('future')
-
-// 시간 프리셋
 const timePresets = ['09:00', '10:00', '13:00', '14:00', '16:00', '18:00']
 const selectedTimePreset = ref(null)
 
-// 유효성 검사 규칙 (과거 날짜 제한 완화)
+// 유효성 검사 규칙
 const dateRules = [
   (v) => !!v || '날짜를 선택해주세요'
-  // 과거 날짜도 허용 (수정 필요할 수 있음)
 ]
 
 const noticeRules = [
   (v) => !v || v.length <= 500 || '공지사항은 500자 이내로 입력해주세요'
 ]
 
-// 계산된 속성들 (과거 날짜 제한 완화)
+// 🚀 최적화: 계산된 속성 간소화
 const isFormValid = computed(() => {
-  return form.value.date && 
+  return !!form.value.date && 
          (!form.value.notice || form.value.notice.length <= 500)
 })
 
@@ -538,11 +553,9 @@ const sortedExistingDates = computed(() => {
   if (sortOption.value === 'date') {
     return [...existingDatesDisplay.value].sort((a, b) => new Date(a.date) - new Date(b.date))
   } else {
-    // future 정렬: 오늘 이후 일정을 앞에, 과거 일정을 뒤에
-    const todayDateStr = getTodayDateKST()
     return [...existingDatesDisplay.value].sort((a, b) => {
-      const isAFuture = new Date(a.date) >= new Date(todayDateStr)
-      const isBFuture = new Date(b.date) >= new Date(todayDateStr)
+      const isAFuture = new Date(a.date) >= new Date(TODAY_KST)
+      const isBFuture = new Date(b.date) >= new Date(TODAY_KST)
       
       if (isAFuture && isBFuture) return new Date(a.date) - new Date(b.date)
       if (!isAFuture && !isBFuture) return new Date(b.date) - new Date(a.date)
@@ -551,17 +564,12 @@ const sortedExistingDates = computed(() => {
   }
 })
 
-// 메서드들
-const getUserName = (userId) => {
-  return userMap.value[userId] || '알 수 없음'
-}
-
-const isPastDate = (dateStr) => {
-  return new Date(dateStr) < new Date(getTodayDateKST())
-}
+// 🚀 최적화: 메서드 간소화
+const getUserName = (userId) => userMap.value[userId] || '알 수 없음'
+const isPastDate = (dateStr) => new Date(dateStr) < new Date(TODAY_KST)
 
 const setToday = () => {
-  form.value.date = getTodayDateKST()
+  form.value.date = TODAY_KST
   handleDateChange()
 }
 
@@ -589,115 +597,119 @@ const deleteSchedule = async () => {
   await cancelSchedule()
 }
 
-// 🔥 개선된 사용자 데이터 로딩 (인증 포함)
+const clearError = () => {
+  error.value = ''
+}
+
+// 🚀 최적화: 사용자 데이터 로딩 - 캐싱 적용
 async function fetchUsers() {
+  if (userOptions.value.length > 0) {
+    // 이미 로딩된 경우 캐시 사용
+    return
+  }
+
+  isLoadingUsers.value = true
   try {
-    // 인증 상태 확인 및 초기화
     const authResult = await userStore.executeWithAuth(async () => {
       return await getDocs(collection(db, 'users'))
     }, router)
 
     if (!authResult.success) {
-      if (authResult.shouldRedirect) {
-        // 인증 실패 시 리다이렉트 처리됨
-        return
-      }
+      if (authResult.shouldRedirect) return
       throw new Error(authResult.error || '인증에 실패했습니다.')
     }
 
     const snap = authResult.data
-    userOptions.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const users = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    
+    userOptions.value = users
     userMap.value = {}
     
-    for (const user of userOptions.value) {
+    for (const user of users) {
       userMap.value[user.id] = user.name
     }
 
-    // Worker Store에도 업데이트
-    workerStore.setWorkers(userOptions.value)
-    
-    console.log('사용자 정보 로딩 완료:', userOptions.value.length + '명')
+    workerStore.setWorkers(users)
     
   } catch (err) {
     console.error('사용자 정보 로딩 오류:', err)
     
-    // 권한 오류인 경우 특별 처리
     if (err.code === 'permission-denied') {
-      showErrorMessage('사용자 정보에 접근할 권한이 없습니다. 관리자에게 문의하세요.')
+      error.value = '사용자 정보에 접근할 권한이 없습니다.'
     } else if (err.message?.includes('Missing or insufficient permissions')) {
-      showErrorMessage('Firebase 권한이 부족합니다. 로그인을 다시 시도해주세요.')
-      // 3초 후 로그인 페이지로 리다이렉트
-      setTimeout(() => {
-        router.push('/login')
-      }, 3000)
+      error.value = 'Firebase 권한이 부족합니다. 로그인을 다시 시도해주세요.'
+      setTimeout(() => router.push('/login'), 3000)
     } else {
-      showErrorMessage('사용자 정보를 불러오는데 실패했습니다: ' + (err.message || '알 수 없는 오류'))
+      error.value = '사용자 정보를 불러오는데 실패했습니다.'
     }
+  } finally {
+    isLoadingUsers.value = false
   }
 }
 
-// 🔥 개선된 기존 일정 데이터 로딩 (Store 활용)
+// 🚀 최적화: 기존 일정 로딩 - 순차 처리
 async function fetchExistingDates() {
-  isLoading.value = true
-  scheduleStore.clearError()
-  
   try {
-    // Store의 에러 핸들링을 활용한 안전한 데이터 로딩
-    await userStore.executeWithAuth(async () => {
-      const snap = await getDocs(collection(db, 'schedulesMeta'))
-      const dates = new Set()
-      const meta = {}
+    const authResult = await userStore.executeWithAuth(async () => {
+      return await getDocs(collection(db, 'schedulesMeta'))
+    }, router)
 
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data()
-        if (data.date) {
-          dates.add(data.date)
-          meta[data.date] = {
-            id: docSnap.id,
-            startTime: data.startTime,
-            workerNames: (data.workers || []).map(
-              (id) => userMap.value[id] || '알 수 없음'
-            ),
-            ...data
-          }
+    if (!authResult.success) {
+      if (authResult.shouldRedirect) return
+      throw new Error(authResult.error)
+    }
+
+    const snap = authResult.data
+    const dates = new Set()
+    const meta = {}
+
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data()
+      if (data.date) {
+        dates.add(data.date)
+        meta[data.date] = {
+          id: docSnap.id,
+          startTime: data.startTime,
+          workerNames: (data.workers || []).map(
+            (id) => userMap.value[id] || '알 수 없음'
+          ),
+          ...data
         }
       }
+    }
 
-      const todayDateStr = getTodayDateKST()
-      const sortedDates = Array.from(dates).sort((a, b) => {
-        const isAFuture = new Date(a) >= new Date(todayDateStr)
-        const isBFuture = new Date(b) >= new Date(todayDateStr)
-        if (isAFuture && isBFuture) return new Date(a) - new Date(b)
-        if (!isAFuture && !isBFuture) return new Date(b) - new Date(a)
-        return isAFuture ? -1 : 1
-      })
+    const sortedDates = Array.from(dates).sort((a, b) => {
+      const isAFuture = new Date(a) >= new Date(TODAY_KST)
+      const isBFuture = new Date(b) >= new Date(TODAY_KST)
+      if (isAFuture && isBFuture) return new Date(a) - new Date(b)
+      if (!isAFuture && !isBFuture) return new Date(b) - new Date(a)
+      return isAFuture ? -1 : 1
+    })
 
-      existingDates.value = sortedDates
-      existingDatesDisplay.value = sortedDates.map((dateStr) => ({
-        date: dateStr,
-        display: formatDateWithDay(dateStr),
-      }))
+    existingDates.value = sortedDates
+    existingDatesDisplay.value = sortedDates.map((dateStr) => ({
+      date: dateStr,
+      display: formatDateWithDay(dateStr),
+    }))
+    metaMap.value = meta
 
-      metaMap.value = meta
-
-      const firstFutureOrToday = sortedDates.find(
-        (d) => new Date(d) >= new Date(todayDateStr)
-      )
-      if (firstFutureOrToday) {
-        selectedDate.value = firstFutureOrToday
-        await handleDateSelect(firstFutureOrToday)
-      } else {
-        form.value.date = todayDateStr
-        selectedDate.value = todayDateStr
-        clearForm()
-      }
-    }, router)
+    // 첫 번째 미래 일정 선택
+    const firstFutureOrToday = sortedDates.find(
+      (d) => new Date(d) >= new Date(TODAY_KST)
+    )
+    
+    if (firstFutureOrToday) {
+      selectedDate.value = firstFutureOrToday
+      await handleDateSelect(firstFutureOrToday)
+    } else {
+      form.value.date = TODAY_KST
+      selectedDate.value = TODAY_KST
+      clearForm()
+    }
     
   } catch (err) {
     console.error('일정 정보 로딩 오류:', err)
-    showErrorMessage('일정 정보를 불러오는데 실패했습니다: ' + (err.message || '알 수 없는 오류'))
-  } finally {
-    isLoading.value = false
+    error.value = '일정 정보를 불러오는데 실패했습니다.'
   }
 }
 
@@ -726,7 +738,6 @@ async function handleDateSelect(date) {
     form.value.date = date
     selectedDate.value = date
     
-    // 기존 메타 데이터가 있는지 확인
     const existingMeta = metaMap.value[date]
     if (existingMeta) {
       form.value.startTime = existingMeta.startTime || ''
@@ -736,60 +747,66 @@ async function handleDateSelect(date) {
       editDocId = existingMeta.id
       isEdit.value = true
       
-      // 시간 프리셋 업데이트
       selectedTimePreset.value = timePresets.includes(existingMeta.startTime) ? existingMeta.startTime : null
     } else {
       clearForm()
     }
   } catch (err) {
     console.error('일정 선택 오류:', err)
-    showErrorMessage('일정 정보를 불러오는데 실패했습니다.')
+    error.value = '일정 정보를 불러오는데 실패했습니다.'
   }
 }
 
-// 🔥 개선된 저장 로직 (Store 활용)
+// 🚀 최적화: 저장 로직 간소화
 async function submit() {
   if (isSaving.value || !isFormValid.value) return
 
   isSaving.value = true
+  error.value = ''
 
   try {
     if (isEdit.value && editDocId) {
       await scheduleStore.updateScheduleMeta(editDocId, form.value)
-      uiStore.showSnackbar('일정이 성공적으로 수정되었습니다.', 'success')
-      showSuccessMessage('일정이 성공적으로 수정되었습니다.')
+      successMessage.value = '일정이 성공적으로 수정되었습니다.'
     } else {
       await scheduleStore.addScheduleMeta(form.value)
-      uiStore.showSnackbar('일정이 성공적으로 등록되었습니다.', 'success')
-      showSuccessMessage('일정이 성공적으로 등록되었습니다.')
+      successMessage.value = '일정이 성공적으로 등록되었습니다.'
     }
+    
+    // 성공 후 데이터 새로고침
     await fetchExistingDates()
+    
+    // 3초 후 성공 메시지 자동 제거
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+    
   } catch (err) {
     console.error('저장 중 오류:', err)
-    const errorMsg = scheduleStore.error || '저장 중 오류가 발생했습니다.'
-    uiStore.showSnackbar(errorMsg, 'error')
-    showErrorMessage(errorMsg)
+    error.value = scheduleStore.error || '저장 중 오류가 발생했습니다.'
   } finally {
     isSaving.value = false
   }
 }
 
-// 🔥 개선된 삭제 로직 (Store 활용)
 async function cancelSchedule() {
-  if (isSaving.value) return
-  if (!editDocId) return
+  if (isSaving.value || !editDocId) return
 
   isSaving.value = true
+  error.value = ''
+
   try {
     await scheduleStore.deleteScheduleMeta(editDocId, form.value.date)
-    uiStore.showSnackbar('일정이 삭제되었습니다.', 'success')
-    showSuccessMessage('일정이 삭제되었습니다.')
+    successMessage.value = '일정이 삭제되었습니다.'
     await fetchExistingDates()
+    
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+    
   } catch (err) {
     console.error('삭제 중 오류:', err)
-    const errorMsg = scheduleStore.error || '삭제 중 오류가 발생했습니다.'
-    uiStore.showSnackbar(errorMsg, 'error')
-    showErrorMessage(errorMsg)
+    error.value = scheduleStore.error || '삭제 중 오류가 발생했습니다.'
   } finally {
     isSaving.value = false
   }
@@ -799,63 +816,185 @@ function goHome() {
   router.push('/')
 }
 
-function showSuccessMessage(message) {
-  successMessage.value = message
-  showSuccess.value = true
-}
-
-function showErrorMessage(message) {
-  error.value = message
-  showError.value = true
-}
-
-// Watch로 에러 상태 모니터링
-watch(showError, (newVal) => {
-  if (!newVal) {
-    error.value = ''
-  }
-})
-
-// Watch Store 에러 상태
-watch(() => scheduleStore.error, (newError) => {
-  if (newError) {
-    showErrorMessage(newError)
-  }
-})
-
-// 🚀 개선된 초기화 로직
+// 🚀 최적화: 초기화 로직 - 순차 로딩
 onMounted(async () => {
-  // 1. 인증 상태 먼저 확인
+  // 1. 인증 상태 확인
   const authResult = await userStore.initializeAuth(router)
   
   if (!authResult.success) {
-    if (authResult.shouldRedirect) {
-      // 인증 실패시 리다이렉트가 처리됨
-      return
-    }
-    showErrorMessage(authResult.error || '인증에 실패했습니다.')
+    if (authResult.shouldRedirect) return
+    error.value = authResult.error || '인증에 실패했습니다.'
     return
   }
 
-  // 2. 재시도 로직으로 안전한 데이터 로딩
   try {
+    // 2. 사용자 데이터 먼저 로딩 (필수)
     await userStore.withRetry(async () => {
       await fetchUsers()
     }, 2, 1000)
     
+    // 3. 기존 일정 데이터 로딩 (사용자 데이터 로딩 후)
     await userStore.withRetry(async () => {
       await fetchExistingDates()
     }, 2, 1000)
     
   } catch (err) {
     console.error('초기 데이터 로딩 실패:', err)
-    showErrorMessage('초기 데이터 로딩에 실패했습니다. 페이지를 새로고침 해주세요.')
+    error.value = '초기 데이터 로딩에 실패했습니다. 페이지를 새로고침 해주세요.'
+  } finally {
+    isInitialLoading.value = false
+  }
+})
+
+// Watch Store 에러 상태
+watch(() => scheduleStore.error, (newError) => {
+  if (newError) {
+    error.value = newError
   }
 })
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 - !important로 강제 적용 */
+/* 🚀 성능 최적화: 스켈레톤 스타일 */
+.schedule-skeleton-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
+}
+
+.skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  width: 120px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-count {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-left: auto;
+}
+
+.skeleton-content {
+  padding: 24px;
+}
+
+.skeleton-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.skeleton-schedule-item {
+  flex-shrink: 0;
+  width: 280px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+}
+
+.skeleton-date {
+  width: 160px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 12px;
+}
+
+.skeleton-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-detail-row {
+  width: 120px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-chip {
+  width: 60px;
+  height: 18px;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 사용자 선택 스켈레톤 */
+.user-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-select {
+  width: 100%;
+  height: 56px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.skeleton-button {
+  width: 120px;
+  height: 36px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 🎨 헤더 스타일 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px) !important;
@@ -904,31 +1043,7 @@ onMounted(async () => {
   font-weight: 500 !important;
 }
 
-/* 🌀 로딩 및 메인 컨텐츠 */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.loading-container {
-  text-align: center;
-}
-
-.loading-text {
-  font-weight: 600;
-  color: #666;
-  font-size: 16px;
-}
-
+/* 🌀 메인 컨텐츠 */
 .main-content {
   background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
   min-height: 100vh;
@@ -1017,7 +1132,6 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  animation: fadeInUp 0.3s ease-out;
 }
 
 .schedule-item:hover {
@@ -1059,7 +1173,7 @@ onMounted(async () => {
   right: 16px;
 }
 
-/* 과거 일정 스타일 - 완전히 숨기지 않고 구분만 */
+/* 과거 일정 스타일 */
 .past-schedule {
   opacity: 0.8;
   position: relative;
@@ -1204,88 +1318,7 @@ onMounted(async () => {
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
 }
 
-/* 폼 검증 관련 스타일 */
-.v-input--error .v-field {
-  border-color: #ef4444 !important;
-}
-
-.v-input--error .v-field__outline {
-  border-color: #ef4444 !important;
-}
-
-/* 정렬 버튼 스타일 */
-.v-btn-toggle .v-btn {
-  border-radius: 8px !important;
-  font-size: 12px;
-}
-
-.v-btn-toggle .v-btn--active {
-  background: #4f46e5 !important;
-  color: white !important;
-}
-
-/* 삭제 다이얼로그 스타일 */
-.v-dialog .v-card {
-  border-radius: 16px;
-}
-
-.v-dialog .v-card-title {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-bottom: 1px solid #fecaca;
-}
-
-/* 스낵바 커스터마이징 */
-.v-snackbar {
-  border-radius: 12px !important;
-}
-
-.v-snackbar .v-snackbar__wrapper {
-  backdrop-filter: blur(10px);
-}
-
-/* 로딩 상태 개선 */
-.v-select .v-field--loading .v-progress-linear {
-  border-radius: 0 0 4px 4px;
-}
-
-/* 칩 스타일 개선 */
-.v-chip--closable .v-chip__close {
-  margin-left: 8px;
-}
-
-.v-chip-group .v-chip {
-  margin: 2px;
-  transition: all 0.2s ease;
-}
-
-.v-chip-group .v-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 애니메이션 */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 포커스 상태 개선 */
-.v-field--focused .v-field__outline {
-  border-width: 2px;
-  border-color: #4f46e5 !important;
-}
-
-.v-btn:focus {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-}
-
-/* 🎯 반응형 디자인 */
+/* 📱 반응형 디자인 */
 @media (max-width: 768px) {
   .schedule-scroll {
     gap: 12px;
@@ -1309,18 +1342,14 @@ onMounted(async () => {
     font-size: 14px;
   }
 
-  .v-btn-toggle .v-btn {
-    font-size: 11px;
-    padding: 0 8px;
-  }
-
   .header-icon-wrapper {
     width: 40px;
     height: 40px;
   }
 
-  .header-icon-wrapper .v-icon {
-    font-size: 24px !important;
+  .skeleton-schedule-item {
+    width: 240px;
+    padding: 16px;
   }
 }
 
@@ -1373,7 +1402,6 @@ onMounted(async () => {
     font-size: 16px !important;
   }
 
-  /* 모바일에서 시간 프리셋을 세로로 배치 */
   .v-chip-group {
     flex-direction: column;
     align-items: stretch;
@@ -1383,55 +1411,14 @@ onMounted(async () => {
     justify-content: center;
     margin: 4px 0;
   }
-}
 
-/* Vuetify 오버라이드 - 헤더 스타일 강제 적용 */
-.v-app-bar.custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-
-.v-app-bar.custom-header .v-btn {
-  color: white !important;
-}
-
-.v-app-bar.custom-header .v-chip {
-  backdrop-filter: blur(5px);
-}
-
-/* 다크모드 대응 */
-.v-theme--dark .schedule-item {
-  background: #1e293b;
-  border-color: #334155;
-}
-
-.v-theme--dark .schedule-item.selected {
-  background: linear-gradient(135deg, #312e81 0%, #3730a3 100%);
-}
-
-.v-theme--dark .worker-item {
-  background: #334155;
-}
-
-.v-theme--dark .past-schedule::after {
-  background: rgba(51, 65, 85, 0.3);
-}
-
-/* 고대비 모드 지원 */
-@media (prefers-contrast: high) {
-  .schedule-item {
-    border-width: 3px;
-  }
-  
-  .schedule-item.selected {
-    border-width: 4px;
-  }
-  
-  .action-btn {
-    border: 2px solid;
+  .skeleton-schedule-item {
+    width: 200px;
+    padding: 14px;
   }
 }
 
-/* 동작 줄임 설정 존중 */
+/* 성능 최적화 */
 @media (prefers-reduced-motion: reduce) {
   .schedule-item,
   .worker-item,
@@ -1440,28 +1427,17 @@ onMounted(async () => {
     transition: none;
   }
   
-  .schedule-item {
-    animation: none;
+  .shimmer {
+    animation: none !important;
   }
 }
 
-/* 인쇄 스타일 */
-@media print {
-  .floating-actions,
-  .custom-header,
-  .v-snackbar {
-    display: none !important;
-  }
-  
-  .main-content {
-    background: white !important;
-  }
-  
-  .schedule-list-card,
-  .form-card {
-    box-shadow: none !important;
-    border: 1px solid #000 !important;
+/* 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+  .schedule-item:hover,
+  .worker-item:hover,
+  .action-btn:hover {
+    transform: none;
   }
 }
-
 </style>

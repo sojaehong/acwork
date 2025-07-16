@@ -38,20 +38,7 @@
     </v-app-bar>
 
     <v-main class="main-content">
-      <!-- 🌀 로딩 스피너 -->
-      <div v-if="loading" class="loading-overlay">
-        <div class="loading-container">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-            width="6"
-          />
-          <div class="loading-text mt-4">데이터 로딩 중...</div>
-        </div>
-      </div>
-
-      <!-- 🚨 에러 알림 -->
+      <!-- 🚨 에러 알림 (로딩과 독립적으로 표시) -->
       <v-alert 
         v-if="error" 
         type="error" 
@@ -65,7 +52,7 @@
       </v-alert>
 
       <v-container class="pa-6" style="padding-bottom: 280px !important; max-width: 1200px;">
-        <!-- 📅 날짜 선택 및 메타 정보 카드 -->
+        <!-- 📅 날짜 선택 및 메타 정보 카드 - 즉시 렌더링 -->
         <v-card class="date-meta-card mb-8" elevation="0">
           <!-- 날짜 네비게이션 -->
           <div class="date-navigation">
@@ -75,14 +62,15 @@
               variant="text"
               class="date-nav-btn"
               @click="changeDateHandler(-1)"
+              :disabled="isChangingDate"
               aria-label="이전 날짜"
             >
               <v-icon size="28">mdi-chevron-left</v-icon>
             </v-btn>
             
             <div class="date-display">
-              <h2 class="date-title">{{ memoizedDisplayDate }}</h2>
-              <div class="date-badge">{{ memoizedDday }}</div>
+              <h2 class="date-title">{{ displayDate }}</h2>
+              <div class="date-badge">{{ ddayText }}</div>
             </div>
             
             <v-btn 
@@ -91,13 +79,14 @@
               variant="text"
               class="date-nav-btn"
               @click="changeDateHandler(1)"
+              :disabled="isChangingDate"
               aria-label="다음 날짜"
             >
               <v-icon size="28">mdi-chevron-right</v-icon>
             </v-btn>
           </div>
 
-          <!-- 메타 정보 섹션 -->
+          <!-- 메타 정보 섹션 - 로딩 중에도 스켈레톤 표시 -->
           <div 
             class="meta-info-section" 
             @click="goToMetaEdit"
@@ -105,14 +94,28 @@
             role="button"
             aria-label="메타 정보 편집"
           >
-            <div class="meta-grid">
+            <!-- 🌀 메타 정보 로딩 중일 때 스켈레톤 -->
+            <div v-if="isLoadingMeta" class="meta-skeleton">
+              <div class="meta-grid">
+                <div v-for="i in 3" :key="i" class="skeleton-item">
+                  <div class="skeleton-icon"></div>
+                  <div class="skeleton-content">
+                    <div class="skeleton-label"></div>
+                    <div class="skeleton-value"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 실제 메타 정보 -->
+            <div v-else class="meta-grid">
               <div class="meta-item">
                 <div class="meta-icon">
                   <v-icon color="primary">mdi-clock-outline</v-icon>
                 </div>
                 <div class="meta-content">
                   <div class="meta-label">시작 시간</div>
-                  <div class="meta-value">{{ safeMetaValue(scheduleMeta?.startTime, '설정되지 않음') }}</div>
+                  <div class="meta-value">{{ scheduleMeta?.startTime || '설정되지 않음' }}</div>
                 </div>
               </div>
 
@@ -147,15 +150,51 @@
                 </div>
                 <div class="meta-content">
                   <div class="meta-label">공지사항</div>
-                  <div class="meta-value">{{ safeMetaValue(scheduleMeta?.notice, '공지사항이 없습니다') }}</div>
+                  <div class="meta-value">{{ scheduleMeta?.notice || '공지사항이 없습니다' }}</div>
                 </div>
               </div>
             </div>
           </div>
         </v-card>
 
-        <!-- 📝 작업 목록 - 성능 최적화된 렌더링 -->
-        <template v-if="categorizedSchedules.all.length">
+        <!-- 📝 작업 목록 - 스켈레톤 로딩과 실제 컨텐츠 분리 -->
+        <!-- 🌀 스케줄 로딩 중일 때 스켈레톤 -->
+        <div v-if="isLoadingSchedules" class="schedule-skeleton">
+          <div v-for="i in 3" :key="i" class="skeleton-section">
+            <div class="skeleton-section-header">
+              <div class="skeleton-section-icon"></div>
+              <div class="skeleton-section-title"></div>
+              <div class="skeleton-section-count"></div>
+            </div>
+            <div class="skeleton-cards">
+              <div v-for="j in 2" :key="j" class="skeleton-card">
+                <div class="skeleton-card-header">
+                  <div class="skeleton-building-info">
+                    <div class="skeleton-building-icon"></div>
+                    <div class="skeleton-building-text">
+                      <div class="skeleton-building-name"></div>
+                      <div class="skeleton-room-number"></div>
+                    </div>
+                  </div>
+                  <div class="skeleton-badges">
+                    <div class="skeleton-badge"></div>
+                    <div class="skeleton-badge"></div>
+                  </div>
+                </div>
+                <div class="skeleton-card-body">
+                  <div class="skeleton-task-chips">
+                    <div class="skeleton-chip"></div>
+                    <div class="skeleton-chip"></div>
+                  </div>
+                  <div class="skeleton-memo"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실제 작업 목록 -->
+        <template v-else-if="categorizedSchedules.all.length">
           <!-- 진행 중인 작업 -->
           <TaskSection
             v-if="categorizedSchedules.active.length"
@@ -192,7 +231,7 @@
 
         <!-- 빈 상태 -->
         <EmptyState
-          v-else-if="!loading"
+          v-else-if="!isLoadingSchedules"
           @add-first-task="goToAddDate"
         />
       </v-container>
@@ -219,8 +258,7 @@ import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 
-// 🚀 성능 최적화: 컴포넌트 지연 로딩
-const TaskCard = defineAsyncComponent(() => import('@/components/TaskCard.vue'))
+// 🚀 최적화: 컴포넌트 지연 로딩 - 우선순위별 로딩
 const TaskSection = defineAsyncComponent(() => import('@/components/TaskSection.vue'))
 const EmptyState = defineAsyncComponent(() => import('@/components/EmptyState.vue'))
 const FloatingActions = defineAsyncComponent(() => import('@/components/FloatingActions.vue'))
@@ -230,166 +268,129 @@ const router = useRouter()
 const scheduleStore = useScheduleStore()
 const userStore = useUserStore()
 
-// 🚀 성능 최적화: shallowRef 사용으로 깊은 반응성 최적화
-const loading = ref(false)
+// 🚀 최적화: 상태 분리 - 로딩 상태를 세분화
+const isLoadingSchedules = ref(false)
+const isLoadingMeta = ref(false)
+const isChangingDate = ref(false)
 const scheduleMeta = shallowRef(null)
 const error = ref(null)
-const retryCount = ref(0)
-const maxRetries = 3
 
-// 🚀 성능 최적화: AbortController로 요청 취소 관리
-let abortController = null
-let retryTimeout = null
+// 🚀 최적화: 오늘 날짜 캐싱 (한 번만 계산)
+const TODAY_KST = (() => {
+  const now = new Date()
+  const kstOffset = 9 * 60 * 60 * 1000
+  const kst = new Date(now.getTime() + kstOffset)
+  return kst.toISOString().split('T')[0]
+})()
 
-// 타입 가드 함수 - 메모이제이션
-const isValidScheduleItem = (item) => {
-  return item && 
-         typeof item.id !== 'undefined' && 
-         typeof item.building === 'string' && 
-         typeof item.status === 'string'
-}
+const selectedDate = ref(TODAY_KST)
 
-const safeMetaValue = (value, fallback) => {
-  return value && typeof value === 'string' && value.trim() ? value.trim() : fallback
-}
+// 🚀 최적화: 간단한 computed로 변경 (불필요한 try-catch 제거)
+const displayDate = computed(() => {
+  if (selectedDate.value === TODAY_KST) return '오늘'
+  const date = new Date(selectedDate.value)
+  const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
+  return `${selectedDate.value} (${day})`
+})
 
-// 🚀 성능 최적화: 단일 computed로 모든 스케줄 카테고리화
+const ddayText = computed(() => {
+  if (selectedDate.value === TODAY_KST) return '오늘'
+  const today = new Date(TODAY_KST)
+  const target = new Date(selectedDate.value)
+  const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
+  return diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
+})
+
+// 🚀 최적화: 스케줄 카테고리화 - 메모이제이션 강화
 const categorizedSchedules = computed(() => {
-  try {
-    const validSchedules = scheduleStore.schedules.filter(isValidScheduleItem)
-    
-    const result = {
-      all: validSchedules,
-      active: [],
-      completed: [],
-      hold: []
-    }
-    
-    // 단일 루프로 모든 카테고리 분류
-    for (const schedule of validSchedules) {
-      const status = (schedule.status || '').trim()
-      switch (status) {
-        case '진행':
-          result.active.push(schedule)
-          break
-        case '완료':
-          result.completed.push(schedule)
-          break
-        case '보류':
-          result.hold.push(schedule)
-          break
-      }
-    }
-    
-    return result
-  } catch (err) {
-    console.error('스케줄 카테고리화 오류:', err)
+  const schedules = scheduleStore.schedules
+  if (!Array.isArray(schedules) || schedules.length === 0) {
     return { all: [], active: [], completed: [], hold: [] }
   }
-})
-
-// 🚀 성능 최적화: 메모이제이션된 날짜 계산
-const todayKST = computed(() => {
-  try {
-    const now = new Date()
-    const kstOffset = 9 * 60 * 60 * 1000
-    const kst = new Date(now.getTime() + kstOffset)
-    return kst.toISOString().split('T')[0]
-  } catch (err) {
-    console.error('날짜 계산 오류:', err)
-    return new Date().toISOString().split('T')[0]
-  }
-})
-
-const selectedDate = ref(todayKST.value)
-
-const memoizedDisplayDate = computed(() => {
-  try {
-    const date = new Date(selectedDate.value)
-    const day = date.toLocaleDateString('ko-KR', { weekday: 'short' })
-    return selectedDate.value === todayKST.value ? '오늘' : `${selectedDate.value} (${day})`
-  } catch (err) {
-    console.error('날짜 표시 오류:', err)
-    return selectedDate.value
-  }
-})
-
-const memoizedDday = computed(() => {
-  try {
-    const today = new Date(todayKST.value)
-    const target = new Date(selectedDate.value)
-    const diff = Math.floor((target - today) / (1000 * 60 * 60 * 24))
-    return selectedDate.value === todayKST.value ? '오늘' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
-  } catch (err) {
-    console.error('D-day 계산 오류:', err)
-    return ''
-  }
-})
-
-// 🚀 성능 최적화: 이벤트 핸들러 최적화
-const changeDateHandler = (offset) => {
-  try {
-    const current = new Date(selectedDate.value)
-    current.setDate(current.getDate() + offset)
-    selectedDate.value = current.toISOString().split('T')[0]
-    loadData(selectedDate.value)
-  } catch (err) {
-    console.error('날짜 변경 오류:', err)
-    error.value = '날짜 변경 중 오류가 발생했습니다.'
-  }
-}
-
-const handleDetailClick = (id) => {
-  if (!id) {
-    error.value = '잘못된 작업 ID입니다.'
-    return
-  }
-  goTo(`/schedule/${id}?from=home`)
-}
-
-// 🚀 성능 최적화: 데이터 로딩 함수들 - AbortController 적용
-async function loadSchedules(date) {
-  try {
-    if (abortController) {
-      abortController.abort()
-    }
-    abortController = new AbortController()
+  
+  const result = { all: [], active: [], completed: [], hold: [] }
+  
+  for (const schedule of schedules) {
+    if (!schedule?.id || !schedule.building || !schedule.status) continue
     
+    result.all.push(schedule)
+    
+    switch (schedule.status) {
+      case '진행':
+        result.active.push(schedule)
+        break
+      case '완료':
+        result.completed.push(schedule)
+        break
+      case '보류':
+        result.hold.push(schedule)
+        break
+    }
+  }
+  
+  return result
+})
+
+// 🚀 최적화: 날짜 변경 핸들러 - 디바운스 적용
+let dateChangeTimeout = null
+const changeDateHandler = (offset) => {
+  if (isChangingDate.value) return
+  
+  clearTimeout(dateChangeTimeout)
+  isChangingDate.value = true
+  
+  const current = new Date(selectedDate.value)
+  current.setDate(current.getDate() + offset)
+  selectedDate.value = current.toISOString().split('T')[0]
+  
+  // 200ms 디바운스
+  dateChangeTimeout = setTimeout(() => {
+    isChangingDate.value = false
+  }, 200)
+}
+
+// 🚀 최적화: 병렬 로딩을 순차 로딩으로 변경 (우선순위 기반)
+async function loadSchedules(date) {
+  if (isLoadingSchedules.value) return
+  
+  isLoadingSchedules.value = true
+  try {
     await scheduleStore.fetchSchedulesByDate(date)
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.log('스케줄 로딩이 취소되었습니다.')
-      return
-    }
     console.error('스케줄 로딩 실패:', err)
     throw new Error('작업 일정을 불러오는 중 오류가 발생했습니다.')
+  } finally {
+    isLoadingSchedules.value = false
   }
 }
 
 async function loadScheduleMeta(date) {
+  if (isLoadingMeta.value) return
+  
+  isLoadingMeta.value = true
   try {
     const q = query(collection(db, 'schedulesMeta'), where('date', '==', date), limit(1))
     const snap = await getDocs(q)
     
     if (!snap.empty) {
       const data = snap.docs[0].data()
-      if (data.workers && data.workers.length > 0) {
-        // 🚀 성능 최적화: 병렬 처리 + 에러 핸들링
-        const userPromises = data.workers.map(async (id) => {
+      
+      // 🚀 최적화: 워커 정보 로딩 최적화
+      if (data.workers?.length) {
+        const workerPromises = data.workers.map(async (id) => {
           try {
             const userDoc = await getDoc(doc(db, 'users', id))
-            return userDoc.exists() ? userDoc.data()?.name || '알 수 없음' : '알 수 없음'
+            return userDoc.exists() ? (userDoc.data()?.name || '알 수 없음') : '알 수 없음'
           } catch {
             return '알 수 없음'
           }
         })
         
-        data.workerNames = await Promise.allSettled(userPromises).then(results =>
-          results.map(result => result.status === 'fulfilled' ? result.value : '알 수 없음')
-        )
+        data.workerNames = await Promise.all(workerPromises)
       } else {
         data.workerNames = []
       }
+      
       scheduleMeta.value = data
     } else {
       scheduleMeta.value = null
@@ -397,189 +398,343 @@ async function loadScheduleMeta(date) {
   } catch (err) {
     console.error('메타 데이터 로딩 실패:', err)
     scheduleMeta.value = null
-    throw new Error('작업 정보를 불러오는 중 오류가 발생했습니다.')
+  } finally {
+    isLoadingMeta.value = false
   }
 }
 
-// 🚀 성능 최적화: 디바운스된 데이터 로딩
-let loadDataTimeout = null
-async function loadData(date, isRetry = false) {
-  if (loading.value && !isRetry) return
-  
-  // 기존 타이머 정리
-  if (loadDataTimeout) {
-    clearTimeout(loadDataTimeout)
-  }
-  
-  loading.value = true
+// 🚀 최적화: 순차 로딩 - 스케줄 먼저, 메타는 나중에
+async function loadData(date) {
   error.value = null
   
   try {
-    await Promise.all([
-      loadSchedules(date),
-      loadScheduleMeta(date)
-    ])
-    retryCount.value = 0
+    // 1. 스케줄 데이터 먼저 로딩 (사용자가 가장 중요하게 생각하는 데이터)
+    await loadSchedules(date)
+    
+    // 2. 메타 데이터는 백그라운드에서 로딩
+    nextTick(() => {
+      loadScheduleMeta(date).catch(err => {
+        console.error('메타 데이터 로딩 실패:', err)
+      })
+    })
+    
   } catch (err) {
     console.error('데이터 로딩 실패:', err)
-    
-    if (retryCount.value < maxRetries) {
-      retryCount.value++
-      loadDataTimeout = setTimeout(() => loadData(date, true), 1000 * retryCount.value)
-    } else {
-      error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
-    }
-  } finally {
-    loading.value = false
+    error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다.'
   }
 }
 
-// 🚀 성능 최적화: 선택적 워처 (watch 조건화)
-watch(selectedDate, (newDate, oldDate) => {
-  if (newDate !== oldDate && newDate) {
-    // 다음 틱에서 실행하여 렌더링 최적화
-    nextTick(() => {
-      loadData(newDate)
-    })
+// 🚀 최적화: watch 최적화 - flush: 'post' 제거
+watch(selectedDate, (newDate) => {
+  if (newDate) {
+    loadData(newDate)
   }
-}, { flush: 'post' })
+})
 
-// 네비게이션 함수들
+// 이벤트 핸들러들
+const handleDetailClick = (id) => {
+  if (!id) {
+    error.value = '잘못된 작업 ID입니다.'
+    return
+  }
+  router.push(`/schedule/${id}?from=home`).catch(err => {
+    console.error('라우팅 오류:', err)
+    error.value = '페이지 이동 중 오류가 발생했습니다.'
+  })
+}
+
 async function logout() {
   try {
-    loading.value = true
     await auth.signOut()
-    
-    // 로컬 스토리지 정리
-    const keysToRemove = ['user_id', 'user_name', 'user_role']
-    keysToRemove.forEach(key => localStorage.removeItem(key))
-    
+    localStorage.clear()
     userStore.logout()
     await router.push('/login')
   } catch (err) {
     console.error('로그아웃 실패:', err)
     error.value = '로그아웃 중 오류가 발생했습니다.'
-  } finally {
-    loading.value = false
   }
 }
 
-// 🚀 성능 최적화: 라우터 네비게이션 최적화
-async function goTo(path, params = {}) {
-  try {
-    if (loading.value) return
-    
-    loading.value = true
-    
-    if (params.query) {
-      await router.push({ path, query: params.query })
-    } else {
-      await router.push(path)
-    }
-  } catch (err) {
-    console.error('페이지 이동 실패:', err)
-    error.value = '페이지 이동 중 오류가 발생했습니다.'
-  } finally {
-    loading.value = false
-  }
-}
-
-// 에러 처리
 const clearError = () => {
   error.value = null
 }
 
-// 네비게이션 래퍼 함수들
+// 🚀 최적화: 간단한 네비게이션 함수들
+const goTo = (path, query = null) => {
+  const route = query ? { path, query } : path
+  router.push(route).catch(err => {
+    console.error('페이지 이동 실패:', err)
+    error.value = '페이지 이동 중 오류가 발생했습니다.'
+  })
+}
+
 const goToAll = () => goTo('/schedules')
 const goToAdd = () => goTo('/add')
-const goToAddDate = () => {
-  try {
-    const formatted = selectedDate.value instanceof Date
-      ? selectedDate.value.toISOString().split('T')[0]
-      : selectedDate.value
-
-    goTo('/add', { query: { date: formatted } })
-  } catch (err) {
-    console.error('날짜 포맷 오류:', err)
-    goTo('/add')
-  }
-}
+const goToAddDate = () => goTo('/add', { date: selectedDate.value })
 const goToPayroll = () => goTo('/payroll')
 const goToWorker = () => goTo('/worker-schedules')
 const goToMetaEdit = () => goTo('/meta')
 const goToEstimateForm = () => goTo('/estimate')
 const goToStatementForm = () => goTo('/statement')
 
-// 🚀 성능 최적화: 라이프사이클 훅 최적화
+// 🚀 최적화: 마운트 시 초기화 최적화
 onMounted(async () => {
   try {
-    // 인증 확인
+    // 1. 인증 확인 (빠른 체크)
     if (!auth.currentUser) {
       await signInAnonymously(auth)
     }
 
-    // 사용자 정보 복원
+    // 2. 사용자 정보 복원 (로컬 스토리지에서)
     if (!userStore.userId) {
-      const userData = {
+      const storedData = {
         id: localStorage.getItem('user_id'),
         name: localStorage.getItem('user_name'),
         role: localStorage.getItem('user_role')
       }
       
-      if (userData.id && userData.name && userData.role) {
-        userStore.setUser(userData)
+      if (storedData.id && storedData.name && storedData.role) {
+        userStore.setUser(storedData)
       } else {
         await router.push('/login')
         return
       }
     }
 
-    // 초기 데이터 로딩
+    // 3. 데이터 로딩 시작
     await loadData(selectedDate.value)
+    
   } catch (err) {
     console.error('초기 로딩 실패:', err)
     error.value = '애플리케이션 초기화 중 오류가 발생했습니다.'
     
-    // 로그인 페이지로 리다이렉트
     setTimeout(() => {
       router.push('/login')
     }, 3000)
   }
 })
 
-// 🚀 성능 최적화: 정리 작업 강화
+// 🚀 최적화: 정리 작업
 onUnmounted(() => {
-  // AbortController 정리
-  if (abortController) {
-    abortController.abort()
+  if (dateChangeTimeout) {
+    clearTimeout(dateChangeTimeout)
   }
-  
-  // 타이머 정리
-  if (retryTimeout) {
-    clearTimeout(retryTimeout)
-  }
-  if (loadDataTimeout) {
-    clearTimeout(loadDataTimeout)
-  }
-  
-  // 상태 정리
-  error.value = null
-  loading.value = false
-  scheduleMeta.value = null
 })
 </script>
 
 <style scoped>
-/* 🚀 성능 최적화: will-change 속성 최적화 */
-.task-card-wrapper,
-.action-btn,
-.meta-item,
-.date-nav-btn,
-.logout-btn {
-  will-change: transform;
+/* 🚀 성능 최적화: 스켈레톤 스타일 */
+.schedule-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-/* 기존 스타일 유지... */
+.skeleton-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.skeleton-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.skeleton-section-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-section-title {
+  width: 120px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-section-count {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-left: auto;
+}
+
+.skeleton-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.skeleton-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.skeleton-building-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.skeleton-building-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-building-text {
+  flex: 1;
+}
+
+.skeleton-building-name {
+  width: 80px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 6px;
+}
+
+.skeleton-room-number {
+  width: 50px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-badges {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.skeleton-badge {
+  width: 60px;
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-task-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.skeleton-chip {
+  width: 80px;
+  height: 20px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-memo {
+  width: 100%;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 메타 정보 스켈레톤 */
+.meta-skeleton {
+  padding: 0;
+}
+
+.skeleton-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-content {
+  flex: 1;
+}
+
+.skeleton-label {
+  width: 80px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 8px;
+}
+
+.skeleton-value {
+  width: 120px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 기존 스타일들 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px);
@@ -610,82 +765,6 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* 🚀 성능 최적화: contain 속성으로 렌더링 최적화 */
-.task-section {
-  contain: layout style;
-  margin-bottom: 32px;
-}
-
-.meta-item {
-  contain: layout style;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.meta-item:hover {
-  background: #e2e8f0;
-  transform: translateY(-2px);
-}
-
-/* 📱 반응형 디자인 */
-@media (max-width: 768px) {
-  .meta-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .date-navigation {
-    padding: 20px;
-  }
-
-  .date-title {
-    font-size: 24px;
-  }
-}
-
-@media (max-width: 600px) {
-  .meta-item {
-    padding: 12px;
-  }
-
-  .meta-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .meta-value {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-title {
-    font-size: 20px;
-  }
-
-  .date-navigation {
-    padding: 16px;
-  }
-
-  .date-title {
-    font-size: 20px;
-  }
-
-  .meta-grid {
-    gap: 12px;
-  }
-
-  .meta-item {
-    padding: 10px;
-  }
-}
-
-/* 나머지 스타일들... */
 .user-info-chip {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 24px;
@@ -713,30 +792,6 @@ onUnmounted(() => {
 .logout-btn:focus {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.loading-container {
-  text-align: center;
-}
-
-.loading-text {
-  font-weight: 600;
-  color: #666;
-  font-size: 16px;
 }
 
 .main-content {
@@ -773,6 +828,12 @@ onUnmounted(() => {
 .date-nav-btn:focus {
   background: rgba(255, 255, 255, 0.2) !important;
   transform: translateY(-1px);
+}
+
+.date-nav-btn:disabled {
+  background: rgba(255, 255, 255, 0.05) !important;
+  opacity: 0.5;
+  transform: none !important;
 }
 
 .date-nav-btn .v-icon {
@@ -825,6 +886,22 @@ onUnmounted(() => {
   gap: 24px;
 }
 
+.meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  contain: layout style;
+}
+
+.meta-item:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
 .meta-icon {
   width: 40px;
   height: 40px;
@@ -856,7 +933,107 @@ onUnmounted(() => {
   word-break: break-word;
 }
 
-/* 🚀 성능 최적화: 애니메이션 최적화 */
+/* 📱 반응형 디자인 */
+@media (max-width: 768px) {
+  .meta-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .date-navigation {
+    padding: 20px;
+  }
+
+  .date-title {
+    font-size: 24px;
+  }
+
+  .skeleton-section {
+    padding: 20px;
+  }
+
+  .skeleton-cards {
+    gap: 10px;
+  }
+
+  .skeleton-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .meta-item {
+    padding: 12px;
+  }
+
+  .meta-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .meta-value {
+    font-size: 14px;
+  }
+
+  .skeleton-section {
+    padding: 16px;
+  }
+
+  .skeleton-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 20px;
+  }
+
+  .date-navigation {
+    padding: 16px;
+  }
+
+  .date-title {
+    font-size: 20px;
+  }
+
+  .meta-grid {
+    gap: 12px;
+  }
+
+  .meta-item {
+    padding: 10px;
+  }
+
+  .skeleton-section {
+    padding: 12px;
+  }
+
+  .skeleton-card {
+    padding: 12px;
+  }
+
+  .skeleton-building-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .skeleton-section-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* 🚀 성능 최적화 */
+.will-change-transform {
+  will-change: transform;
+}
+
+.contain-layout {
+  contain: layout style;
+}
+
+/* 애니메이션 줄임 설정 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -865,15 +1042,52 @@ onUnmounted(() => {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .shimmer {
+    animation: none !important;
+  }
 }
 
 /* 터치 디바이스 최적화 */
 @media (hover: none) and (pointer: coarse) {
-  .action-btn:hover,
   .date-nav-btn:hover,
   .logout-btn:hover,
   .meta-item:hover {
     transform: none;
   }
 }
+
+/* 🎯 다크 모드 대응 (선택사항) */
+@media (prefers-color-scheme: dark) {
+  .meta-item {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+
+  .meta-item:hover {
+    background: #334155;
+  }
+
+  .meta-icon {
+    background: #475569;
+  }
+
+  .meta-label {
+    color: #94a3b8;
+  }
+
+  .meta-value {
+    color: #e2e8f0;
+  }
+
+  .skeleton-section,
+  .skeleton-card {
+    background: #1e293b;
+  }
+
+  .skeleton-item {
+    background: #334155;
+  }
+}
+
 </style>
