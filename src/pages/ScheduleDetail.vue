@@ -515,6 +515,7 @@ function addMoreWork() {
   const queryParams = {
     building: schedule.value.building,
     unit: schedule.value.unit || '',
+    room: schedule.value.room || '',
     date: schedule.value.date,
     from: 'detail'
   }

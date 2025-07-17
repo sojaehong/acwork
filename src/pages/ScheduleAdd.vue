@@ -473,6 +473,11 @@ function initializeFromQuery() {
       form.value.unitEtc = query.unit
     }
   }
+
+  // 호수 정보 설정
+  if (query.room) {
+    form.value.room = query.room
+  }
   
   // 날짜 설정
   if (query.date) {
