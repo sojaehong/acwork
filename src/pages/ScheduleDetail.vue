@@ -273,18 +273,6 @@
           </v-col>
           <v-col cols="3">
             <v-btn
-              color="success"
-              size="large"
-              block
-              class="action-btn add-more-btn"
-              @click="addMoreWork"
-            >
-              <v-icon start>mdi-plus</v-icon>
-              추가작업
-            </v-btn>
-          </v-col>
-          <v-col cols="3">
-            <v-btn
               v-if="schedule?.status === '취소됨'"
               color="error"
               size="large"
@@ -307,6 +295,18 @@
             >
               <v-icon start>mdi-cancel</v-icon>
               작업취소
+            </v-btn>
+          </v-col>
+          <v-col cols="3">
+            <v-btn
+              color="success"
+              size="large"
+              block
+              class="action-btn add-more-btn"
+              @click="addMoreWork"
+            >
+              <v-icon start>mdi-plus</v-icon>
+              추가작업
             </v-btn>
           </v-col>
           <v-col cols="3">
