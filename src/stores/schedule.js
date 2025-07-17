@@ -355,6 +355,31 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
+    // 🚀 새로 추가: 필터 토글 메서드
+    toggleFilter(type, value) {
+      if (!type || value === undefined) return
+      
+      switch (type) {
+        case 'status':
+        case 'building':
+        case 'task':
+          const currentArray = this.filters[type] || []
+          const index = currentArray.indexOf(value)
+          if (index === -1) {
+            this.filters[type] = [...currentArray, value]
+          } else {
+            this.filters[type] = currentArray.filter(item => item !== value)
+          }
+          break
+        case 'invoice':
+          // 세금계산서는 단일 선택 (O/X)
+          this.filters.invoice = this.filters.invoice === value ? null : value
+          break
+        default:
+          console.warn(`Unknown filter type: ${type}`)
+      }
+    },
+
     resetFilters() {
       this.filters = {
         status: [],

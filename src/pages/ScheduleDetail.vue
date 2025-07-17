@@ -259,7 +259,7 @@
       <!-- 🎯 하단 액션 버튼 -->
       <div class="floating-actions">
         <v-row dense>
-          <v-col cols="4">
+          <v-col cols="3">
             <v-btn
               variant="outlined"
               size="large"
@@ -268,10 +268,22 @@
               @click="goBack"
             >
               <v-icon start>mdi-arrow-left</v-icon>
-              뒤로가기
+              뒤로
             </v-btn>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="3">
+            <v-btn
+              color="success"
+              size="large"
+              block
+              class="action-btn add-more-btn"
+              @click="addMoreWork"
+            >
+              <v-icon start>mdi-plus</v-icon>
+              추가작업
+            </v-btn>
+          </v-col>
+          <v-col cols="3">
             <v-btn
               v-if="schedule?.status === '취소됨'"
               color="error"
@@ -297,7 +309,7 @@
               작업취소
             </v-btn>
           </v-col>
-          <v-col cols="4">
+          <v-col cols="3">
             <v-btn
               color="primary"
               size="large"
@@ -494,10 +506,27 @@ function goBack() {
     router.push('/schedules')
   }
 }
+
+// 🚀 새로 추가: 추가 작업 등록 함수
+function addMoreWork() {
+  if (!schedule.value) return
+  
+  // 현재 스케줄 정보를 쿼리 파라미터로 전달
+  const queryParams = {
+    building: schedule.value.building,
+    unit: schedule.value.unit || '',
+    date: schedule.value.date,
+    from: 'detail'
+  }
+  
+  router.push({
+    path: '/add',
+    query: queryParams
+  })
+}
 </script>
 
 <style scoped>
-/* Styles remain the same */
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
@@ -828,6 +857,16 @@ function goBack() {
 
 .back-btn .v-btn__content {
   color: #1e293b !important;
+}
+
+/* 🚀 새로 추가: 추가 작업 버튼 스타일 */
+.add-more-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.add-more-btn:hover {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .cancel-btn,

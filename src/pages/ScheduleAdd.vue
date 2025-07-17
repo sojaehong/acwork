@@ -12,7 +12,9 @@
           </div>
           <div class="ml-3">
             <h2 class="header-title">작업 등록</h2>
-            <div class="header-subtitle">새로운 작업을 등록하세요</div>
+            <div class="header-subtitle">
+              {{ route.query.from === 'detail' ? '추가 작업을 등록하세요' : '새로운 작업을 등록하세요' }}
+            </div>
           </div>
         </div>
 
@@ -21,6 +23,12 @@
           <v-chip :color="getFormCompletionColor()" size="small" class="mr-2">
             <v-icon start size="14">{{ getFormCompletionIcon() }}</v-icon>
             {{ getFormCompletionText() }}
+          </v-chip>
+          
+          <!-- 디테일에서 온 경우 표시 -->
+          <v-chip v-if="route.query.from === 'detail'" color="success" size="small" class="ml-2">
+            <v-icon start size="14">mdi-content-copy</v-icon>
+            자동완성됨
           </v-chip>
         </div>
       </div>
@@ -389,7 +397,7 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
@@ -408,6 +416,7 @@ const buildings = [
   '현대지식산업',
   '현대비지니스파크',
   '대명벨리온',
+  '에코 송파',
   '기타',
 ]
 const units = ['A', 'B', 'C', 'D', '기타']
@@ -428,7 +437,7 @@ const form = ref({
   room: '',
   tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
   status: '진행',
-  date: parseDateParam(route.query.date),
+  date: parseDateParam(route.query.date) || new Date(),
   memo: '',
   invoice: 'N',
 })
@@ -439,6 +448,43 @@ const dateConfig = {
   disableMobile: true,
   defaultDate: form.value.date,
   allowInput: true,
+}
+
+// 🚀 새로 추가: 쿼리 파라미터로부터 폼 초기화
+function initializeFromQuery() {
+  const query = route.query
+  
+  // 건물 정보 설정
+  if (query.building) {
+    if (buildings.includes(query.building)) {
+      form.value.building = query.building
+    } else {
+      form.value.building = '기타'
+      form.value.buildingEtc = query.building
+    }
+  }
+  
+  // 동 정보 설정
+  if (query.unit) {
+    if (units.includes(query.unit)) {
+      form.value.unit = query.unit
+    } else {
+      form.value.unit = '기타'
+      form.value.unitEtc = query.unit
+    }
+  }
+  
+  // 날짜 설정
+  if (query.date) {
+    form.value.date = parseDateParam(query.date)
+  }
+  
+  // 디테일 페이지에서 왔다면 성공 메시지 표시
+  if (query.from === 'detail') {
+    setTimeout(() => {
+      uiStore.showSnackbar('기존 작업 정보를 불러왔습니다. 작업 내용만 입력하세요!', 'success')
+    }, 500)
+  }
 }
 
 // 폼 완성도 계산
@@ -581,10 +627,14 @@ async function submit() {
     uiStore.showSnackbar('작업 등록 중 오류가 발생했습니다.', 'error')
   }
 }
+
+// 🚀 onMounted에서 쿼리 파라미터 초기화 실행
+onMounted(() => {
+  initializeFromQuery()
+})
 </script>
 
 <style scoped>
-/* Styles remain the same */
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -813,13 +863,6 @@ async function submit() {
 
 .status-btn:hover {
   transform: translateY(-2px);
-}
-
-/* 🧾 세금계산서 그리드 */
-.invoice-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
 }
 
 /* 🧾 세금계산서 그리드 */
