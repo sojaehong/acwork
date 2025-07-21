@@ -207,4 +207,78 @@ defineEmits(['edit-meta'])
     opacity: 0.5;
   }
 }
+
+/* 모바일 반응형 스타일 */
+@media (max-width: 768px) {
+  .meta-info-section {
+    padding: 12px;
+  }
+  
+  .meta-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .meta-item {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .meta-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  
+  .meta-icon .v-icon {
+    font-size: 16px;
+  }
+  
+  .meta-label {
+    font-size: 0.688rem;
+    margin-bottom: 1px;
+  }
+  
+  .meta-value {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+  
+  .meta-value .v-chip {
+    font-size: 0.625rem;
+    height: 20px;
+    margin: 1px;
+  }
+  
+  .meta-value .v-chip .v-icon {
+    font-size: 12px;
+  }
+  
+  .meta-skeleton .meta-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .skeleton-item {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .skeleton-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  
+  .skeleton-label {
+    height: 12px;
+    width: 60px;
+    margin-bottom: 4px;
+  }
+  
+  .skeleton-value {
+    height: 16px;
+    width: 100px;
+  }
+}
 </style>

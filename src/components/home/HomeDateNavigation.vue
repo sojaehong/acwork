@@ -119,4 +119,35 @@ const ddayText = computed(() => {
   margin-top: 8px;
   display: inline-block;
 }
+
+/* 모바일 반응형 스타일 */
+@media (max-width: 768px) {
+  .date-navigation {
+    padding: 16px 12px;
+  }
+  
+  .date-nav-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    border-radius: 8px !important;
+  }
+  
+  .date-nav-btn .v-icon {
+    font-size: 20px !important;
+  }
+  
+  .date-title {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  .date-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    margin-top: 4px;
+  }
+}
 </style>
