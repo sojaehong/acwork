@@ -123,31 +123,31 @@ const ddayText = computed(() => {
 /* 모바일 반응형 스타일 */
 @media (max-width: 768px) {
   .date-navigation {
-    padding: 16px 12px;
+    padding: 20px 16px;
   }
   
   .date-nav-btn {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    border-radius: 8px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 10px !important;
   }
   
   .date-nav-btn .v-icon {
-    font-size: 20px !important;
+    font-size: 24px !important;
   }
   
   .date-title {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.3;
   }
   
   .date-badge {
-    padding: 2px 8px;
-    border-radius: 8px;
-    font-size: 10px;
-    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-top: 6px;
   }
 }
 </style>

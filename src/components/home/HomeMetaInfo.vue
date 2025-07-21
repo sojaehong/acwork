@@ -211,74 +211,74 @@ defineEmits(['edit-meta'])
 /* 모바일 반응형 스타일 */
 @media (max-width: 768px) {
   .meta-info-section {
-    padding: 12px;
+    padding: 18px;
   }
   
   .meta-grid {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 14px;
   }
   
   .meta-item {
-    padding: 8px;
-    gap: 8px;
+    padding: 14px;
+    gap: 14px;
   }
   
   .meta-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
   }
   
   .meta-icon .v-icon {
-    font-size: 16px;
+    font-size: 20px;
   }
   
   .meta-label {
-    font-size: 0.688rem;
-    margin-bottom: 1px;
+    font-size: 0.8rem;
+    margin-bottom: 3px;
   }
   
   .meta-value {
-    font-size: 0.75rem;
-    line-height: 1.2;
+    font-size: 0.9rem;
+    line-height: 1.3;
   }
   
   .meta-value .v-chip {
-    font-size: 0.625rem;
-    height: 20px;
-    margin: 1px;
+    font-size: 0.7rem;
+    height: 24px;
+    margin: 2px;
   }
   
   .meta-value .v-chip .v-icon {
-    font-size: 12px;
+    font-size: 14px;
   }
   
   .meta-skeleton .meta-grid {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 14px;
   }
   
   .skeleton-item {
-    padding: 8px;
-    gap: 8px;
+    padding: 14px;
+    gap: 14px;
   }
   
   .skeleton-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
   }
   
   .skeleton-label {
-    height: 12px;
-    width: 60px;
-    margin-bottom: 4px;
+    height: 14px;
+    width: 70px;
+    margin-bottom: 6px;
   }
   
   .skeleton-value {
-    height: 16px;
-    width: 100px;
+    height: 18px;
+    width: 110px;
   }
 }
 </style>
