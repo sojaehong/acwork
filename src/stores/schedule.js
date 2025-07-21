@@ -14,6 +14,7 @@ import {
   where,
   limit,
 } from 'firebase/firestore'
+import userCache from '@/utils/userCache'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
@@ -161,15 +162,10 @@ export const useScheduleStore = defineStore('schedule', {
         if (!snap.empty) {
           const data = snap.docs[0].data()
           
-          // 작업자 정보 안전하게 처리
+          // 🚀 최적화: 작업자 정보 배치 조회로 N+1 문제 해결
           if (data.workers && data.workers.length > 0) {
             try {
-              const userDocs = await Promise.all(
-                data.workers.map((id) => getDoc(doc(db, 'users', id)))
-              )
-              data.workerNames = userDocs.map((u) =>
-                u.exists() ? u.data().name : '알 수 없음'
-              )
+              data.workerNames = await userCache.getUserNames(data.workers)
             } catch (userErr) {
               console.warn('작업자 정보 조회 중 일부 오류:', userErr)
               data.workerNames = []

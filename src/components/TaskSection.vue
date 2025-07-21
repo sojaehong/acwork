@@ -1,12 +1,12 @@
 <template>
   <div class="task-section">
     <div class="section-header">
-      <div :class="['section-icon', sectionType]">
-        <v-icon color="white">{{ icon }}</v-icon>
+      <div :class="['section-icon', props.sectionType]">
+        <v-icon color="white">{{ props.icon }}</v-icon>
       </div>
-      <h3 class="section-title">{{ title }}</h3>
-      <v-chip :color="color" size="small" class="ml-2">
-        {{ schedules.length }}개
+      <h3 class="section-title">{{ props.title }}</h3>
+      <v-chip :color="props.color" size="small" class="ml-2">
+        {{ props.schedules.length }}개
       </v-chip>
     </div>
     
@@ -18,9 +18,12 @@
       class="task-container"
     >
       <TaskCard
-        v-for="item in schedules"
+        v-for="item in props.schedules"
         :key="`task-${item.id}-${item.status}`"
         :item="item"
+        :is-mobile="windowWidth <= 768"
+        :badge-size="getBadgeSize()"
+        :icon-size="getIconSize()"
         class="task-card-wrapper"
         tabindex="0"
         role="button"
@@ -34,13 +37,17 @@
 </template>
 
 <script setup>
-import { defineAsyncComponent } from 'vue'
+import { defineAsyncComponent, computed } from 'vue'
+import { useResponsive } from '@/composables/useResponsive'
 
 // 🚀 성능 최적화: TaskCard 지연 로딩
 const TaskCard = defineAsyncComponent(() => import('@/components/TaskCard.vue'))
 
+// 🚀 최적화: 반응형 상태 관리
+const { windowWidth, getBadgeSize, getIconSize } = useResponsive()
+
 // Props 정의
-defineProps({
+const props = defineProps({
   schedules: {
     type: Array,
     required: true,
@@ -68,9 +75,16 @@ defineProps({
 // 이벤트 정의
 const emit = defineEmits(['item-click'])
 
+// schedules를 ref로 접근하기 위해 computed 추가
+const schedules = computed(() => props.schedules)
+
 // 🚀 성능 최적화: 이벤트 핸들러 최적화
 const handleItemClick = (id) => {
-  emit('item-click', id)
+  // schedules 배열에서 해당 ID의 전체 객체 찾아서 전달
+  const schedule = schedules.value.find(s => s.id === id)
+  if (schedule) {
+    emit('item-click', schedule)
+  }
 }
 </script>
 

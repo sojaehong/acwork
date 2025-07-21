@@ -27,24 +27,24 @@
         <div class="status-badges">
           <v-chip
             :color="statusColor"
-            :size="badgeSize"
+            :size="props.badgeSize"
             variant="flat"
             class="status-chip"
           >
-            <v-icon :start="!isMobile" :size="iconSize">{{ statusIcon }}</v-icon>
-            <span v-if="!isMobile">{{ displayStatus }}</span>
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ statusIcon }}</v-icon>
+            <span v-if="!props.isMobile">{{ displayStatus }}</span>
             <span v-else class="mobile-status-text">{{ shortStatus }}</span>
           </v-chip>
           <v-chip
             :color="item.invoice ? 'blue' : 'grey-lighten-2'"
-            :size="badgeSize"
+            :size="props.badgeSize"
             variant="flat"
             class="invoice-chip"
           >
-            <v-icon :start="!isMobile" :size="iconSize">{{
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{
               item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
             }}</v-icon>
-            <span v-if="!isMobile">{{ item.invoice ? '계산서' : '미발행' }}</span>
+            <span v-if="!props.isMobile">{{ item.invoice ? '계산서' : '미발행' }}</span>
             <span v-else class="mobile-invoice-text">{{ item.invoice ? '계산서' : '미발행' }}</span>
           </v-chip>
         </div>
@@ -87,132 +87,40 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
+import { getStatusInfo } from '@/utils/statusUtils'
 
 const props = defineProps({
   item: {
     type: Object,
     required: true,
   },
+  // 🚀 최적화: 외부에서 반응형 상태를 주입받아 성능 향상
+  isMobile: {
+    type: Boolean,
+    default: false
+  },
+  badgeSize: {
+    type: String,
+    default: 'small'
+  },
+  iconSize: {
+    type: String, 
+    default: '14'
+  }
 })
 
 defineEmits(['click'])
 
-// 한국 KST 기준 오늘 날짜 계산
-function getTodayKST() {
-  const now = new Date()
-  const kstOffset = 9 * 60 * 60 * 1000
-  const kst = new Date(now.getTime() + kstOffset)
-  return kst.toISOString().split('T')[0]
-}
+// 🚀 최적화: 메모이제이션된 상태 정보 사용
+const statusInfo = computed(() => getStatusInfo(props.item.status, props.item.date))
 
-const todayStr = getTodayKST()
-
-// 모바일 감지
-const isMobile = computed(() => {
-  if (typeof window !== 'undefined') {
-    return window.innerWidth <= 768
-  }
-  return false
-})
-
-// 뱃지 크기 반응형
-const badgeSize = computed(() => {
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth <= 480) return 'x-small'
-    if (window.innerWidth <= 768) return 'small'
-  }
-  return 'small'
-})
-
-// 아이콘 크기 반응형
-const iconSize = computed(() => {
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth <= 480) return '12'
-    if (window.innerWidth <= 768) return '14'
-  }
-  return '14'
-})
-
-// displayStatus: '예정' 적용 로직 포함
-const displayStatus = computed(() => {
-  if (props.item.status === '진행' && props.item.date > todayStr) {
-    return '예정'
-  }
-  return props.item.status
-})
-
-// 모바일용 짧은 상태 텍스트
-const shortStatus = computed(() => {
-  switch (displayStatus.value) {
-    case '완료':
-      return '완료'
-    case '보류':
-      return '보류'
-    case '진행':
-      return '진행'
-    case '예정':
-      return '예정'
-    case '취소됨':
-      return '취소'
-    default:
-      return displayStatus.value
-  }
-})
-
-// 상태별 색상 적용
-const statusColor = computed(() => {
-  switch (displayStatus.value) {
-    case '완료':
-      return 'success'
-    case '보류':
-      return 'error'
-    case '진행':
-      return 'warning'
-    case '예정':
-      return 'purple'
-    case '취소됨':
-      return 'grey'
-    default:
-      return 'grey'
-  }
-})
-
-// 상태별 아이콘
-const statusIcon = computed(() => {
-  switch (displayStatus.value) {
-    case '완료':
-      return 'mdi-check-circle'
-    case '보류':
-      return 'mdi-pause-circle'
-    case '진행':
-      return 'mdi-play-circle'
-    case '예정':
-      return 'mdi-clock-outline'
-    case '취소됨':
-      return 'mdi-cancel'
-    default:
-      return 'mdi-help-circle'
-  }
-})
-
-// 상태별 카드 클래스
-const statusClass = computed(() => {
-  switch (displayStatus.value) {
-    case '완료':
-      return 'status-complete'
-    case '보류':
-      return 'status-hold'
-    case '진행':
-      return 'status-active'
-    case '예정':
-      return 'status-planned'
-    case '취소됨':
-      return 'status-canceled'
-    default:
-      return 'status-default'
-  }
-})
+// 개별 속성들을 computed로 분해 (reactivity 유지)
+const displayStatus = computed(() => statusInfo.value.displayStatus)
+const statusColor = computed(() => statusInfo.value.color)
+const statusIcon = computed(() => statusInfo.value.icon)
+const shortStatus = computed(() => statusInfo.value.shortStatus)
+const statusClass = computed(() => statusInfo.value.statusClass)
 </script>
 
 <style scoped>
