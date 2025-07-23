@@ -333,6 +333,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useScheduleStore } from '@/stores/schedule'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
+import { getTodayDateKST } from '@/utils/date.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -344,7 +345,7 @@ const newDate = ref('')
 const displayDate = ref('')
 const pickerOpen = ref(false)
 const statusOptions = ['진행', '보류', '완료']
-const today = new Date().toISOString().split('T')[0]
+const today = getTodayDateKST()
 
 const getStatusColor = (status, isSelected = false) => {
   if (!isSelected && arguments.length > 1) return 'grey'
@@ -386,7 +387,7 @@ const formatDate = (dateStr) => {
 
 const getDdayText = (dateStr) => {
   if (!dateStr) return ''
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayDateKST()
   const targetDate = new Date(dateStr)
   const todayDate = new Date(today)
   const diffTime = targetDate - todayDate

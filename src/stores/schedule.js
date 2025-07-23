@@ -15,6 +15,7 @@ import {
   limit,
 } from 'firebase/firestore'
 import userCache from '@/utils/userCache'
+import { getTodayDateKST } from '@/utils/date'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
@@ -281,7 +282,7 @@ export const useScheduleStore = defineStore('schedule', {
         const newSchedule = {
           id: docRef.id,
           ...scheduleData,
-          createdAt: new Date(),
+          createdAt: new Date(getTodayDateKST() + 'T00:00:00+09:00'),
         }
         this.schedules.unshift(newSchedule) // Add to the beginning of the list
         return newSchedule

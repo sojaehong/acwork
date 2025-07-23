@@ -376,6 +376,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
+import { getTodayDateKST } from '@/utils/date.js'
 import {
   collection,
   getDocs,
@@ -404,12 +405,6 @@ const updating = ref(false)
 const error = ref('')
 
 // 🚀 개선된 날짜 처리 함수
-function getTodayKST() {
-  const now = new Date()
-  const offset = 9 * 60 * 60 * 1000
-  const kst = new Date(now.getTime() + offset)
-  return kst.toISOString().split('T')[0]
-}
 
 function formatDate(dateStr) {
   if (!dateStr) return '-'
@@ -418,7 +413,7 @@ function formatDate(dateStr) {
   return `${dateStr} (${day})`
 }
 
-const todayKST = getTodayKST()
+const todayKST = getTodayDateKST()
 
 function toKSTDate(dateStr) {
   return new Date(dateStr + 'T00:00:00+09:00')

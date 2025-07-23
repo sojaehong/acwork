@@ -403,6 +403,7 @@ import 'flatpickr/dist/flatpickr.css'
 import { Korean } from 'flatpickr/dist/l10n/ko.js'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUiStore } from '@/stores/ui'
+import { getTodayDateKST } from '@/utils/date.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -424,9 +425,12 @@ const types = ['설치', '수리', '점검', '청소', '기타']
 const statuses = ['진행', '완료', '보류']
 
 function parseDateParam(param) {
-  if (!param || typeof param !== 'string') return new Date()
+  if (!param || typeof param !== 'string') {
+    const todayKST = getTodayDateKST()
+    return new Date(todayKST + 'T00:00:00+09:00')
+  }
   const [y, m, d] = param.split('-').map(Number)
-  return new Date(y, m - 1, d)
+  return new Date(y, m - 1, d, 0, 0, 0)
 }
 
 const form = ref({
@@ -437,7 +441,7 @@ const form = ref({
   room: '',
   tasks: [{ id: Date.now() + Math.random(), name: '', count: 1, etc: '' }],
   status: '진행',
-  date: parseDateParam(route.query.date) || new Date(),
+  date: parseDateParam(route.query.date),
   memo: '',
   invoice: 'N',
 })

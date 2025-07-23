@@ -1,29 +1,51 @@
 <template>
   <div class="empty-state">
     <div class="empty-icon">
-      <v-icon size="80" color="grey-lighten-2">mdi-clipboard-text-off</v-icon>
+      <v-icon size="80" color="grey-lighten-2">{{ icon || 'mdi-clipboard-text-off' }}</v-icon>
     </div>
-    <h3 class="empty-title">등록된 작업이 없습니다</h3>
-    <p class="empty-description">새 작업을 등록하여 시작해보세요!</p>
+    <h3 class="empty-title">{{ title || '등록된 작업이 없습니다' }}</h3>
+    <p class="empty-description">{{ subtitle || '새 작업을 등록하여 시작해보세요!' }}</p>
     <v-btn 
       color="primary" 
       size="large" 
       @click="handleAddTask"
       class="mt-4 add-task-btn"
-      aria-label="첫 작업 등록하기"
+      :aria-label="buttonText || '첫 작업 등록하기'"
     >
       <v-icon start>mdi-plus</v-icon>
-      첫 작업 등록하기
+      {{ buttonText || '첫 작업 등록하기' }}
     </v-btn>
   </div>
 </template>
 
 <script setup>
-// 🚀 emit 정의 수정
-const emit = defineEmits(['add-first-task'])
+// Props 정의
+const props = defineProps({
+  icon: {
+    type: String,
+    default: 'mdi-clipboard-text-off'
+  },
+  title: {
+    type: String,
+    default: '등록된 작업이 없습니다'
+  },
+  subtitle: {
+    type: String,
+    default: '새 작업을 등록하여 시작해보세요!'
+  },
+  buttonText: {
+    type: String,
+    default: '첫 작업 등록하기'
+  }
+})
+
+// 🚀 emit 정의 수정 - 더 범용적인 이벤트명 사용
+const emit = defineEmits(['button-click', 'add-first-task'])
 
 // 🚀 이벤트 핸들러 함수
 const handleAddTask = () => {
+  // 두 이벤트 모두 emit하여 호환성 유지
+  emit('button-click')
   emit('add-first-task')
 }
 </script>

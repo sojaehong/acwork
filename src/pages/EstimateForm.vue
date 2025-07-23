@@ -548,6 +548,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '@/firebase/config'
+import { getTodayDateKST } from '@/utils/date.js'
 import {
   collection,
   addDoc,
@@ -569,16 +570,11 @@ const uiStore = useUiStore()
 
 const form = reactive({
   title: '',
-  date: getTodayKST(),
+  date: getTodayDateKST(),
   client: '',
   items: [],
 })
 
-function getTodayKST() {
-  const now = new Date()
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-  return now.toISOString().substring(0, 10)
-}
 
 const productOptions = ref([])
 const productButtons = ref([])
@@ -863,9 +859,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 */
-.custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 🎨 헤더 스타일 - :deep() 선택자 사용하여 v-app-bar에 적용 */
+:deep(.custom-header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

@@ -574,6 +574,7 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getTodayDateKST } from '@/utils/date.js'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { db } from '@/firebase/config'
@@ -588,7 +589,7 @@ const showPreview = ref(true)
 const uiStore = useUiStore()
 
 const form = reactive({
-  date: getTodayKST(),
+  date: getTodayDateKST(),
   client: '',
   writer: '',
   items: [],
@@ -596,11 +597,6 @@ const form = reactive({
   receiver: '',
 })
 
-function getTodayKST() {
-  const now = new Date()
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-  return now.toISOString().slice(0, 10)
-}
 
 function formatKoreanDate(dateStr) {
   if (!dateStr) return '년 월 일'
@@ -795,9 +791,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 🎨 헤더 스타일 */
-.custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 🎨 헤더 스타일 - :deep() 선택자 사용하여 v-app-bar에 적용 */
+:deep(.custom-header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

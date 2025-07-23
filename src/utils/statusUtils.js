@@ -1,11 +1,9 @@
 import { memoize } from './debounce'
+import { getTodayDateKST } from './date'
 
 // 오늘 날짜 캐싱 (KST 기준)
 const getTodayKST = memoize(() => {
-  const now = new Date()
-  const kstOffset = 9 * 60 * 60 * 1000
-  const kst = new Date(now.getTime() + kstOffset)
-  return kst.toISOString().split('T')[0]
+  return getTodayDateKST()
 })
 
 // 상태 정보 계산을 메모이제이션

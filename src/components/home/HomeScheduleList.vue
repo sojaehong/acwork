@@ -54,7 +54,7 @@
       icon="mdi-calendar-blank"
       title="등록된 작업이 없습니다"
       subtitle="새로운 작업을 추가해보세요!"
-      button-text="작업 추가"
+      button-text="첫 작업 등록하기"
       @button-click="$emit('add-schedule')"
     />
   </div>

@@ -184,6 +184,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useScheduleStore } from '@/stores/schedule'
 import { useDebounceFn, useThrottleFn } from '@vueuse/core'
+import { getTodayDateKST } from '@/utils/date.js'
 
 // 🚀 성능 최적화: 컴포넌트 지연 로딩
 const DateSection = defineAsyncComponent(() => import('@/components/DateSection.vue'))
@@ -241,8 +242,8 @@ const filteredSchedules = computed(() => {
         ) return false
       }
       
-      if (startDate && new Date(item.date) < new Date(startDate)) return false
-      if (endDate && new Date(item.date) > new Date(endDate)) return false
+      if (startDate && new Date(item.date + 'T00:00:00+09:00') < new Date(startDate + 'T00:00:00+09:00')) return false
+      if (endDate && new Date(item.date + 'T00:00:00+09:00') > new Date(endDate + 'T00:00:00+09:00')) return false
       
       return true
     })
@@ -267,7 +268,7 @@ const paginatedScheduleData = computed(() => {
     }
     
     const sortedGroups = Array.from(groupMap.entries())
-      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+      .sort((a, b) => new Date(b[0] + 'T00:00:00+09:00') - new Date(a[0] + 'T00:00:00+09:00'))
       .map(([date, items]) => ({ date, items }))
     
     const maxGroups = currentPage.value * ITEMS_PER_PAGE

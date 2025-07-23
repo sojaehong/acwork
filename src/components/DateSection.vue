@@ -129,6 +129,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { getTodayDateKST } from '@/utils/date.js'
 
 const props = defineProps({
   date: {
@@ -170,7 +171,7 @@ const formattedDate = computed(() => {
 // D-day 계산
 const ddayText = computed(() => {
   try {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayDateKST()
     const targetDate = new Date(props.date)
     const todayDate = new Date(today)
     const diffTime = targetDate - todayDate
@@ -189,7 +190,7 @@ const ddayText = computed(() => {
 // 상태 관련 함수들
 const getStatusColor = (item) => {
   try {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayDateKST()
     if (item.status === '진행') {
       if (item.date === today) return 'orange'
       if (item.date > today) return 'purple'
@@ -206,7 +207,7 @@ const getStatusColor = (item) => {
 
 const getStatusText = (item) => {
   try {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayDateKST()
     if (item.status === '진행') {
       if (item.date === today) return '진행'
       if (item.date > today) return '예정'
@@ -219,7 +220,7 @@ const getStatusText = (item) => {
 
 const getStatusIcon = (item) => {
   try {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getTodayDateKST()
     if (item.status === '진행') {
       if (item.date === today) return 'mdi-play-circle'
       if (item.date > today) return 'mdi-clock-outline'

@@ -35,6 +35,7 @@
 import { computed } from 'vue'
 import { format, differenceInDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { getTodayDateKST } from '@/utils/date.js'
 
 const props = defineProps({
   selectedDate: {
@@ -54,7 +55,8 @@ const displayDate = computed(() => {
 })
 
 const ddayText = computed(() => {
-  const today = new Date()
+  const todayStr = getTodayDateKST()
+  const today = new Date(todayStr + 'T00:00:00+09:00')
   const diff = differenceInDays(props.selectedDate, today)
   
   if (diff === 0) return '오늘'

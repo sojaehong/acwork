@@ -531,6 +531,7 @@ import { db } from '@/firebase/config'
 import { collection, getDocs } from 'firebase/firestore'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 import { useUserStore } from '@/stores/user'
+import { getTodayDateKST } from '@/utils/date.js'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -542,7 +543,7 @@ const workers = ref([])
 const metaList = ref([])
 const userMap = ref({})
 const error = ref('')
-const today = getTodayKST()
+const today = getTodayDateKST()
 
 // 로딩 상태들
 const loading = ref(false)
@@ -574,12 +575,6 @@ const upcomingSection = ref(null)
 const completedSection = ref(null)
 
 // 유틸리티 함수들
-function getTodayKST() {
-  const now = new Date()
-  const offset = 9 * 60 * 60 * 1000
-  const kst = new Date(now.getTime() + offset)
-  return kst.toISOString().split('T')[0]
-}
 
 function dateDiff(from, to) {
   const fromDate = new Date(from + 'T00:00:00+09:00')
@@ -602,10 +597,12 @@ function getDdayText(dday) {
 }
 
 function updateLastUpdateTime() {
-  const now = new Date()
+  const todayKST = getTodayDateKST()
+  const now = new Date(todayKST + 'T' + new Date().toTimeString().split(' ')[0] + '+09:00')
   lastUpdateTime.value = now.toLocaleTimeString('ko-KR', { 
     hour: '2-digit', 
-    minute: '2-digit' 
+    minute: '2-digit',
+    timeZone: 'Asia/Seoul'
   })
 }
 
