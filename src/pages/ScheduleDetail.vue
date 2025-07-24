@@ -512,12 +512,12 @@ function goBack() {
 function addMoreWork() {
   if (!schedule.value) return
   
-  // 현재 스케줄 정보를 쿼리 파라미터로 전달
+  // 현재 스케줄 정보를 쿼리 파라미터로 전달 (날짜는 오늘로 설정)
   const queryParams = {
     building: schedule.value.building,
     unit: schedule.value.unit || '',
     room: schedule.value.room || '',
-    date: schedule.value.date,
+    date: today,
     from: 'detail'
   }
   

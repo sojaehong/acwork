@@ -91,6 +91,15 @@
                     density="comfortable"
                     class="modern-input"
                   />
+                  <div class="account-checkbox-wrapper mt-2">
+                    <v-checkbox
+                      v-model="includeAccountInfo"
+                      label="계좌번호 포함"
+                      color="primary"
+                      density="compact"
+                      @change="toggleAccountInfo"
+                    />
+                  </div>
                 </div>
               </v-col>
             </v-row>
@@ -597,6 +606,9 @@ const form = reactive({
   receiver: '',
 })
 
+const includeAccountInfo = ref(false)
+const accountInfo = '우리은행 1002 150 335422 배규석'
+
 
 function formatKoreanDate(dateStr) {
   if (!dateStr) return '년 월 일'
@@ -781,6 +793,18 @@ async function downloadTransactionImageWithMargin() {
   }
 }
 
+function toggleAccountInfo() {
+  if (includeAccountInfo.value) {
+    // 체크박스가 체크되면 계좌번호를 비고란에 추가
+    if (!form.remark.includes(accountInfo)) {
+      form.remark = form.remark ? `${form.remark} ${accountInfo}` : accountInfo
+    }
+  } else {
+    // 체크박스가 해제되면 계좌번호를 비고란에서 제거
+    form.remark = form.remark.replace(accountInfo, '').trim()
+  }
+}
+
 function goBack() {
   router.back()
 }
@@ -922,6 +946,13 @@ onMounted(() => {
 /* 입력 필드 스타일 */
 .input-wrapper {
   position: relative;
+}
+
+.account-checkbox-wrapper {
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .modern-input {
