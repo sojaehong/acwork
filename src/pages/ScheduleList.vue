@@ -26,12 +26,13 @@
           <!-- 필터 상태 표시 -->
           <v-chip
             v-if="hasActiveFilters"
-            color="warning"
+            color="primary"
             size="small"
+            variant="tonal"
             class="mr-2"
           >
             <v-icon start size="14">mdi-filter</v-icon>
-            필터 적용됨
+            {{ activeFilterChips.length }}개 필터 적용됨
           </v-chip>
 
           <!-- 필터 토글 버튼 -->
@@ -105,6 +106,10 @@
           <!-- 통계 요약 카드 -->
           <StatsCard 
             :stats="computedStats"
+            @filter-by-status="handleFilterByStatus"
+            @filter-by-work-type="handleFilterByWorkType"
+            @filter-by-building="handleFilterByBuilding"
+            @filter-by-urgency="handleFilterByUrgency"
             class="mb-8"
           />
 
@@ -162,7 +167,11 @@
       <!-- 🏠 하단 홈 버튼 -->
       <FloatingHomeButton 
         v-if="!showFilters"
+        :has-active-filters="hasActiveFilters"
+        :active-filter-chips="activeFilterChips"
         @go-home="goHome"
+        @reset-filters="resetFilters"
+        @remove-filter="removeFilter"
       />
 
       <!-- 🔍 필터 드로어 -->
@@ -185,6 +194,7 @@ import { useUserStore } from '@/stores/user'
 import { useScheduleStore } from '@/stores/schedule'
 import { useDebounceFn, useThrottleFn } from '@vueuse/core'
 import { getTodayDateKST } from '@/utils/date.js'
+import { calculateAdvancedStats } from '@/utils/statusUtils.js'
 
 // 🚀 성능 최적화: 컴포넌트 지연 로딩
 const DateSection = defineAsyncComponent(() => import('@/components/DateSection.vue'))
@@ -291,19 +301,94 @@ const paginatedScheduleData = computed(() => {
   }
 })
 
-// 🚀 통계 계산
+// 🚀 고도화된 통계 계산
 const computedStats = computed(() => {
   const items = filteredSchedules.value
-  const statusCounts = items.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] || 0) + 1
-    return acc
-  }, {})
   
-  return {
-    total: items.length,
-    active: statusCounts['진행'] || 0,
-    completed: statusCounts['완료'] || 0,
-    hold: statusCounts['보류'] || 0
+  // 새로운 statusUtils 사용
+  try {
+    return calculateAdvancedStats(items)
+  } catch (err) {
+    console.error('통계 계산 오류:', err)
+    // 기존 방식으로 fallback
+    const statusCounts = items.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1
+      return acc
+    }, {})
+    
+    return {
+      total: items.length,
+      byStatus: statusCounts,
+      byUrgency: {},
+      byComplexity: {},
+      byCategory: {
+        upcoming: 0,
+        active: statusCounts['진행'] || 0,
+        paused: 0,
+        delayed: 0,
+        completed: statusCounts['완료'] || 0,
+        hold: statusCounts['보류'] || 0,
+        cancelled: statusCounts['취소됨'] || 0,
+        rework: 0,
+        waiting: 0,
+        pending: 0
+      },
+      averageProgress: 0,
+      overdue: 0,
+      today: 0,
+      thisWeek: 0,
+      efficiency: ((statusCounts['완료'] || 0) / Math.max(items.length, 1)) * 100,
+      byWorkType: items.reduce((acc, item) => {
+        if (item.tasks && item.tasks.length > 0) {
+          item.tasks.forEach(task => {
+            const taskName = task.name || '기타'
+            
+            // 더 안전한 count 파싱 (동일한 로직)
+            let taskCount = 1
+            if (task.count !== undefined && task.count !== null && task.count !== '') {
+              if (typeof task.count === 'string') {
+                const trimmed = task.count.trim()
+                if (/^\d+$/.test(trimmed)) {
+                  taskCount = parseInt(trimmed, 10)
+                } else {
+                  console.warn('Fallback: 문자열 count 파싱 실패:', {
+                    item: item.id,
+                    taskName,
+                    originalCount: task.count,
+                    type: typeof task.count
+                  })
+                }
+              } else if (typeof task.count === 'number' && !isNaN(task.count)) {
+                taskCount = Math.floor(task.count)
+              }
+            }
+            
+            // 안전성 검증
+            if (taskCount <= 0) {
+              taskCount = 1
+            } else if (taskCount > 100) {
+              console.warn(`Fallback: 비정상적으로 큰 작업 카운트 (제한됨):`, {
+                item: item.id,
+                building: item.building,
+                taskName,
+                originalCount: task.count,
+                parsedCount: taskCount
+              })
+              taskCount = Math.min(taskCount, 10)
+            }
+            
+            acc[taskName] = (acc[taskName] || 0) + taskCount
+          })
+        }
+        return acc
+      }, {}),
+      byBuilding: items.reduce((acc, item) => {
+        if (item.building) {
+          acc[item.building] = (acc[item.building] || 0) + 1
+        }
+        return acc
+      }, {})
+    }
   }
 })
 
@@ -311,6 +396,104 @@ const computedStats = computed(() => {
 const hasActiveFilters = computed(() => {
   const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
   return !!(status.length || building.length || task.length || invoice || searchText || startDate || endDate)
+})
+
+// 🚀 활성 필터 칩들 생성
+const activeFilterChips = computed(() => {
+  const chips = []
+  const { status, building, task, invoice, searchText, startDate, endDate } = store.filters
+  
+  // 상태 필터
+  status.forEach(s => {
+    chips.push({
+      key: `status-${s}`,
+      type: 'status',
+      value: s,
+      label: s,
+      color: 'primary',
+      icon: 'mdi-flag'
+    })
+  })
+  
+  // 건물 필터
+  building.forEach(b => {
+    chips.push({
+      key: `building-${b}`,
+      type: 'building',
+      value: b,
+      label: b,
+      color: 'secondary',
+      icon: 'mdi-office-building'
+    })
+  })
+  
+  // 작업 종류 필터
+  task.forEach(t => {
+    chips.push({
+      key: `task-${t}`,
+      type: 'task',
+      value: t,
+      label: t,
+      color: 'success',
+      icon: 'mdi-wrench'
+    })
+  })
+  
+  // 세금계산서 필터
+  if (invoice) {
+    chips.push({
+      key: `invoice-${invoice}`,
+      type: 'invoice',
+      value: invoice,
+      label: invoice === 'O' ? '계산서 발행' : '미발행',
+      color: 'info',
+      icon: 'mdi-receipt'
+    })
+  }
+  
+  // 검색어 필터
+  if (searchText) {
+    chips.push({
+      key: `search-${searchText}`,
+      type: 'searchText',
+      value: searchText,
+      label: `"${searchText}"`,
+      color: 'warning',
+      icon: 'mdi-magnify'
+    })
+  }
+  
+  // 날짜 범위 필터
+  if (startDate && endDate) {
+    chips.push({
+      key: `date-range`,
+      type: 'dateRange',
+      value: null,
+      label: `${startDate} ~ ${endDate}`,
+      color: 'purple',
+      icon: 'mdi-calendar-range'
+    })
+  } else if (startDate) {
+    chips.push({
+      key: `start-date`,
+      type: 'startDate',
+      value: startDate,
+      label: `${startDate} 이후`,
+      color: 'purple',
+      icon: 'mdi-calendar-start'
+    })
+  } else if (endDate) {
+    chips.push({
+      key: `end-date`,
+      type: 'endDate',
+      value: endDate,
+      label: `${endDate} 이전`,
+      color: 'purple',
+      icon: 'mdi-calendar-end'
+    })
+  }
+  
+  return chips
 })
 
 // 🚀 필터 옵션들
@@ -362,6 +545,33 @@ const applyFilters = useDebounceFn((filters) => {
   currentPage.value = 1
 }, 300)
 
+// 🚀 개별 필터 제거 함수
+const removeFilter = (type, value) => {
+  switch (type) {
+    case 'status':
+    case 'building':
+    case 'task':
+      store.toggleFilter(type, value)
+      break
+    case 'invoice':
+      store.setFilters({ invoice: null })
+      break
+    case 'searchText':
+      store.setFilters({ searchText: '' })
+      break
+    case 'startDate':
+      store.setFilters({ startDate: null })
+      break
+    case 'endDate':
+      store.setFilters({ endDate: null })
+      break
+    case 'dateRange':
+      store.setFilters({ startDate: null, endDate: null })
+      break
+  }
+  currentPage.value = 1
+}
+
 // 🚀 더 보기 기능
 const loadMoreItems = () => {
   if (isLoadingMore.value) return
@@ -370,6 +580,74 @@ const loadMoreItems = () => {
     currentPage.value += 1
     isLoadingMore.value = false
   }, 300)
+}
+
+// 🚀 통계 카드 클릭 필터링 핸들러들
+const handleFilterByStatus = (statusLabel) => {
+  // 기존 필터에 추가/제거 (토글)
+  store.toggleFilter('status', statusLabel)
+  currentPage.value = 1
+}
+
+const handleFilterByWorkType = (workTypeName) => {
+  // 기존 필터에 추가/제거 (토글)
+  store.toggleFilter('task', workTypeName)
+  currentPage.value = 1
+}
+
+const handleFilterByBuilding = (buildingName) => {
+  // 기존 필터에 추가/제거 (토글)
+  store.toggleFilter('building', buildingName)
+  currentPage.value = 1
+}
+
+const handleFilterByUrgency = (urgencyLabel) => {
+  // 긴급도는 날짜 기반 필터링이므로 기존 날짜 필터를 교체
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  
+  switch (urgencyLabel) {
+    case '오늘':
+      // 오늘 날짜로 필터링
+      store.setFilters({ 
+        ...store.filters, 
+        startDate: todayStr, 
+        endDate: todayStr 
+      })
+      break
+    case '기한초과':
+      // 어제까지의 미완료 작업
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      store.setFilters({ 
+        ...store.filters,
+        endDate: yesterday.toISOString().split('T')[0],
+        startDate: null,
+        status: [...(store.filters.status || []), '진행', '예정', '일시정지', '지연됨', '보류'].filter((v, i, a) => a.indexOf(v) === i)
+      })
+      break
+    case '내일':
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const tomorrowStr = tomorrow.toISOString().split('T')[0]
+      store.setFilters({ 
+        ...store.filters, 
+        startDate: tomorrowStr, 
+        endDate: tomorrowStr 
+      })
+      break
+    case '이번 주':
+      const weekLater = new Date(today)
+      weekLater.setDate(weekLater.getDate() + 7)
+      store.setFilters({ 
+        ...store.filters, 
+        startDate: todayStr, 
+        endDate: weekLater.toISOString().split('T')[0] 
+      })
+      break
+  }
+  
+  currentPage.value = 1
 }
 
 // 🚀 라이프사이클
@@ -430,6 +708,7 @@ watch(() => store.error, (newError) => { if (newError) error.value = newError })
 .header-subtitle {
   color: rgba(255, 255, 255, 0.8); font-size: 12px; font-weight: 500;
 }
+
 
 /* 🌀 메인 컨텐츠 및 로딩 */
 .main-content {

@@ -25,16 +25,44 @@
         
         <!-- 상태 뱃지들 - 항상 오른쪽에 가로로 배치 -->
         <div class="status-badges">
+          <!-- 긴급도 뱃지 -->
           <v-chip
-            :color="statusColor"
+            v-if="urgencyInfo.label && urgencyInfo.priority <= 4"
+            :color="urgencyInfo.color"
             :size="props.badgeSize"
-            variant="flat"
+            :variant="urgencyInfo.variant"
+            class="urgency-chip"
+          >
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ urgencyInfo.icon }}</v-icon>
+            <span v-if="!props.isMobile">{{ urgencyInfo.label }}</span>
+            <span v-else class="mobile-urgency-text">{{ urgencyInfo.label }}</span>
+          </v-chip>
+          
+          <!-- 상태 뱃지 -->
+          <v-chip
+            :color="statusInfo.color"
+            :size="props.badgeSize"
+            :variant="statusInfo.variant || 'flat'"
             class="status-chip"
           >
-            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ statusIcon }}</v-icon>
-            <span v-if="!props.isMobile">{{ displayStatus }}</span>
-            <span v-else class="mobile-status-text">{{ shortStatus }}</span>
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ statusInfo.icon }}</v-icon>
+            <span v-if="!props.isMobile">{{ statusInfo.shortStatus }}</span>
+            <span v-else class="mobile-status-text">{{ statusInfo.shortStatus }}</span>
           </v-chip>
+          
+          <!-- 복잡도 뱃지 -->
+          <v-chip
+            v-if="complexityInfo.level > 1"
+            :color="complexityInfo.color"
+            :size="props.badgeSize"
+            variant="outlined"
+            class="complexity-chip"
+          >
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ complexityInfo.icon }}</v-icon>
+            <span v-if="!props.isMobile">{{ complexityInfo.label }}</span>
+          </v-chip>
+          
+          <!-- 세금계산서 뱃지 -->
           <v-chip
             :color="item.invoice ? 'blue' : 'grey-lighten-2'"
             :size="props.badgeSize"
@@ -48,6 +76,21 @@
             <span v-else class="mobile-invoice-text">{{ item.invoice ? '계산서' : '미발행' }}</span>
           </v-chip>
         </div>
+      </div>
+
+      <!-- 진행률 표시 -->
+      <div class="progress-section" v-if="progress > 0">
+        <div class="progress-header">
+          <span class="progress-label">진행률</span>
+          <span class="progress-value">{{ progress }}%</span>
+        </div>
+        <v-progress-linear
+          :model-value="progress"
+          :color="progressColor"
+          height="6"
+          rounded
+          class="progress-bar"
+        />
       </div>
 
       <v-divider class="my-3"></v-divider>
@@ -87,8 +130,15 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
-import { getStatusInfo } from '@/utils/statusUtils'
+import { computed } from 'vue'
+import { 
+  enrichScheduleData,
+  calculateProgress,
+  calculateUrgency,
+  calculateComplexity,
+  URGENCY_CONFIG,
+  COMPLEXITY_CONFIG
+} from '@/utils/statusUtils'
 
 const props = defineProps({
   item: {
@@ -112,15 +162,59 @@ const props = defineProps({
 
 defineEmits(['click'])
 
-// 🚀 최적화: 메모이제이션된 상태 정보 사용
-const statusInfo = computed(() => getStatusInfo(props.item.status, props.item.date))
+// 🚀 통합 작업 정보 계산
+const enrichedItem = computed(() => {
+  try {
+    return enrichScheduleData(props.item)
+  } catch (err) {
+    console.error('작업 정보 계산 오류:', err)
+    // fallback
+    return {
+      ...props.item,
+      statusInfo: {
+        displayStatus: props.item.status,
+        color: 'grey',
+        icon: 'mdi-help-circle',
+        shortStatus: props.item.status,
+        statusClass: 'status-unknown',
+        variant: 'outlined'
+      },
+      urgencyInfo: { label: '', priority: 7, color: 'transparent', icon: '', variant: 'text' },
+      progress: 0,
+      complexityInfo: { label: '보통', color: 'warning', icon: 'mdi-circle-double', level: 2 }
+    }
+  }
+})
 
-// 개별 속성들을 computed로 분해 (reactivity 유지)
-const displayStatus = computed(() => statusInfo.value.displayStatus)
-const statusColor = computed(() => statusInfo.value.color)
-const statusIcon = computed(() => statusInfo.value.icon)
-const shortStatus = computed(() => statusInfo.value.shortStatus)
-const statusClass = computed(() => statusInfo.value.statusClass)
+// 🚀 개별 정보 추출
+const statusInfo = computed(() => enrichedItem.value.statusInfo)
+const urgencyInfo = computed(() => enrichedItem.value.urgencyInfo)
+const complexityInfo = computed(() => enrichedItem.value.complexityInfo)
+const progress = computed(() => enrichedItem.value.progress)
+
+// 🚀 진행률 색상 계산
+const progressColor = computed(() => {
+  const p = progress.value
+  if (p >= 90) return 'success'
+  if (p >= 70) return 'primary'
+  if (p >= 40) return 'warning'
+  if (p >= 20) return 'orange'
+  return 'error'
+})
+
+// 🚀 카드 스타일 클래스
+const statusClass = computed(() => {
+  const classes = [statusInfo.value.statusClass]
+  
+  // 긴급도에 따른 추가 클래스
+  if (urgencyInfo.value.priority <= 2) {
+    classes.push('card-urgent')
+  } else if (urgencyInfo.value.priority <= 4) {
+    classes.push('card-soon')
+  }
+  
+  return classes.join(' ')
+})
 </script>
 
 <style scoped>
@@ -201,28 +295,92 @@ const statusClass = computed(() => statusInfo.value.statusClass)
   white-space: nowrap;
 }
 
+/* 진행률 섹션 */
+.progress-section {
+  margin: 16px 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.progress-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.progress-bar {
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 /* 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 */
 .status-badges {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0; /* 절대 축소되지 않음 */
   margin-top: 2px;
+  flex-wrap: wrap;
 }
 
 .status-chip,
-.invoice-chip {
+.invoice-chip,
+.urgency-chip,
+.complexity-chip {
   font-weight: 600;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.urgency-chip {
+  animation: urgent-pulse 2s infinite;
+}
+
+@keyframes urgent-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .mobile-status-text,
-.mobile-invoice-text {
+.mobile-invoice-text,
+.mobile-urgency-text {
   font-size: 11px;
   font-weight: 600;
+}
+
+/* 카드 긴급도별 스타일 */
+.card-urgent {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.card-urgent:hover {
+  box-shadow: 0 12px 24px rgba(239, 68, 68, 0.2);
+}
+
+.card-soon {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.card-soon:hover {
+  box-shadow: 0 12px 24px rgba(245, 158, 11, 0.2);
 }
 
 .card-body {
@@ -311,11 +469,28 @@ const statusClass = computed(() => statusInfo.value.statusClass)
   }
 
   .status-badges {
-    gap: 4px;
+    gap: 3px;
+  }
+
+  .progress-section {
+    margin: 12px 0;
+  }
+
+  .progress-label {
+    font-size: 11px;
+  }
+
+  .progress-value {
+    font-size: 13px;
   }
 
   .hover-indicator {
     display: none;
+  }
+
+  /* 긴급 애니메이션 줄이기 */
+  .urgency-chip {
+    animation: none;
   }
 }
 
@@ -343,8 +518,24 @@ const statusClass = computed(() => statusInfo.value.statusClass)
   }
 
   .status-badges {
-    gap: 3px;
+    gap: 2px;
     margin-top: 0;
+  }
+
+  .progress-section {
+    margin: 10px 0;
+  }
+
+  .progress-header {
+    margin-bottom: 6px;
+  }
+
+  .progress-label {
+    font-size: 10px;
+  }
+
+  .progress-value {
+    font-size: 12px;
   }
 
   .unit-info {
@@ -357,7 +548,8 @@ const statusClass = computed(() => statusInfo.value.statusClass)
   }
 
   .mobile-status-text,
-  .mobile-invoice-text {
+  .mobile-invoice-text,
+  .mobile-urgency-text {
     font-size: 10px;
   }
 }
@@ -373,8 +565,21 @@ const statusClass = computed(() => statusInfo.value.statusClass)
   }
 
   .mobile-status-text,
-  .mobile-invoice-text {
+  .mobile-invoice-text,
+  .mobile-urgency-text {
     font-size: 9px;
+  }
+
+  .progress-section {
+    margin: 8px 0;
+  }
+
+  .progress-label {
+    font-size: 9px;
+  }
+
+  .progress-value {
+    font-size: 11px;
   }
 
   .task-chip {
