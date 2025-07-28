@@ -62,7 +62,9 @@
             <v-icon>mdi-speedometer</v-icon>
           </div>
           <div class="metric-content">
-            <div class="metric-number">{{ Math.round(stats.efficiency || 0) }}%</div>
+            <div class="metric-number">
+              {{ Math.round(stats.efficiency || 0) }}%
+            </div>
             <div class="metric-label">완료율</div>
           </div>
         </div>
@@ -76,7 +78,7 @@
         상태별 현황
       </h4>
       <div class="status-grid">
-        <div 
+        <div
           v-for="status in statusItems"
           :key="status.key"
           class="status-item clickable"
@@ -102,7 +104,7 @@
         긴급도별 현황
       </h4>
       <div class="urgency-alerts">
-        <div 
+        <div
           v-for="urgency in urgencyItems"
           :key="urgency.key"
           v-show="urgency.value > 0"
@@ -112,11 +114,7 @@
         >
           <v-icon :color="urgency.color" size="18">{{ urgency.icon }}</v-icon>
           <span class="urgency-text">{{ urgency.label }}</span>
-          <v-chip
-            :color="urgency.color"
-            size="x-small"
-            class="urgency-count"
-          >
+          <v-chip :color="urgency.color" size="x-small" class="urgency-count">
             {{ urgency.value }}
           </v-chip>
         </div>
@@ -142,20 +140,20 @@
           {{ showDetailedWorkStats ? '간략히' : '자세히' }}
         </v-btn>
       </div>
-      
+
       <!-- 작업 종류별 통계 -->
       <div class="work-type-stats">
         <!-- 간략 보기 -->
         <div v-if="!showDetailedWorkStats" class="work-type-simple">
-          <div 
+          <div
             v-for="workType in workTypeItems"
             :key="workType.name"
             class="work-type-simple-item clickable"
             @click="handleWorkTypeClick(workType.name)"
           >
-            <v-icon 
-              :color="workType.color" 
-              size="16" 
+            <v-icon
+              :color="workType.color"
+              size="16"
               class="work-type-simple-icon"
             >
               {{ workType.icon }}
@@ -164,7 +162,7 @@
             <span class="work-type-simple-count">{{ workType.count }}</span>
           </div>
         </div>
-        
+
         <!-- 자세히 보기 -->
         <div v-else class="work-type-detailed">
           <div class="stats-header-row">
@@ -172,18 +170,14 @@
             <span class="stats-count">건수</span>
             <span class="stats-percentage">비율</span>
           </div>
-          <div 
+          <div
             v-for="workType in workTypeItems"
             :key="workType.name"
             class="work-type-item clickable"
             @click="handleWorkTypeClick(workType.name)"
           >
             <div class="work-type-info">
-              <v-icon 
-                :color="workType.color" 
-                size="20" 
-                class="work-type-icon"
-              >
+              <v-icon :color="workType.color" size="20" class="work-type-icon">
                 {{ workType.icon }}
               </v-icon>
               <span class="work-type-name">{{ workType.name }}</span>
@@ -221,38 +215,36 @@
             {{ showDetailedBuildingStats ? '간략히' : '자세히' }}
           </v-btn>
         </div>
-        
+
         <!-- 간략 보기 -->
         <div v-if="!showDetailedBuildingStats" class="building-simple">
-          <div 
+          <div
             v-for="building in buildingItems"
             :key="building.name"
             class="building-simple-item clickable"
             @click="handleBuildingClick(building.name)"
           >
-            <v-icon 
-              color="primary" 
-              size="14" 
-              class="building-simple-icon"
-            >
+            <v-icon color="primary" size="14" class="building-simple-icon">
               mdi-office-building-outline
             </v-icon>
             <span class="building-simple-name">{{ building.name }}</span>
             <span class="building-simple-count">{{ building.count }}</span>
           </div>
         </div>
-        
+
         <!-- 자세히 보기 -->
         <div v-else class="building-detailed">
           <div class="building-grid">
-            <div 
+            <div
               v-for="building in buildingItems"
               :key="building.name"
               class="building-item clickable"
               @click="handleBuildingClick(building.name)"
             >
               <div class="building-header">
-                <v-icon color="primary" size="18">mdi-office-building-outline</v-icon>
+                <v-icon color="primary" size="18"
+                  >mdi-office-building-outline</v-icon
+                >
                 <span class="building-name">{{ building.name }}</span>
               </div>
               <div class="building-count">{{ building.count }}건</div>
@@ -273,15 +265,21 @@
     <div class="time-summary">
       <div class="time-item overdue" v-if="stats.overdue > 0">
         <v-icon color="error">mdi-alert-circle</v-icon>
-        <span>기한 초과: <strong>{{ stats.overdue }}건</strong></span>
+        <span
+          >기한 초과: <strong>{{ stats.overdue }}건</strong></span
+        >
       </div>
       <div class="time-item today" v-if="stats.today > 0">
         <v-icon color="warning">mdi-calendar-today</v-icon>
-        <span>오늘 작업: <strong>{{ stats.today }}건</strong></span>
+        <span
+          >오늘 작업: <strong>{{ stats.today }}건</strong></span
+        >
       </div>
       <div class="time-item week" v-if="stats.thisWeek > 0">
         <v-icon color="info">mdi-calendar-week</v-icon>
-        <span>이번 주: <strong>{{ stats.thisWeek }}건</strong></span>
+        <span
+          >이번 주: <strong>{{ stats.thisWeek }}건</strong></span
+        >
       </div>
     </div>
   </v-card>
@@ -306,12 +304,17 @@ const props = defineProps({
       thisWeek: 0,
       efficiency: 0,
       byWorkType: {},
-      byBuilding: {}
-    })
-  }
+      byBuilding: {},
+    }),
+  },
 })
 
-const emit = defineEmits(['filter-by-status', 'filter-by-work-type', 'filter-by-building', 'filter-by-urgency'])
+const emit = defineEmits([
+  'filter-by-status',
+  'filter-by-work-type',
+  'filter-by-building',
+  'filter-by-urgency',
+])
 
 // 작업 통계 상세 보기 토글
 const showDetailedWorkStats = ref(false)
@@ -339,11 +342,16 @@ const overallHealth = computed(() => {
 
 const overallHealthColor = computed(() => {
   switch (overallHealth.value.level) {
-    case 'critical': return 'error'
-    case 'warning': return 'warning'
-    case 'good': return 'success'
-    case 'excellent': return 'primary'
-    default: return 'grey'
+    case 'critical':
+      return 'error'
+    case 'warning':
+      return 'warning'
+    case 'good':
+      return 'success'
+    case 'excellent':
+      return 'primary'
+    default:
+      return 'grey'
   }
 })
 
@@ -353,21 +361,31 @@ const overallHealthVariant = computed(() => {
 
 const overallHealthIcon = computed(() => {
   switch (overallHealth.value.level) {
-    case 'critical': return 'mdi-alert-circle'
-    case 'warning': return 'mdi-alert'
-    case 'good': return 'mdi-check-circle'
-    case 'excellent': return 'mdi-star-circle'
-    default: return 'mdi-help-circle'
+    case 'critical':
+      return 'mdi-alert-circle'
+    case 'warning':
+      return 'mdi-alert'
+    case 'good':
+      return 'mdi-check-circle'
+    case 'excellent':
+      return 'mdi-star-circle'
+    default:
+      return 'mdi-help-circle'
   }
 })
 
 const overallHealthText = computed(() => {
   switch (overallHealth.value.level) {
-    case 'critical': return '주의 필요'
-    case 'warning': return '개선 권장'
-    case 'good': return '양호'
-    case 'excellent': return '우수'
-    default: return '상태 확인'
+    case 'critical':
+      return '주의 필요'
+    case 'warning':
+      return '개선 권장'
+    case 'good':
+      return '양호'
+    case 'excellent':
+      return '우수'
+    default:
+      return '상태 확인'
   }
 })
 
@@ -375,77 +393,148 @@ const overallHealthText = computed(() => {
 const statusItems = computed(() => {
   const byStatus = props.stats.byStatus || {}
   const total = props.stats.total || 1
-  
+
   const statusConfig = [
-    { key: 'active', label: '진행중', color: 'primary', icon: 'mdi-play-circle', values: ['진행중'] },
-    { key: 'scheduled', label: '예정됨', color: 'info', icon: 'mdi-clock-outline', values: ['예정됨'] },
-    { key: 'completed', label: '완료', color: 'success', icon: 'mdi-check-circle', values: ['완료', '검토완료', '승인완료'] },
-    { key: 'paused', label: '일시정지', color: 'warning', icon: 'mdi-pause-circle', values: ['일시정지'] },
-    { key: 'delayed', label: '지연됨', color: 'error', icon: 'mdi-clock-alert', values: ['지연됨'] },
-    { key: 'hold', label: '보류', color: 'orange', icon: 'mdi-pause', values: ['보류'] },
-    { key: 'cancelled', label: '취소됨', color: 'grey', icon: 'mdi-close-circle', values: ['취소됨'] },
-    { key: 'rework', label: '재작업', color: 'deep-orange', icon: 'mdi-refresh-circle', values: ['재작업'] }
+    {
+      key: 'active',
+      label: '진행중',
+      color: 'primary',
+      icon: 'mdi-play-circle',
+      values: ['진행중'],
+    },
+    {
+      key: 'scheduled',
+      label: '예정됨',
+      color: 'info',
+      icon: 'mdi-clock-outline',
+      values: ['예정됨'],
+    },
+    {
+      key: 'completed',
+      label: '완료',
+      color: 'success',
+      icon: 'mdi-check-circle',
+      values: ['완료', '검토완료', '승인완료'],
+    },
+    {
+      key: 'paused',
+      label: '일시정지',
+      color: 'warning',
+      icon: 'mdi-pause-circle',
+      values: ['일시정지'],
+    },
+    {
+      key: 'delayed',
+      label: '지연됨',
+      color: 'error',
+      icon: 'mdi-clock-alert',
+      values: ['지연됨'],
+    },
+    {
+      key: 'hold',
+      label: '보류',
+      color: 'orange',
+      icon: 'mdi-pause',
+      values: ['보류'],
+    },
+    {
+      key: 'cancelled',
+      label: '취소됨',
+      color: 'grey',
+      icon: 'mdi-close-circle',
+      values: ['취소됨'],
+    },
+    {
+      key: 'rework',
+      label: '재작업',
+      color: 'deep-orange',
+      icon: 'mdi-refresh-circle',
+      values: ['재작업'],
+    },
   ]
-  
-  return statusConfig.map(config => {
-    const value = config.values.reduce((sum, status) => sum + (byStatus[status] || 0), 0)
-    const percentage = Math.round((value / total) * 100)
-    
-    return {
-      ...config,
-      value,
-      percentage
-    }
-  }).filter(item => item.value > 0)
+
+  return statusConfig
+    .map((config) => {
+      const value = config.values.reduce(
+        (sum, status) => sum + (byStatus[status] || 0),
+        0
+      )
+      const percentage = Math.round((value / total) * 100)
+
+      return {
+        ...config,
+        value,
+        percentage,
+      }
+    })
+    .filter((item) => item.value > 0)
 })
 
 // 🚀 긴급도별 통계 아이템
 const urgencyItems = computed(() => {
   const byUrgency = props.stats.byUrgency || {}
-  
+
   const urgencyConfig = [
-    { key: 'overdue', label: '기한초과', color: 'error', icon: 'mdi-alert-circle' },
-    { key: 'today', label: '오늘', color: 'warning', icon: 'mdi-calendar-today' },
-    { key: 'tomorrow', label: '내일', color: 'orange', icon: 'mdi-calendar-clock' },
+    {
+      key: 'overdue',
+      label: '기한초과',
+      color: 'error',
+      icon: 'mdi-alert-circle',
+    },
+    {
+      key: 'today',
+      label: '오늘',
+      color: 'warning',
+      icon: 'mdi-calendar-today',
+    },
+    {
+      key: 'tomorrow',
+      label: '내일',
+      color: 'orange',
+      icon: 'mdi-calendar-clock',
+    },
     { key: 'urgent', label: '긴급', color: 'deep-orange', icon: 'mdi-fire' },
-    { key: 'soon', label: '곧', color: 'amber', icon: 'mdi-clock-fast' }
+    { key: 'soon', label: '곧', color: 'amber', icon: 'mdi-clock-fast' },
   ]
-  
-  return urgencyConfig.map(config => ({
-    ...config,
-    value: byUrgency[config.label] || 0
-  })).filter(item => item.value > 0)
+
+  return urgencyConfig
+    .map((config) => ({
+      ...config,
+      value: byUrgency[config.label] || 0,
+    }))
+    .filter((item) => item.value > 0)
 })
 
 // 🚀 작업 종류별 통계 아이템
 const workTypeItems = computed(() => {
   const workTypeStats = props.stats.byWorkType || {}
-  const total = Object.values(workTypeStats).reduce((sum, count) => sum + count, 0) || 1
-  
+  const total =
+    Object.values(workTypeStats).reduce((sum, count) => sum + count, 0) || 1
+
   // 작업 종류별 아이콘과 색상 매핑
   const workTypeConfig = {
-    '에어컨청소': { icon: 'mdi-air-conditioner', color: 'blue' },
-    '필터교체': { icon: 'mdi-air-filter', color: 'green' },
-    '점검': { icon: 'mdi-clipboard-check', color: 'orange' },
-    '수리': { icon: 'mdi-wrench', color: 'red' },
-    '설치': { icon: 'mdi-hammer-screwdriver', color: 'purple' },
-    '정비': { icon: 'mdi-cog', color: 'brown' },
-    '교체': { icon: 'mdi-swap-horizontal', color: 'teal' },
-    '청소': { icon: 'mdi-spray-bottle', color: 'indigo' },
-    'default': { icon: 'mdi-clipboard-list', color: 'grey' }
+    에어컨청소: { icon: 'mdi-air-conditioner', color: 'blue' },
+    필터교체: { icon: 'mdi-air-filter', color: 'green' },
+    점검: { icon: 'mdi-clipboard-check', color: 'orange' },
+    수리: { icon: 'mdi-wrench', color: 'red' },
+    설치: { icon: 'mdi-hammer-screwdriver', color: 'purple' },
+    정비: { icon: 'mdi-cog', color: 'brown' },
+    교체: { icon: 'mdi-swap-horizontal', color: 'teal' },
+    청소: { icon: 'mdi-spray-bottle', color: 'indigo' },
+    default: { icon: 'mdi-clipboard-list', color: 'grey' },
   }
-  
+
   return Object.entries(workTypeStats)
     .map(([name, count]) => {
       const config = workTypeConfig[name] || workTypeConfig.default
       const percentage = Math.round((count / total) * 100)
-      
+
       return {
         name,
         count,
         percentage,
         icon: config.icon,
-        color: config.color
+        color: config.color,
       }
     })
     .sort((a, b) => b.count - a.count) // 건수 많은 순으로 정렬
@@ -454,13 +543,14 @@ const workTypeItems = computed(() => {
 // 🚀 건물별 작업 현황 아이템
 const buildingItems = computed(() => {
   const buildingStats = props.stats.byBuilding || {}
-  const total = Object.values(buildingStats).reduce((sum, count) => sum + count, 0) || 1
-  
+  const total =
+    Object.values(buildingStats).reduce((sum, count) => sum + count, 0) || 1
+
   return Object.entries(buildingStats)
     .map(([name, count]) => ({
       name,
       count,
-      percentage: Math.round((count / total) * 100)
+      percentage: Math.round((count / total) * 100),
     }))
     .sort((a, b) => b.count - a.count) // 건수 많은 순으로 정렬
 })
@@ -469,20 +559,20 @@ const buildingItems = computed(() => {
 const handleStatusClick = (statusLabel) => {
   // 표시 라벨을 실제 데이터베이스 값으로 매핑
   const statusMapping = {
-    '진행중': '진행',
-    '완료': '완료',
-    '예정됨': '예정',
-    '일시정지': '일시정지',
-    '지연됨': '지연',
-    '보류': '보류',
-    '취소됨': '취소됨',
-    '재작업': '재작업',
-    '검토완료': '검토완료',
-    '승인완료': '승인완료',
-    '대기중': '대기',
-    '승인대기': '승인대기'
+    진행중: '진행',
+    완료: '완료',
+    예정됨: '예정',
+    일시정지: '일시정지',
+    지연됨: '지연',
+    보류: '보류',
+    취소됨: '취소됨',
+    재작업: '재작업',
+    검토완료: '검토완료',
+    승인완료: '승인완료',
+    대기중: '대기',
+    승인대기: '승인대기',
   }
-  
+
   const actualStatus = statusMapping[statusLabel] || statusLabel
   emit('filter-by-status', actualStatus)
 }
@@ -1097,7 +1187,7 @@ const handleUrgencyClick = (urgencyLabel) => {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
-  
+
   .status-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 12px;
@@ -1111,31 +1201,31 @@ const handleUrgencyClick = (urgencyLabel) => {
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .header-right {
     align-self: flex-end;
   }
-  
+
   .main-metrics {
     padding: 24px;
   }
-  
+
   .metric-row {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .status-section,
   .urgency-section,
   .work-stats-section {
     padding: 20px 24px;
   }
-  
+
   .time-summary {
     padding: 20px 24px;
     flex-direction: column;
   }
-  
+
   .status-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1172,113 +1262,113 @@ const handleUrgencyClick = (urgencyLabel) => {
   .stats-header {
     padding: 16px;
   }
-  
+
   .stats-title {
     font-size: 16px;
   }
-  
+
   .stats-subtitle {
     font-size: 12px;
   }
-  
+
   .stats-icon {
     width: 40px;
     height: 40px;
     margin-right: 12px;
   }
-  
+
   .main-metrics {
     padding: 16px;
   }
-  
+
   .metric-row {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
-  
+
   .metric-card {
     padding: 12px;
     flex-direction: column;
     text-align: center;
   }
-  
+
   .metric-icon {
     width: 36px;
     height: 36px;
     margin-right: 0;
     margin-bottom: 8px;
   }
-  
+
   .metric-number {
     font-size: 18px;
     margin-bottom: 2px;
   }
-  
+
   .metric-label {
     font-size: 10px;
   }
-  
+
   .status-section,
   .urgency-section,
   .work-stats-section {
     padding: 16px;
   }
-  
+
   .section-header-with-toggle {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .toggle-btn {
     font-size: 11px;
     height: 28px;
     min-width: 70px;
   }
-  
+
   .work-type-simple {
     gap: 6px;
   }
-  
+
   .work-type-simple-item {
     padding: 6px 10px;
   }
-  
+
   .work-type-simple-name {
     font-size: 11px;
   }
-  
+
   .work-type-simple-count {
     font-size: 10px;
     padding: 1px 6px;
   }
-  
+
   .section-title {
     font-size: 14px;
     margin-bottom: 12px;
   }
-  
+
   .time-summary {
     padding: 16px;
   }
-  
+
   .status-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }
-  
+
   .status-item {
     padding: 8px;
   }
-  
+
   .status-count {
     font-size: 16px;
   }
-  
+
   .status-label {
     font-size: 10px;
   }
-  
+
   .status-percentage {
     font-size: 9px;
   }
@@ -1295,7 +1385,7 @@ const handleUrgencyClick = (urgencyLabel) => {
     gap: 8px;
     padding: 10px;
   }
-  
+
   .work-type-icon {
     padding: 4px;
   }
@@ -1303,7 +1393,7 @@ const handleUrgencyClick = (urgencyLabel) => {
   .work-type-name {
     font-size: 11px;
   }
-  
+
   .work-type-count {
     font-size: 12px;
   }
@@ -1323,61 +1413,61 @@ const handleUrgencyClick = (urgencyLabel) => {
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .subsection-title {
     font-size: 12px;
   }
-  
+
   .building-toggle-btn {
     font-size: 10px;
     height: 24px;
     min-width: 50px;
   }
-  
+
   .building-simple {
     gap: 4px;
   }
-  
+
   .building-simple-item {
     padding: 4px 8px;
     gap: 4px;
   }
-  
+
   .building-simple-name {
     font-size: 10px;
   }
-  
+
   .building-simple-count {
     font-size: 9px;
     padding: 1px 4px;
   }
-  
+
   .building-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
+
   .building-item {
     padding: 10px;
   }
-  
+
   .building-name {
     font-size: 11px;
   }
-  
+
   .building-count {
     font-size: 14px;
   }
-  
+
   .urgency-alert {
     padding: 10px;
     gap: 8px;
   }
-  
+
   .urgency-text {
     font-size: 12px;
   }
-  
+
   .time-item {
     padding: 8px 10px;
     font-size: 12px;
@@ -1404,7 +1494,7 @@ const handleUrgencyClick = (urgencyLabel) => {
   .building-item {
     transition: none;
   }
-  
+
   .metric-card:hover,
   .status-item:hover,
   .work-type-item:hover,
@@ -1419,25 +1509,25 @@ const handleUrgencyClick = (urgencyLabel) => {
     background: #1e293b;
     border-color: #334155;
   }
-  
+
   .main-metrics {
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   }
-  
+
   .metric-card,
   .work-type-item,
   .building-item {
     background: #334155;
     border-color: #475569;
   }
-  
+
   .metric-number,
   .status-count,
   .work-type-count,
   .building-count {
     color: #f1f5f9;
   }
-  
+
   .metric-label,
   .status-label,
   .work-type-name,

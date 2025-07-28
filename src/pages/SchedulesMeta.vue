@@ -38,10 +38,10 @@
         style="padding-bottom: 140px !important; max-width: 1200px"
       >
         <!-- 🚨 에러 및 성공 메시지 -->
-        <v-alert 
-          v-if="error" 
-          type="error" 
-          class="mb-4" 
+        <v-alert
+          v-if="error"
+          type="error"
+          class="mb-4"
           prominent
           closable
           @click:close="clearError"
@@ -50,10 +50,10 @@
           {{ error }}
         </v-alert>
 
-        <v-alert 
-          v-if="successMessage" 
-          type="success" 
-          class="mb-4" 
+        <v-alert
+          v-if="successMessage"
+          type="success"
+          class="mb-4"
           prominent
           closable
           @click:close="successMessage = ''"
@@ -79,7 +79,12 @@
               </v-chip>
               <!-- 정렬 옵션 -->
               <v-spacer />
-              <v-btn-toggle v-model="sortOption" dense size="small" class="ml-2">
+              <v-btn-toggle
+                v-model="sortOption"
+                dense
+                size="small"
+                class="ml-2"
+              >
                 <v-btn value="date" size="small">
                   <v-icon size="14">mdi-calendar</v-icon>
                   날짜순
@@ -97,25 +102,34 @@
                   v-for="item in sortedExistingDates"
                   :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
                   class="schedule-item"
-                  :class="{ 
+                  :class="{
                     selected: selectedDate === item.date,
-                    'past-schedule': isPastDate(item.date)
+                    'past-schedule': isPastDate(item.date),
                   }"
                   @click="handleDateSelect(item.date)"
                 >
                   <div class="schedule-date">{{ item.display }}</div>
                   <div class="schedule-details">
                     <div class="detail-row">
-                      <v-icon size="14" color="grey-darken-1">mdi-clock-outline</v-icon>
-                      <span>{{ metaMap[item.date]?.startTime || '시간 미정' }}</span>
+                      <v-icon size="14" color="grey-darken-1"
+                        >mdi-clock-outline</v-icon
+                      >
+                      <span>{{
+                        metaMap[item.date]?.startTime || '시간 미정'
+                      }}</span>
                     </div>
                     <div class="detail-row">
-                      <v-icon size="14" color="grey-darken-1">mdi-account-group</v-icon>
-                      <span>{{ metaMap[item.date]?.workerNames?.join(', ') || '인원 미정' }}</span>
+                      <v-icon size="14" color="grey-darken-1"
+                        >mdi-account-group</v-icon
+                      >
+                      <span>{{
+                        metaMap[item.date]?.workerNames?.join(', ') ||
+                        '인원 미정'
+                      }}</span>
                     </div>
                     <div class="detail-row">
-                      <v-chip 
-                        :color="isPastDate(item.date) ? 'grey' : 'success'" 
+                      <v-chip
+                        :color="isPastDate(item.date) ? 'grey' : 'success'"
                         size="x-small"
                         variant="flat"
                       >
@@ -123,7 +137,10 @@
                       </v-chip>
                     </div>
                   </div>
-                  <div v-if="selectedDate === item.date" class="selected-indicator">
+                  <div
+                    v-if="selectedDate === item.date"
+                    class="selected-indicator"
+                  >
                     <v-icon color="primary">mdi-check-circle</v-icon>
                   </div>
                 </div>
@@ -176,7 +193,7 @@
               :rules="dateRules"
               @change="handleDateChange"
             />
-            
+
             <v-alert
               v-if="form.date && isPastDate(form.date)"
               type="warning"
@@ -187,7 +204,7 @@
               <v-icon start>mdi-alert</v-icon>
               과거 일정을 수정하고 있습니다. 신중하게 변경해주세요.
             </v-alert>
-            
+
             <div class="mt-3">
               <v-btn
                 size="small"
@@ -229,7 +246,7 @@
               density="compact"
               prepend-inner-icon="mdi-clock-outline"
             />
-            
+
             <div class="mt-3">
               <div class="time-preset-label">자주 사용하는 시간</div>
               <v-chip-group v-model="selectedTimePreset" class="mt-2">
@@ -454,7 +471,7 @@
             일정 삭제 확인
           </v-card-title>
           <v-card-text>
-            선택한 일정을 삭제하시겠습니까?<br>
+            선택한 일정을 삭제하시겠습니까?<br />
             <strong>{{ form.date }}</strong> 일정이 완전히 삭제됩니다.
           </v-card-text>
           <v-card-actions>
@@ -462,9 +479,7 @@
             <v-btn variant="text" @click="showDeleteDialog = false">
               취소
             </v-btn>
-            <v-btn color="error" @click="deleteSchedule">
-              삭제
-            </v-btn>
+            <v-btn color="error" @click="deleteSchedule"> 삭제 </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -535,28 +550,29 @@ const timePresets = ['09:00', '10:00', '13:00', '14:00', '16:00', '18:00']
 const selectedTimePreset = ref(null)
 
 // 유효성 검사 규칙
-const dateRules = [
-  (v) => !!v || '날짜를 선택해주세요'
-]
+const dateRules = [(v) => !!v || '날짜를 선택해주세요']
 
 const noticeRules = [
-  (v) => !v || v.length <= 500 || '공지사항은 500자 이내로 입력해주세요'
+  (v) => !v || v.length <= 500 || '공지사항은 500자 이내로 입력해주세요',
 ]
 
 // 🚀 최적화: 계산된 속성 간소화
 const isFormValid = computed(() => {
-  return !!form.value.date && 
-         (!form.value.notice || form.value.notice.length <= 500)
+  return (
+    !!form.value.date && (!form.value.notice || form.value.notice.length <= 500)
+  )
 })
 
 const sortedExistingDates = computed(() => {
   if (sortOption.value === 'date') {
-    return [...existingDatesDisplay.value].sort((a, b) => new Date(a.date) - new Date(b.date))
+    return [...existingDatesDisplay.value].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    )
   } else {
     return [...existingDatesDisplay.value].sort((a, b) => {
       const isAFuture = new Date(a.date) >= new Date(TODAY_KST)
       const isBFuture = new Date(b.date) >= new Date(TODAY_KST)
-      
+
       if (isAFuture && isBFuture) return new Date(a.date) - new Date(b.date)
       if (!isAFuture && !isBFuture) return new Date(b.date) - new Date(a.date)
       return isAFuture ? -1 : 1
@@ -577,15 +593,18 @@ const setTomorrow = () => {
   const todayKST = getTodayDateKST()
   const [year, month, day] = todayKST.split('-').map(Number)
   const tomorrow = new Date(year, month - 1, day + 1)
-  const tomorrowStr = tomorrow.getFullYear() + '-' + 
-    String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + 
+  const tomorrowStr =
+    tomorrow.getFullYear() +
+    '-' +
+    String(tomorrow.getMonth() + 1).padStart(2, '0') +
+    '-' +
     String(tomorrow.getDate()).padStart(2, '0')
   form.value.date = tomorrowStr
   handleDateChange()
 }
 
 const selectAllWorkers = () => {
-  form.value.workers = userOptions.value.map(user => user.id)
+  form.value.workers = userOptions.value.map((user) => user.id)
 }
 
 const clearAllWorkers = () => {
@@ -625,19 +644,18 @@ async function fetchUsers() {
 
     const snap = authResult.data
     const users = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    
+
     userOptions.value = users
     userMap.value = {}
-    
+
     for (const user of users) {
       userMap.value[user.id] = user.name
     }
 
     workerStore.setWorkers(users)
-    
   } catch (err) {
     console.error('사용자 정보 로딩 오류:', err)
-    
+
     if (err.code === 'permission-denied') {
       error.value = '사용자 정보에 접근할 권한이 없습니다.'
     } else if (err.message?.includes('Missing or insufficient permissions')) {
@@ -677,7 +695,7 @@ async function fetchExistingDates() {
           workerNames: (data.workers || []).map(
             (id) => userMap.value[id] || '알 수 없음'
           ),
-          ...data
+          ...data,
         }
       }
     }
@@ -701,7 +719,7 @@ async function fetchExistingDates() {
     const firstFutureOrToday = sortedDates.find(
       (d) => new Date(d) >= new Date(TODAY_KST)
     )
-    
+
     if (firstFutureOrToday) {
       selectedDate.value = firstFutureOrToday
       await handleDateSelect(firstFutureOrToday)
@@ -710,7 +728,6 @@ async function fetchExistingDates() {
       selectedDate.value = TODAY_KST
       clearForm()
     }
-    
   } catch (err) {
     console.error('일정 정보 로딩 오류:', err)
     error.value = '일정 정보를 불러오는데 실패했습니다.'
@@ -741,7 +758,7 @@ async function handleDateSelect(date) {
   try {
     form.value.date = date
     selectedDate.value = date
-    
+
     const existingMeta = metaMap.value[date]
     if (existingMeta) {
       form.value.startTime = existingMeta.startTime || ''
@@ -750,8 +767,10 @@ async function handleDateSelect(date) {
       form.value.paidMap = existingMeta.paidMap || {}
       editDocId = existingMeta.id
       isEdit.value = true
-      
-      selectedTimePreset.value = timePresets.includes(existingMeta.startTime) ? existingMeta.startTime : null
+
+      selectedTimePreset.value = timePresets.includes(existingMeta.startTime)
+        ? existingMeta.startTime
+        : null
     } else {
       clearForm()
     }
@@ -776,15 +795,14 @@ async function submit() {
       await scheduleStore.addScheduleMeta(form.value)
       successMessage.value = '일정이 성공적으로 등록되었습니다.'
     }
-    
+
     // 성공 후 데이터 새로고침
     await fetchExistingDates()
-    
+
     // 3초 후 성공 메시지 자동 제거
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-    
   } catch (err) {
     console.error('저장 중 오류:', err)
     error.value = scheduleStore.error || '저장 중 오류가 발생했습니다.'
@@ -803,11 +821,10 @@ async function cancelSchedule() {
     await scheduleStore.deleteScheduleMeta(editDocId, form.value.date)
     successMessage.value = '일정이 삭제되었습니다.'
     await fetchExistingDates()
-    
+
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-    
   } catch (err) {
     console.error('삭제 중 오류:', err)
     error.value = scheduleStore.error || '삭제 중 오류가 발생했습니다.'
@@ -824,7 +841,7 @@ function goHome() {
 onMounted(async () => {
   // 1. 인증 상태 확인
   const authResult = await userStore.initializeAuth(router)
-  
+
   if (!authResult.success) {
     if (authResult.shouldRedirect) return
     error.value = authResult.error || '인증에 실패했습니다.'
@@ -833,15 +850,22 @@ onMounted(async () => {
 
   try {
     // 2. 사용자 데이터 먼저 로딩 (필수)
-    await userStore.withRetry(async () => {
-      await fetchUsers()
-    }, 2, 1000)
-    
+    await userStore.withRetry(
+      async () => {
+        await fetchUsers()
+      },
+      2,
+      1000
+    )
+
     // 3. 기존 일정 데이터 로딩 (사용자 데이터 로딩 후)
-    await userStore.withRetry(async () => {
-      await fetchExistingDates()
-    }, 2, 1000)
-    
+    await userStore.withRetry(
+      async () => {
+        await fetchExistingDates()
+      },
+      2,
+      1000
+    )
   } catch (err) {
     console.error('초기 데이터 로딩 실패:', err)
     error.value = '초기 데이터 로딩에 실패했습니다. 페이지를 새로고침 해주세요.'
@@ -851,11 +875,14 @@ onMounted(async () => {
 })
 
 // Watch Store 에러 상태
-watch(() => scheduleStore.error, (newError) => {
-  if (newError) {
-    error.value = newError
+watch(
+  () => scheduleStore.error,
+  (newError) => {
+    if (newError) {
+      error.value = newError
+    }
   }
-})
+)
 </script>
 
 <style scoped>
@@ -1430,7 +1457,7 @@ watch(() => scheduleStore.error, (newError) => {
   .v-chip {
     transition: none;
   }
-  
+
   .shimmer {
     animation: none !important;
   }

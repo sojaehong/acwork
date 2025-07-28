@@ -36,7 +36,7 @@
           >
             {{ selectedWorkerName }}
           </v-chip>
-          
+
           <!-- 새로고침 버튼 -->
           <v-btn
             icon
@@ -62,10 +62,10 @@
         style="padding-bottom: 120px !important; max-width: 1200px"
       >
         <!-- 🚨 에러 알림 -->
-        <v-alert 
-          v-if="error" 
-          type="error" 
-          class="mb-6" 
+        <v-alert
+          v-if="error"
+          type="error"
+          class="mb-6"
           prominent
           closable
           @click:close="clearError"
@@ -85,12 +85,7 @@
         </v-alert>
 
         <!-- 📱 오프라인 알림 -->
-        <v-alert
-          v-if="!isOnline"
-          type="warning"
-          class="mb-6"
-          prominent
-        >
+        <v-alert v-if="!isOnline" type="warning" class="mb-6" prominent>
           <v-icon start>mdi-wifi-off</v-icon>
           네트워크 연결을 확인해주세요. 오프라인 상태입니다.
         </v-alert>
@@ -141,9 +136,14 @@
         </v-card>
 
         <!-- 📋 작업자 미선택 상태 -->
-        <div v-if="!selectedWorker && !loading && !loadingWorkers" class="empty-state">
+        <div
+          v-if="!selectedWorker && !loading && !loadingWorkers"
+          class="empty-state"
+        >
           <div class="empty-icon">
-            <v-icon size="80" color="grey-lighten-2">mdi-account-question</v-icon>
+            <v-icon size="80" color="grey-lighten-2"
+              >mdi-account-question</v-icon
+            >
           </div>
           <h3 class="empty-title">작업자를 선택해주세요</h3>
           <p class="empty-description">
@@ -155,10 +155,7 @@
         <div v-if="selectedWorker">
           <!-- 🦴 통계 스켈레톤 -->
           <div v-if="loadingMeta" class="stats-skeleton-container mb-8">
-            <v-skeleton-loader
-              type="card"
-              class="stats-skeleton"
-            />
+            <v-skeleton-loader type="card" class="stats-skeleton" />
           </div>
 
           <!-- 📈 통계 요약 -->
@@ -192,7 +189,7 @@
                   />
                 </div>
               </div>
-              
+
               <div class="stat-item completed" @click="scrollToCompleted">
                 <div class="stat-number">{{ pastMeta.length }}</div>
                 <div class="stat-label">완료된 작업</div>
@@ -208,7 +205,7 @@
                   />
                 </div>
               </div>
-              
+
               <div class="stat-item total">
                 <div class="stat-number">
                   {{ upcomingMeta.length + pastMeta.length }}
@@ -219,7 +216,9 @@
                 </div>
                 <div class="stat-progress">
                   <v-progress-linear
-                    :model-value="(upcomingMeta.length + pastMeta.length) > 0 ? 100 : 0"
+                    :model-value="
+                      upcomingMeta.length + pastMeta.length > 0 ? 100 : 0
+                    "
                     color="primary"
                     height="4"
                     rounded
@@ -250,7 +249,11 @@
                 variant="text"
                 @click="sortUpcoming = !sortUpcoming"
               >
-                <v-icon>{{ sortUpcoming ? 'mdi-sort-calendar-ascending' : 'mdi-sort-calendar-descending' }}</v-icon>
+                <v-icon>{{
+                  sortUpcoming
+                    ? 'mdi-sort-calendar-ascending'
+                    : 'mdi-sort-calendar-descending'
+                }}</v-icon>
                 정렬
               </v-btn>
             </div>
@@ -282,24 +285,30 @@
                 v-for="(item, index) in sortedUpcomingMeta"
                 :key="`upcoming-${item.id}`"
                 class="schedule-card upcoming-card schedule-fade-item"
-                :class="{ 'urgent': item.dday <= 1 }"
+                :class="{ urgent: item.dday <= 1 }"
                 @click="showScheduleDetail(item)"
               >
                 <div class="card-content">
                   <div class="card-main-info">
                     <div class="date-badge upcoming-badge">
-                      <v-icon v-if="item.dday === 0" size="14">mdi-alert</v-icon>
+                      <v-icon v-if="item.dday === 0" size="14"
+                        >mdi-alert</v-icon
+                      >
                       D-{{ item.dday }}
                     </div>
                     <div class="date-info">
                       <h4 class="work-date">{{ formatDate(item.date) }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
@@ -312,14 +321,16 @@
                   </div>
 
                   <div class="status-section">
-                    <v-chip 
-                      :color="item.dday <= 1 ? 'error' : 'warning'" 
-                      size="small" 
+                    <v-chip
+                      :color="item.dday <= 1 ? 'error' : 'warning'"
+                      size="small"
                       variant="flat"
-                      :class="{ 'pulse': item.dday === 0 }"
+                      :class="{ pulse: item.dday === 0 }"
                     >
                       <v-icon start size="14">
-                        {{ item.dday === 0 ? 'mdi-alert' : 'mdi-calendar-clock' }}
+                        {{
+                          item.dday === 0 ? 'mdi-alert' : 'mdi-calendar-clock'
+                        }}
                       </v-icon>
                       {{ getDdayText(item.dday) }}
                     </v-chip>
@@ -346,7 +357,9 @@
                 variant="text"
                 @click="showAllPast = !showAllPast"
               >
-                <v-icon>{{ showAllPast ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+                <v-icon>{{
+                  showAllPast ? 'mdi-chevron-up' : 'mdi-chevron-down'
+                }}</v-icon>
                 {{ showAllPast ? '접기' : '더보기' }}
               </v-btn>
             </div>
@@ -387,11 +400,15 @@
                       <h4 class="work-date">{{ formatDate(item.date) }}</h4>
                       <div class="work-details">
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-clock-outline</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-clock-outline</v-icon
+                          >
                           <span>{{ item.startTime || '시간 미정' }}</span>
                         </div>
                         <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1">mdi-account-group</v-icon>
+                          <v-icon size="16" color="grey-darken-1"
+                            >mdi-account-group</v-icon
+                          >
                           <span>{{ item.workerNames.join(', ') }}</span>
                         </div>
                       </div>
@@ -435,11 +452,7 @@
     </v-main>
 
     <!-- 📱 일정 상세 다이얼로그 -->
-    <v-dialog
-      v-model="scheduleDialog"
-      max-width="500"
-      :persistent="false"
-    >
+    <v-dialog v-model="scheduleDialog" max-width="500" :persistent="false">
       <v-card v-if="selectedSchedule" class="schedule-detail-dialog">
         <v-card-title class="dialog-header">
           <div class="dialog-icon">
@@ -447,7 +460,9 @@
           </div>
           <div>
             <h4>일정 상세</h4>
-            <div class="dialog-subtitle">{{ formatDate(selectedSchedule.date) }}</div>
+            <div class="dialog-subtitle">
+              {{ formatDate(selectedSchedule.date) }}
+            </div>
           </div>
         </v-card-title>
 
@@ -456,7 +471,9 @@
             <v-icon color="grey-darken-1">mdi-clock-outline</v-icon>
             <div class="detail-info">
               <div class="detail-label">시작 시간</div>
-              <div class="detail-value">{{ selectedSchedule.startTime || '미정' }}</div>
+              <div class="detail-value">
+                {{ selectedSchedule.startTime || '미정' }}
+              </div>
             </div>
           </div>
 
@@ -464,7 +481,9 @@
             <v-icon color="grey-darken-1">mdi-account-group</v-icon>
             <div class="detail-info">
               <div class="detail-label">참여 작업자</div>
-              <div class="detail-value">{{ selectedSchedule.workerNames.join(', ') }}</div>
+              <div class="detail-value">
+                {{ selectedSchedule.workerNames.join(', ') }}
+              </div>
             </div>
           </div>
 
@@ -481,8 +500,10 @@
             <div class="detail-info">
               <div class="detail-label">상태</div>
               <div class="detail-value">
-                <v-chip 
-                  :color="selectedSchedule.date >= today ? 'warning' : 'success'"
+                <v-chip
+                  :color="
+                    selectedSchedule.date >= today ? 'warning' : 'success'
+                  "
                   size="small"
                 >
                   {{ selectedSchedule.date >= today ? '예정' : '완료' }}
@@ -494,12 +515,7 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            variant="text"
-            @click="scheduleDialog = false"
-          >
-            닫기
-          </v-btn>
+          <v-btn variant="text" @click="scheduleDialog = false"> 닫기 </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -513,12 +529,7 @@
     >
       {{ snackbar.message }}
       <template v-slot:actions>
-        <v-btn
-          variant="text"
-          @click="snackbar.show = false"
-        >
-          닫기
-        </v-btn>
+        <v-btn variant="text" @click="snackbar.show = false"> 닫기 </v-btn>
       </template>
     </v-snackbar>
   </v-app>
@@ -567,7 +578,7 @@ const snackbar = ref({
   show: false,
   message: '',
   color: 'success',
-  timeout: 3000
+  timeout: 3000,
 })
 
 // 섹션 참조
@@ -598,11 +609,13 @@ function getDdayText(dday) {
 
 function updateLastUpdateTime() {
   const todayKST = getTodayDateKST()
-  const now = new Date(todayKST + 'T' + new Date().toTimeString().split(' ')[0] + '+09:00')
-  lastUpdateTime.value = now.toLocaleTimeString('ko-KR', { 
-    hour: '2-digit', 
+  const now = new Date(
+    todayKST + 'T' + new Date().toTimeString().split(' ')[0] + '+09:00'
+  )
+  lastUpdateTime.value = now.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Asia/Seoul'
+    timeZone: 'Asia/Seoul',
   })
 }
 
@@ -611,7 +624,7 @@ function showNotification(message, color = 'success', timeout = 3000) {
     show: true,
     message,
     color,
-    timeout
+    timeout,
   }
 }
 
@@ -641,7 +654,7 @@ const pastMeta = computed(() => {
 const sortedUpcomingMeta = computed(() => {
   const upcoming = upcomingMeta.value
   if (!upcoming?.length) return []
-  
+
   if (!sortUpcoming.value) {
     return upcoming
   }
@@ -651,7 +664,7 @@ const sortedUpcomingMeta = computed(() => {
 const displayedPastMeta = computed(() => {
   const past = pastMeta.value
   if (!past?.length) return []
-  
+
   if (showAllPast.value) {
     return past
   }
@@ -678,18 +691,18 @@ const goHome = async () => {
 
 const selectWorker = async (id) => {
   if (workerSwitching.value) return
-  
+
   const newWorkerId = selectedWorker.value === id ? null : id
   workerSwitching.value = id
-  
+
   try {
     selectedWorker.value = newWorkerId
-    
+
     // 안전한 라우터 업데이트
     await nextTick()
     await router.replace({ query: { worker: newWorkerId || undefined } })
-    
-    const workerName = workers.value.find(w => w.id === newWorkerId)?.name
+
+    const workerName = workers.value.find((w) => w.id === newWorkerId)?.name
     if (workerName) {
       showNotification(`${workerName}님의 일정을 확인합니다.`)
     }
@@ -716,7 +729,7 @@ const showScheduleDetail = (schedule) => {
 
 const refreshData = async () => {
   if (refreshing.value) return
-  
+
   refreshing.value = true
   try {
     await Promise.all([fetchUsers(), fetchMeta()])
@@ -732,10 +745,10 @@ const refreshData = async () => {
 
 const retryOperation = async () => {
   if (retrying.value) return
-  
+
   retrying.value = true
   clearError()
-  
+
   try {
     await initializeData()
     showNotification('데이터를 성공적으로 불러왔습니다.')
@@ -799,7 +812,7 @@ async function initializeData() {
   if (!workers.value.length) {
     loading.value = true
   }
-  
+
   try {
     // 🔐 Firebase 인증 확인
     const auth = getAuth()
@@ -813,9 +826,9 @@ async function initializeData() {
       const userData = {
         id: localStorage.getItem('user_id'),
         name: localStorage.getItem('user_name'),
-        role: localStorage.getItem('user_role')
+        role: localStorage.getItem('user_role'),
       }
-      
+
       if (userData.id && userData.name && userData.role) {
         userStore.setUser(userData)
       } else {
@@ -828,14 +841,14 @@ async function initializeData() {
     // 🔄 데이터 로딩 - 각각 독립적인 로딩 상태
     let retryCount = 0
     const maxRetries = 3
-    
+
     while (retryCount <= maxRetries) {
       try {
         // 작업자 목록 로딩
         if (!workers.value.length) {
           await fetchUsers()
         }
-        
+
         // URL 쿼리에서 작업자 선택 또는 현재 사용자로 기본 설정
         const queryId = route.query.worker
         const currentUserId = userStore.userId
@@ -845,27 +858,30 @@ async function initializeData() {
           const match = workers.value.find((w) => w.id === currentUserId)
           selectedWorker.value = match ? match.id : null
         }
-        
+
         // 메타데이터 로딩
         await fetchMeta()
         break // 성공하면 루프 종료
       } catch (err) {
         retryCount++
         console.error(`데이터 로딩 실패 (${retryCount}/${maxRetries}):`, err)
-        
+
         if (retryCount > maxRetries) {
-          throw new Error('데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.')
+          throw new Error(
+            '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+          )
         }
-        
+
         // 재시도 전 대기
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount))
+        await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount))
       }
     }
-    
   } catch (err) {
     console.error('초기화 실패:', err)
-    error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
-    
+    error.value =
+      err.message ||
+      '데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.'
+
     // 5초 후 로그인 페이지로 리다이렉트
     setTimeout(() => {
       router.push('/login')
@@ -891,7 +907,7 @@ onMounted(async () => {
   // 네트워크 상태 리스너 등록
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
-  
+
   // 데이터 초기화 - 비동기로 실행하여 블로킹 방지
   try {
     await initializeData()
@@ -1077,7 +1093,12 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -1476,7 +1497,8 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -1485,7 +1507,8 @@ onUnmounted(() => {
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
   }
   50% {

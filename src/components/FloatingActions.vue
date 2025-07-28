@@ -4,7 +4,7 @@
     <div class="action-group">
       <div class="action-group-label">문서 관리</div>
       <div class="action-buttons">
-        <v-btn 
+        <v-btn
           class="action-btn document-btn"
           @click="handleGoToEstimate"
           aria-label="견적서 작성"
@@ -12,7 +12,7 @@
           <v-icon start>mdi-file-document-outline</v-icon>
           견적서
         </v-btn>
-        <v-btn 
+        <v-btn
           class="action-btn document-btn"
           @click="handleGoToStatement"
           aria-label="거래명세서 작성"
@@ -27,7 +27,7 @@
     <div class="action-group">
       <div class="action-group-label">주요 기능</div>
       <div class="action-buttons">
-        <v-btn 
+        <v-btn
           class="action-btn feature-btn"
           color="info"
           @click="handleGoToWorker"
@@ -36,7 +36,7 @@
           <v-icon start>mdi-account-hard-hat</v-icon>
           작업자별
         </v-btn>
-        <v-btn 
+        <v-btn
           class="action-btn feature-btn"
           color="success"
           @click="handleGoToPayroll"
@@ -45,7 +45,7 @@
           <v-icon start>mdi-calculator</v-icon>
           정산
         </v-btn>
-        <v-btn 
+        <v-btn
           class="action-btn feature-btn primary-btn"
           color="primary"
           @click="handleGoToAdd"
@@ -58,7 +58,7 @@
     </div>
 
     <!-- 전체 보기 버튼 -->
-    <v-btn 
+    <v-btn
       class="view-all-btn"
       block
       size="large"
@@ -76,11 +76,11 @@
 // 🚀 emit 정의 및 핸들러 함수들
 const emit = defineEmits([
   'go-to-estimate',
-  'go-to-statement',  
+  'go-to-statement',
   'go-to-worker',
   'go-to-payroll',
   'go-to-add',
-  'go-to-all'
+  'go-to-all',
 ])
 
 // 🚀 이벤트 핸들러 함수들
@@ -244,7 +244,7 @@ const handleGoToAll = () => emit('go-to-all')
   .view-all-btn {
     transition: none;
   }
-  
+
   .action-btn:hover,
   .view-all-btn:hover {
     transform: none;

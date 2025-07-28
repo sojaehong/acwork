@@ -1,7 +1,10 @@
 <template>
   <div class="floating-actions">
     <!-- 활성 필터 칩들 -->
-    <div v-if="hasActiveFilters && activeFilterChips.length > 0" class="filter-chips-section">
+    <div
+      v-if="hasActiveFilters && activeFilterChips.length > 0"
+      class="filter-chips-section"
+    >
       <div class="filter-chips-container">
         <v-chip
           v-for="filter in activeFilterChips"
@@ -52,12 +55,12 @@
 const props = defineProps({
   hasActiveFilters: {
     type: Boolean,
-    default: false
+    default: false,
   },
   activeFilterChips: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['go-home', 'reset-filters', 'remove-filter'])
@@ -206,7 +209,7 @@ const handleRemoveFilter = (type, value) => {
   .filter-chip {
     transition: none;
   }
-  
+
   .home-btn:hover,
   .reset-btn:hover,
   .filter-chip:hover {

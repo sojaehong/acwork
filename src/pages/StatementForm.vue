@@ -2,35 +2,37 @@
   <v-app>
     <!-- 🎨 현대적인 그라데이션 헤더 -->
     <v-app-bar :elevation="0" class="custom-header" height="80">
-      <div class="d-flex align-center justify-space-between w-100 px-4">
-        <div class="d-flex align-center">
+      <div
+        class="d-flex align-center justify-space-between w-100 px-4 header-content"
+      >
+        <div class="d-flex align-center header-left">
           <div class="header-icon-wrapper">
             <v-icon size="32" color="white">mdi-receipt</v-icon>
           </div>
-          <div class="ml-3">
+          <div class="ml-3 header-text">
             <h2 class="header-title">거래명세서 작성</h2>
             <div class="header-subtitle">스마트 문서 관리</div>
           </div>
         </div>
 
-        <div class="d-flex align-center">
-          <v-btn 
-            variant="outlined" 
-            size="small" 
-            class="document-list-btn mr-2"
+        <div class="d-flex align-center header-right">
+          <v-btn
+            variant="outlined"
+            size="small"
+            class="document-list-btn"
             @click="showDocumentList = true"
           >
             <v-icon start size="16">mdi-file-document-multiple</v-icon>
-            문서 목록
+            <span class="btn-text">문서 목록</span>
           </v-btn>
-          <v-btn 
-            variant="outlined" 
-            size="small" 
-            class="product-manage-btn mr-3"
+          <v-btn
+            variant="outlined"
+            size="small"
+            class="product-manage-btn"
             @click="goToProductManagement"
           >
             <v-icon start size="16">mdi-package-variant</v-icon>
-            품목 관리
+            <span class="btn-text">품목 관리</span>
           </v-btn>
           <v-btn icon size="large" class="back-btn" @click="goBack">
             <v-icon>mdi-close</v-icon>
@@ -616,34 +618,34 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        
+
         <v-card-text class="pa-0">
           <!-- 로딩 상태 -->
           <div v-if="loadingDocuments" class="text-center pa-8">
             <v-progress-circular indeterminate color="primary" size="64" />
             <div class="mt-4 text-h6">문서 목록을 불러오는 중...</div>
           </div>
-          
+
           <!-- 문서 목록 -->
           <div v-else-if="documents.length" class="document-list">
-            <div 
-              v-for="doc in documents" 
-              :key="doc.id" 
-              class="document-item"
-            >
+            <div v-for="doc in documents" :key="doc.id" class="document-item">
               <div class="document-info">
                 <div class="document-header">
-                  <h4 class="document-title">{{ doc.client || '거래명세서' }} ({{ doc.date }})</h4>
+                  <h4 class="document-title">
+                    {{ doc.client || '거래명세서' }} ({{ doc.date }})
+                  </h4>
                   <v-chip
                     :color="getActionColor(doc.actionType)"
                     size="small"
                     variant="flat"
                   >
-                    <v-icon start size="14">{{ getActionIcon(doc.actionType) }}</v-icon>
+                    <v-icon start size="14">{{
+                      getActionIcon(doc.actionType)
+                    }}</v-icon>
                     {{ getActionLabel(doc.actionType) }}
                   </v-chip>
                 </div>
-                
+
                 <div class="document-details">
                   <div class="detail-row">
                     <v-icon size="16" class="mr-2">mdi-domain</v-icon>
@@ -665,11 +667,14 @@
                     <v-icon size="16" class="mr-2">mdi-note-text</v-icon>
                     <span>{{ doc.remark }}</span>
                   </div>
-                  <div class="detail-row items-row" v-if="doc.items && doc.items.length">
+                  <div
+                    class="detail-row items-row"
+                    v-if="doc.items && doc.items.length"
+                  >
                     <v-icon size="16" class="mr-2">mdi-package-variant</v-icon>
                     <div class="items-list">
-                      <span 
-                        v-for="(item, index) in doc.items.slice(0, 4)" 
+                      <span
+                        v-for="(item, index) in doc.items.slice(0, 4)"
                         :key="index"
                         class="item-chip"
                       >
@@ -682,7 +687,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="document-actions">
                 <v-btn
                   size="small"
@@ -705,23 +710,23 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 빈 상태 -->
           <div v-else class="empty-documents">
-            <v-icon size="64" color="grey-lighten-1">mdi-file-document-outline</v-icon>
+            <v-icon size="64" color="grey-lighten-1"
+              >mdi-file-document-outline</v-icon
+            >
             <h4 class="mt-4">저장된 거래명세서가 없습니다</h4>
             <p class="text-grey">거래명세서를 작성하고 저장해보세요!</p>
           </div>
         </v-card-text>
-        
+
         <v-card-actions class="justify-end pa-4">
           <v-btn @click="loadDocuments">
             <v-icon start>mdi-refresh</v-icon>
             새로고침
           </v-btn>
-          <v-btn @click="showDocumentList = false">
-            닫기
-          </v-btn>
+          <v-btn @click="showDocumentList = false"> 닫기 </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -734,17 +739,17 @@
           문서 삭제 확인
         </v-card-title>
         <v-card-text>
-          <strong>{{ documentToDelete?.client || '거래명세서' }} ({{ documentToDelete?.date }})</strong> 문서를 삭제하시겠습니까?
-          <br>삭제된 문서는 복구할 수 없습니다.
+          <strong
+            >{{ documentToDelete?.client || '거래명세서' }} ({{
+              documentToDelete?.date
+            }})</strong
+          >
+          문서를 삭제하시겠습니까? <br />삭제된 문서는 복구할 수 없습니다.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="showDeleteDialog = false">
-            취소
-          </v-btn>
-          <v-btn color="error" @click="deleteDocument">
-            삭제
-          </v-btn>
+          <v-btn variant="text" @click="showDeleteDialog = false"> 취소 </v-btn>
+          <v-btn color="error" @click="deleteDocument"> 삭제 </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -758,7 +763,15 @@ import { getTodayDateKST } from '@/utils/date.js'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { db } from '@/firebase/config'
-import { collection, getDocs, addDoc, serverTimestamp, query, where, orderBy } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+} from 'firebase/firestore'
 import { convertToKoreanMoney } from '@/utils/money'
 import { useUiStore } from '@/stores/ui'
 import { useUserStore } from '@/stores/user'
@@ -788,7 +801,6 @@ const documents = ref([])
 const loadingDocuments = ref(false)
 const showDeleteDialog = ref(false)
 const documentToDelete = ref(null)
-
 
 function formatKoreanDate(dateStr) {
   if (!dateStr) return '년 월 일'
@@ -887,7 +899,16 @@ function selectPresetItem(product) {
 
 async function loadProducts() {
   try {
-    const snap = await getDocs(collection(db, 'products'))
+    const authResult = await userStore.executeWithAuth(async () => {
+      return await getDocs(collection(db, 'products'))
+    }, router)
+
+    if (!authResult.success) {
+      if (authResult.shouldRedirect) return
+      throw new Error(authResult.error || '인증에 실패했습니다.')
+    }
+
+    const snap = authResult.data
     productOptions.value = snap.docs.map((doc) => doc.data())
     processProductButtons()
   } catch (err) {
@@ -917,7 +938,7 @@ async function saveDocumentToDB(actionType = 'save', fileFormat = null) {
   try {
     console.log('문서 저장 시작:', actionType, fileFormat)
     console.log('userStore.userId:', userStore.userId)
-    
+
     if (!userStore.userId) {
       throw new Error('사용자 ID가 없습니다.')
     }
@@ -936,13 +957,15 @@ async function saveDocumentToDB(actionType = 'save', fileFormat = null) {
       remark: form.remark || '',
       actionType: actionType || 'save',
       fileFormat: fileFormat || null,
-      fileName: fileFormat ? `${form.client || 'unnamed'}_${form.date || 'nodate'}.${fileFormat}` : null,
+      fileName: fileFormat
+        ? `${form.client || 'unnamed'}_${form.date || 'nodate'}.${fileFormat}`
+        : null,
       createdAt: serverTimestamp(),
       createdBy: userStore.userId,
     }
-    
+
     console.log('저장할 데이터:', payload)
-    
+
     const authResult = await userStore.executeWithAuth(async () => {
       return await addDoc(collection(db, 'documents'), payload)
     }, router)
@@ -951,7 +974,7 @@ async function saveDocumentToDB(actionType = 'save', fileFormat = null) {
       if (authResult.shouldRedirect) return false
       throw new Error(authResult.error || '문서 저장에 실패했습니다.')
     }
-    
+
     console.log('문서 저장 성공:', authResult.data.id)
     return true
   } catch (err) {
@@ -1000,10 +1023,9 @@ async function generatePDF() {
     pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imageHeight)
     const fileName = `${form.client}_${form.date}_거래명세서.pdf`
     pdf.save(fileName)
-    
+
     // 데이터베이스에 문서 정보 저장
     await saveDocumentToDB('pdf', 'pdf')
-    
   } catch (err) {
     console.error('PDF 생성 실패:', err)
     alert('PDF 생성 중 오류가 발생했습니다.')
@@ -1040,10 +1062,9 @@ async function downloadTransactionImageWithMargin() {
     const fileName = `${form.client}_${form.date}_거래명세서.jpg`
     link.download = fileName
     link.click()
-    
+
     // 데이터베이스에 문서 정보 저장
     await saveDocumentToDB('image', 'jpeg')
-    
   } catch (err) {
     console.error('이미지 생성 실패:', err)
     uiStore.showSnackbar('이미지 생성 중 오류가 발생했습니다.', 'error')
@@ -1077,7 +1098,7 @@ const loadDocuments = async () => {
   loadingDocuments.value = true
   try {
     console.log('문서 목록 로딩 시작, userId:', userStore.userId)
-    
+
     if (!userStore.userId) {
       throw new Error('사용자 ID가 없습니다.')
     }
@@ -1097,25 +1118,28 @@ const loadDocuments = async () => {
 
     const snap = authResult.data
     console.log('쿼리 결과:', snap.size, '개 문서 발견')
-    
-    const allDocs = snap.docs.map(doc => ({
+
+    const allDocs = snap.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }))
-    
+
     console.log('모든 문서:', allDocs)
-    
+
     documents.value = allDocs
-      .filter(doc => doc.documentType === 'statement')
+      .filter((doc) => doc.documentType === 'statement')
       .sort((a, b) => {
         // createdAt이 Firebase Timestamp인 경우를 처리
-        const aTime = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
-        const bTime = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
+        const aTime = a.createdAt?.toDate
+          ? a.createdAt.toDate()
+          : new Date(a.createdAt || 0)
+        const bTime = b.createdAt?.toDate
+          ? b.createdAt.toDate()
+          : new Date(b.createdAt || 0)
         return bTime - aTime // 최신순 정렬
       })
-    
-    console.log('필터링된 거래명세서 문서:', documents.value.length, '개')
 
+    console.log('필터링된 거래명세서 문서:', documents.value.length, '개')
   } catch (err) {
     console.error('문서 목록 로딩 오류:', err)
     uiStore.showSnackbar('문서 목록을 불러오는데 실패했습니다.', 'error')
@@ -1131,13 +1155,13 @@ const loadDocumentData = (doc) => {
   form.items = doc.items || []
   form.remark = doc.remark || ''
   includeVAT.value = doc.includeVAT ?? true
-  
+
   // 총액 재계산
   recalculateAll()
-  
+
   // 다이얼로그 닫기
   showDocumentList.value = false
-  
+
   uiStore.showSnackbar('문서 데이터를 불러왔습니다.', 'success')
 }
 
@@ -1148,7 +1172,7 @@ const confirmDeleteDocument = (doc) => {
 
 const deleteDocument = async () => {
   if (!documentToDelete.value) return
-  
+
   try {
     const authResult = await userStore.executeWithAuth(async () => {
       const { deleteDoc, doc } = await import('firebase/firestore')
@@ -1156,19 +1180,20 @@ const deleteDocument = async () => {
     }, router)
 
     if (!authResult.success) {
-      if (authResult.shouldRedirect) return  
+      if (authResult.shouldRedirect) return
       throw new Error(authResult.error || '문서 삭제에 실패했습니다.')
     }
 
     uiStore.showSnackbar('문서가 삭제되었습니다.', 'success')
-    
+
     // 문서 목록에서 제거
-    documents.value = documents.value.filter(doc => doc.id !== documentToDelete.value.id)
-    
+    documents.value = documents.value.filter(
+      (doc) => doc.id !== documentToDelete.value.id
+    )
+
     // 다이얼로그 닫기
     showDeleteDialog.value = false
     documentToDelete.value = null
-    
   } catch (err) {
     console.error('문서 삭제 실패:', err)
     uiStore.showSnackbar('문서 삭제 중 오류가 발생했습니다.', 'error')
@@ -1177,28 +1202,40 @@ const deleteDocument = async () => {
 
 const getActionColor = (actionType) => {
   switch (actionType) {
-    case 'save': return 'success'
-    case 'pdf': return 'error'
-    case 'image': return 'warning'
-    default: return 'grey'
+    case 'save':
+      return 'success'
+    case 'pdf':
+      return 'error'
+    case 'image':
+      return 'warning'
+    default:
+      return 'grey'
   }
 }
 
 const getActionIcon = (actionType) => {
   switch (actionType) {
-    case 'save': return 'mdi-content-save'
-    case 'pdf': return 'mdi-file-pdf-box'
-    case 'image': return 'mdi-image'
-    default: return 'mdi-file'
+    case 'save':
+      return 'mdi-content-save'
+    case 'pdf':
+      return 'mdi-file-pdf-box'
+    case 'image':
+      return 'mdi-image'
+    default:
+      return 'mdi-file'
   }
 }
 
 const getActionLabel = (actionType) => {
   switch (actionType) {
-    case 'save': return '저장'
-    case 'pdf': return 'PDF'
-    case 'image': return '이미지'
-    default: return '알 수 없음'
+    case 'save':
+      return '저장'
+    case 'pdf':
+      return 'PDF'
+    case 'image':
+      return '이미지'
+    default:
+      return '알 수 없음'
   }
 }
 
@@ -1214,7 +1251,7 @@ const formatDateTime = (timestamp) => {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
@@ -1225,8 +1262,15 @@ watch(showDocumentList, (newValue) => {
   }
 })
 
-onMounted(() => {
-  loadProducts()
+onMounted(async () => {
+  const authResult = await userStore.initializeAuth(router)
+  if (!authResult.success) {
+    if (authResult.shouldRedirect) return
+    console.error('인증 초기화 실패:', authResult.error)
+    return
+  }
+
+  await loadProducts()
 })
 </script>
 
@@ -1786,7 +1830,7 @@ onMounted(() => {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 8px;
   }
-  
+
   .product-btn {
     min-width: 100px;
     height: 40px;
@@ -1799,11 +1843,109 @@ onMounted(() => {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
+
   .product-btn {
     min-width: auto;
     height: 36px;
     font-size: 12px;
+  }
+}
+
+/* 헤더 모바일 최적화 */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 16px !important;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .document-list-btn,
+  .product-manage-btn {
+    min-width: auto;
+    padding: 0 6px;
+    max-width: 70px;
+  }
+
+  .btn-text {
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+  }
+
+  .header-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-icon-wrapper v-icon {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 12px !important;
+  }
+
+  .header-left {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .header-text {
+    margin-left: 8px !important;
+    min-width: 0;
+  }
+
+  .header-title {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-subtitle {
+    display: none;
+  }
+
+  .header-right {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .document-list-btn,
+  .product-manage-btn {
+    min-width: 50px;
+    max-width: 60px;
+    padding: 0 4px;
+  }
+
+  .back-btn {
+    min-width: 40px;
+    width: 40px;
+  }
+
+  .header-icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-text {
+    font-size: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -2078,25 +2220,102 @@ onMounted(() => {
   color: #64748b;
 }
 
-/* 반응형 */
+/* 문서 목록 다이얼로그 모바일 최적화 */
+@media (max-width: 768px) {
+  .document-list {
+    max-height: 400px;
+  }
+
+  .document-item {
+    padding: 12px 16px;
+  }
+
+  .document-title {
+    font-size: 14px;
+  }
+
+  .detail-row {
+    font-size: 12px;
+  }
+
+  .item-chip {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+
+  .more-items {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+}
+
 @media (max-width: 600px) {
   .document-details {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
-  
+
   .document-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
+    padding: 12px 16px;
   }
-  
+
+  .document-header {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .document-title {
+    font-size: 14px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .document-actions {
     margin-left: 0;
     width: 100%;
+    display: flex;
+    gap: 8px;
   }
-  
+
   .document-actions .v-btn {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    height: 32px;
+  }
+
+  .items-row {
+    grid-column: 1 / -1;
+  }
+
+  .items-list {
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .document-item {
+    padding: 10px 12px;
+  }
+
+  .document-title {
+    font-size: 13px;
+    max-width: 150px;
+  }
+
+  .detail-row {
+    font-size: 11px;
+  }
+
+  .document-actions .v-btn {
+    font-size: 11px;
+    height: 28px;
+    padding: 0 8px;
   }
 }
 

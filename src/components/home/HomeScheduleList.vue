@@ -2,7 +2,6 @@
   <div class="home-schedule-list">
     <!-- 실제 작업 목록 -->
     <template v-if="categorizedSchedules.all.length">
-      
       <!-- 진행 중인 작업 -->
       <TaskSection
         v-if="categorizedSchedules.progress.length"
@@ -49,7 +48,7 @@
     </template>
 
     <!-- 작업이 없을 때 -->
-    <EmptyState 
+    <EmptyState
       v-else
       icon="mdi-calendar-blank"
       title="등록된 작업이 없습니다"
@@ -64,14 +63,18 @@
 import { computed, defineAsyncComponent } from 'vue'
 
 // 비동기 컴포넌트 로딩으로 성능 최적화
-const TaskSection = defineAsyncComponent(() => import('@/components/TaskSection.vue'))
-const EmptyState = defineAsyncComponent(() => import('@/components/EmptyState.vue'))
+const TaskSection = defineAsyncComponent(
+  () => import('@/components/TaskSection.vue')
+)
+const EmptyState = defineAsyncComponent(
+  () => import('@/components/EmptyState.vue')
+)
 
 const props = defineProps({
   schedules: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['item-click', 'add-schedule'])
@@ -83,11 +86,11 @@ const categorizedSchedules = computed(() => {
     completed: [],
     pending: [],
     cancelled: [],
-    all: props.schedules
+    all: props.schedules,
   }
-  
+
   // 한 번의 순회로 모든 분류 처리 - 더 정확한 상태 매핑
-  props.schedules.forEach(schedule => {
+  props.schedules.forEach((schedule) => {
     const status = schedule.status
     switch (status) {
       case '진행':
@@ -107,7 +110,7 @@ const categorizedSchedules = computed(() => {
         categories.progress.push(schedule)
     }
   })
-  
+
   return categories
 })
 

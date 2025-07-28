@@ -48,7 +48,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <!-- 상태 뱃지들 -->
               <div class="status-badges">
                 <v-chip
@@ -134,25 +134,25 @@ import { getTodayDateKST } from '@/utils/date.js'
 const props = defineProps({
   date: {
     type: String,
-    required: true
+    required: true,
   },
   items: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   isMobile: {
     type: Boolean,
-    default: false
+    default: false,
   },
   badgeSize: {
     type: String,
-    default: 'small'
+    default: 'small',
   },
   iconSize: {
     type: String,
-    default: '14'
-  }
+    default: '14',
+  },
 })
 
 const emit = defineEmits(['item-click'])
@@ -196,9 +196,12 @@ const getStatusColor = (item) => {
       if (item.date > today) return 'purple'
     }
     switch (item.status) {
-      case '완료': return 'green'
-      case '보류': return 'red'
-      default: return 'grey'
+      case '완료':
+        return 'green'
+      case '보류':
+        return 'red'
+      default:
+        return 'grey'
     }
   } catch (err) {
     return 'grey'
@@ -226,9 +229,12 @@ const getStatusIcon = (item) => {
       if (item.date > today) return 'mdi-clock-outline'
     }
     switch (item.status) {
-      case '완료': return 'mdi-check-circle'
-      case '보류': return 'mdi-pause-circle'
-      default: return 'mdi-help-circle'
+      case '완료':
+        return 'mdi-check-circle'
+      case '보류':
+        return 'mdi-pause-circle'
+      default:
+        return 'mdi-help-circle'
     }
   } catch (err) {
     return 'mdi-help-circle'
@@ -237,12 +243,18 @@ const getStatusIcon = (item) => {
 
 const getShortStatus = (status) => {
   switch (status) {
-    case '진행': return '진행'
-    case '완료': return '완료'
-    case '보류': return '보류'
-    case '예정': return '예정'
-    case '취소됨': return '취소'
-    default: return status
+    case '진행':
+      return '진행'
+    case '완료':
+      return '완료'
+    case '보류':
+      return '보류'
+    case '예정':
+      return '예정'
+    case '취소됨':
+      return '취소'
+    default:
+      return status
   }
 }
 
@@ -331,7 +343,12 @@ const handleItemClick = (id) => {
   left: 24px;
   right: 24px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(79, 70, 229, 0.3),
+    transparent
+  );
   z-index: 1;
 }
 
@@ -606,7 +623,7 @@ const handleItemClick = (id) => {
     transform: none;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
-  
+
   .card-hover-indicator {
     display: none !important;
   }
@@ -617,11 +634,11 @@ const handleItemClick = (id) => {
   .schedule-card {
     transition: none;
   }
-  
+
   .schedule-card:hover {
     transform: none;
   }
-  
+
   .card-hover-indicator {
     transition: none;
   }

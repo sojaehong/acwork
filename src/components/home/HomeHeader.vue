@@ -1,9 +1,5 @@
 <template>
-  <v-app-bar 
-    :elevation="0" 
-    class="custom-header"
-    height="80"
-  >
+  <v-app-bar :elevation="0" class="custom-header" height="80">
     <div class="d-flex align-center justify-space-between w-100 px-4">
       <div class="d-flex align-center">
         <div class="header-icon-wrapper">
@@ -14,7 +10,7 @@
           <div class="header-subtitle">스마트 작업 관리</div>
         </div>
       </div>
-      
+
       <div class="d-flex align-center">
         <div v-if="userStore.userId" class="user-info-chip">
           <v-avatar size="36" class="mr-2">
@@ -22,8 +18,8 @@
           </v-avatar>
           <span class="user-name">{{ userStore.userName }}님</span>
         </div>
-        <v-btn 
-          icon 
+        <v-btn
+          icon
           size="large"
           class="logout-btn ml-2"
           @click="handleLogout"

@@ -7,11 +7,11 @@ export default defineConfig({
   publicDir: 'public',
   plugins: [
     vue(),
-    vuetify({ 
+    vuetify({
       autoImport: true,
       theme: {
-        defaultTheme: 'light'
-      }
+        defaultTheme: 'light',
+      },
     }),
   ],
   resolve: {
@@ -28,45 +28,45 @@ export default defineConfig({
         manualChunks: {
           // 핵심 프레임워크
           'vue-core': ['vue', 'vue-router', 'pinia'],
-          
+
           // UI 프레임워크
           'vuetify-core': ['vuetify'],
-          
+
           // PDF 생성 라이브러리 (가장 큰 번들)
           'pdf-libs': ['jspdf', 'html2canvas'],
-          
+
           // Firebase
-          'firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
-          
+          firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+
           // 유틸리티 라이브러리
-          'utils': ['lodash', 'date-fns'],
-          
+          utils: ['lodash', 'date-fns'],
+
           // 폼 관련
           'form-libs': ['flatpickr', 'vue-flatpickr-component'],
-          
+
           // VueUse 유틸리티
-          'vueuse': ['@vueuse/core']
+          vueuse: ['@vueuse/core'],
         },
         // 파일명 최적화
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
     },
     // 더 나은 트리 셰이킹을 위한 설정
     target: 'esnext',
     minify: 'esbuild', // terser 대신 더 빠른 esbuild 사용
-    sourcemap: false
+    sourcemap: false,
   },
   // 개발 서버 최적화
   server: {
     warmup: {
-      clientFiles: ['./src/main.js', './src/pages/Home.vue']
-    }
+      clientFiles: ['./src/main.js', './src/pages/Home.vue'],
+    },
   },
   // CSS 최적화
   css: {
-    devSourcemap: false
+    devSourcemap: false,
   },
   // 최적화 설정
   optimizeDeps: {
@@ -79,8 +79,8 @@ export default defineConfig({
       'date-fns',
       'firebase/app',
       'firebase/firestore',
-      'firebase/auth'
+      'firebase/auth',
     ],
-    exclude: ['jspdf', 'html2canvas'] // 큰 라이브러리는 필요시에만 로드
-  }
+    exclude: ['jspdf', 'html2canvas'], // 큰 라이브러리는 필요시에만 로드
+  },
 })

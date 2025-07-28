@@ -9,14 +9,9 @@
         {{ props.schedules.length }}개
       </v-chip>
     </div>
-    
+
     <!-- 🚀 성능 최적화: transition-group with key 최적화 -->
-    <transition-group 
-      name="task-fade" 
-      tag="div" 
-      appear
-      class="task-container"
-    >
+    <transition-group name="task-fade" tag="div" appear class="task-container">
       <TaskCard
         v-for="item in props.schedules"
         :key="`task-${item.id}-${item.status}`"
@@ -51,25 +46,25 @@ const props = defineProps({
   schedules: {
     type: Array,
     required: true,
-    default: () => []
+    default: () => [],
   },
   sectionType: {
     type: String,
     required: true,
-    validator: (value) => ['active', 'completed', 'hold'].includes(value)
+    validator: (value) => ['active', 'completed', 'hold'].includes(value),
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   icon: {
     type: String,
-    required: true
+    required: true,
   },
   color: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 
 // 이벤트 정의
@@ -81,7 +76,7 @@ const schedules = computed(() => props.schedules)
 // 🚀 성능 최적화: 이벤트 핸들러 최적화
 const handleItemClick = (id) => {
   // schedules 배열에서 해당 ID의 전체 객체 찾아서 전달
-  const schedule = schedules.value.find(s => s.id === id)
+  const schedule = schedules.value.find((s) => s.id === id)
   if (schedule) {
     emit('item-click', schedule)
   }
@@ -194,7 +189,7 @@ const handleItemClick = (id) => {
   .task-fade-leave-active {
     transition: none;
   }
-  
+
   .task-card-wrapper:hover {
     transform: none;
   }

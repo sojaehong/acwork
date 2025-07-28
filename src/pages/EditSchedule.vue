@@ -544,11 +544,7 @@ function goBack() {
 }
 
 async function submit() {
-  if (
-    !form.value.building ||
-    !form.value.status ||
-    !form.value.date
-  ) {
+  if (!form.value.building || !form.value.status || !form.value.date) {
     uiStore.showSnackbar('필수 항목을 모두 입력해주세요.', 'error')
     return
   }
@@ -578,7 +574,7 @@ async function submit() {
   try {
     await scheduleStore.updateSchedule(data)
     uiStore.showSnackbar('작업이 성공적으로 수정되었습니다!', 'success')
-     const originalFrom = route.query.originalFrom || 'schedules'
+    const originalFrom = route.query.originalFrom || 'schedules'
     router.push(`/schedule/${route.params.id}?from=${originalFrom}`)
   } catch (err) {
     uiStore.showSnackbar('수정 중 오류가 발생했습니다.', 'error')

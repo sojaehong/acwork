@@ -47,47 +47,48 @@ export const useScheduleStore = defineStore('schedule', {
       let filtered = [...state.schedules]
 
       if (state.filters.status.length > 0) {
-        filtered = filtered.filter(s => 
-          s.status && state.filters.status.includes(s.status)
+        filtered = filtered.filter(
+          (s) => s.status && state.filters.status.includes(s.status)
         )
       }
 
       if (state.filters.building.length > 0) {
-        filtered = filtered.filter(s => 
-          s.building && state.filters.building.includes(s.building)
+        filtered = filtered.filter(
+          (s) => s.building && state.filters.building.includes(s.building)
         )
       }
 
       if (state.filters.task.length > 0) {
-        filtered = filtered.filter(s => 
-          s.tasks && s.tasks.some(task => 
-            state.filters.task.includes(task.name)
-          )
+        filtered = filtered.filter(
+          (s) =>
+            s.tasks &&
+            s.tasks.some((task) => state.filters.task.includes(task.name))
         )
       }
 
       if (state.filters.invoice !== null) {
         const hasInvoice = state.filters.invoice === 'O'
-        filtered = filtered.filter(s => Boolean(s.invoice) === hasInvoice)
+        filtered = filtered.filter((s) => Boolean(s.invoice) === hasInvoice)
       }
 
       if (state.filters.searchText) {
         const searchText = state.filters.searchText.toLowerCase()
-        filtered = filtered.filter(s =>
-          (s.room && s.room.toLowerCase().includes(searchText)) ||
-          (s.memo && s.memo.toLowerCase().includes(searchText)) ||
-          (s.building && s.building.toLowerCase().includes(searchText))
+        filtered = filtered.filter(
+          (s) =>
+            (s.room && s.room.toLowerCase().includes(searchText)) ||
+            (s.memo && s.memo.toLowerCase().includes(searchText)) ||
+            (s.building && s.building.toLowerCase().includes(searchText))
         )
       }
 
       if (state.filters.startDate) {
-        filtered = filtered.filter(s => 
-          s.date && s.date >= state.filters.startDate
+        filtered = filtered.filter(
+          (s) => s.date && s.date >= state.filters.startDate
         )
       }
       if (state.filters.endDate) {
-        filtered = filtered.filter(s => 
-          s.date && s.date <= state.filters.endDate
+        filtered = filtered.filter(
+          (s) => s.date && s.date <= state.filters.endDate
         )
       }
 
@@ -100,7 +101,8 @@ export const useScheduleStore = defineStore('schedule', {
   actions: {
     // 새로 추가: 에러 관리
     setError(error, context = '') {
-      this.error = error?.message || error || `${context} 중 오류가 발생했습니다.`
+      this.error =
+        error?.message || error || `${context} 중 오류가 발생했습니다.`
       console.error(`[ScheduleStore] ${context}:`, error)
     },
 
@@ -112,7 +114,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchSchedulesByDate(date) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const q = query(collection(db, 'schedules'), where('date', '==', date))
         const snapshot = await getDocs(q)
@@ -132,7 +134,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchAllSchedules() {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const q = query(collection(db, 'schedules'), orderBy('date', 'desc'))
         const snapshot = await getDocs(q)
@@ -152,7 +154,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchSchedulesMetaByDate(date) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const q = query(
           collection(db, 'schedulesMeta'),
@@ -162,7 +164,7 @@ export const useScheduleStore = defineStore('schedule', {
         const snap = await getDocs(q)
         if (!snap.empty) {
           const data = snap.docs[0].data()
-          
+
           // 🚀 최적화: 작업자 정보 배치 조회로 N+1 문제 해결
           if (data.workers && data.workers.length > 0) {
             try {
@@ -174,7 +176,7 @@ export const useScheduleStore = defineStore('schedule', {
           } else {
             data.workerNames = []
           }
-          
+
           this.schedulesMeta[date] = { id: snap.docs[0].id, ...data }
         } else {
           this.schedulesMeta[date] = null
@@ -189,7 +191,7 @@ export const useScheduleStore = defineStore('schedule', {
     async addScheduleMeta(metaData) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const docRef = await addDoc(collection(db, 'schedulesMeta'), {
           ...metaData,
@@ -208,7 +210,7 @@ export const useScheduleStore = defineStore('schedule', {
     async updateScheduleMeta(id, metaData) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const docRef = doc(db, 'schedulesMeta', id)
         await updateDoc(docRef, {
@@ -227,7 +229,7 @@ export const useScheduleStore = defineStore('schedule', {
     async deleteScheduleMeta(id, date) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const docRef = doc(db, 'schedulesMeta', id)
         await deleteDoc(docRef)
@@ -243,7 +245,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchScheduleById(id) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const docRef = doc(db, 'schedules', id)
         const docSnap = await getDoc(docRef)
@@ -269,7 +271,7 @@ export const useScheduleStore = defineStore('schedule', {
     async addSchedule(scheduleData) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const dataWithTimestamp = {
           ...scheduleData,
@@ -297,7 +299,7 @@ export const useScheduleStore = defineStore('schedule', {
     async updateSchedule(scheduleData) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const { id, ...dataToUpdate } = scheduleData
         const docRef = doc(db, 'schedules', id)
@@ -319,12 +321,12 @@ export const useScheduleStore = defineStore('schedule', {
     async deleteSchedule(id) {
       this.isLoading = true
       this.clearError()
-      
+
       try {
         const docRef = doc(db, 'schedules', id)
         await deleteDoc(docRef)
         this.schedules = this.schedules.filter((s) => s.id !== id)
-        
+
         // 선택된 일정이 삭제된 경우 초기화
         if (this.selectedSchedule && this.selectedSchedule.id === id) {
           this.selectedSchedule = null
@@ -355,7 +357,7 @@ export const useScheduleStore = defineStore('schedule', {
     // 🚀 새로 추가: 필터 토글 메서드
     toggleFilter(type, value) {
       if (!type || value === undefined) return
-      
+
       switch (type) {
         case 'status':
         case 'building':
@@ -365,7 +367,7 @@ export const useScheduleStore = defineStore('schedule', {
           if (index === -1) {
             this.filters[type] = [...currentArray, value]
           } else {
-            this.filters[type] = currentArray.filter(item => item !== value)
+            this.filters[type] = currentArray.filter((item) => item !== value)
           }
           break
         case 'invoice':

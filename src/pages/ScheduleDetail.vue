@@ -495,12 +495,14 @@ async function deleteSchedule() {
 
 function goToEdit() {
   const originalFrom = route.query.from || 'schedules'
-  router.push(`/schedule/${schedule.value.id}/edit?originalFrom=${originalFrom}`)
+  router.push(
+    `/schedule/${schedule.value.id}/edit?originalFrom=${originalFrom}`
+  )
 }
 
 function goBack() {
   const fromPage = route.query.from
-  
+
   if (fromPage === 'home') {
     router.push('/')
   } else {
@@ -511,19 +513,19 @@ function goBack() {
 // 🚀 새로 추가: 추가 작업 등록 함수
 function addMoreWork() {
   if (!schedule.value) return
-  
+
   // 현재 스케줄 정보를 쿼리 파라미터로 전달 (날짜는 오늘로 설정)
   const queryParams = {
     building: schedule.value.building,
     unit: schedule.value.unit || '',
     room: schedule.value.room || '',
     date: today,
-    from: 'detail'
+    from: 'detail',
   }
-  
+
   router.push({
     path: '/add',
-    query: queryParams
+    query: queryParams,
   })
 }
 </script>

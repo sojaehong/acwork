@@ -13,8 +13,9 @@ export const useUserStore = defineStore('user', {
 
   getters: {
     // 사용자 인증 상태 확인
-    isLoggedIn: (state) => !!state.userId && !!state.userName && !!state.userRole,
-    
+    isLoggedIn: (state) =>
+      !!state.userId && !!state.userName && !!state.userRole,
+
     // 사용자 정보 객체 반환
     userInfo: (state) => ({
       id: state.userId,
@@ -29,7 +30,7 @@ export const useUserStore = defineStore('user', {
       this.userName = name
       this.userRole = role
       this.isAuthenticated = true
-      
+
       // localStorage에 저장
       localStorage.setItem('user_id', id)
       localStorage.setItem('user_name', name)
@@ -85,42 +86,41 @@ export const useUserStore = defineStore('user', {
 
         // 2. localStorage에서 사용자 정보 복원
         const restored = this.restoreUserFromLocalStorage()
-        
+
         if (!restored) {
           // 사용자 정보가 없으면 로그인 페이지로
           this.initializationError = '사용자 정보를 찾을 수 없습니다.'
-          
+
           if (router) {
             await router.push('/login')
           }
-          
-          return { 
-            success: false, 
+
+          return {
+            success: false,
             error: this.initializationError,
-            shouldRedirect: true 
+            shouldRedirect: true,
           }
         }
 
         this.isInitialized = true
         console.log('인증 초기화 완료:', this.userInfo)
-        
-        return { success: true }
 
+        return { success: true }
       } catch (error) {
         console.error('인증 초기화 실패:', error)
         this.initializationError = '인증 초기화 중 오류가 발생했습니다.'
-        
+
         // 3초 후 로그인 페이지로 리다이렉트
         if (router) {
           setTimeout(() => {
             router.push('/login')
           }, 3000)
         }
-        
-        return { 
-          success: false, 
+
+        return {
+          success: false,
           error: this.initializationError,
-          originalError: error 
+          originalError: error,
         }
       }
     },
@@ -128,19 +128,21 @@ export const useUserStore = defineStore('user', {
     // 🔄 재시도 가능한 데이터 로딩 래퍼
     async withRetry(asyncFunction, maxRetries = 3, delayMs = 1000) {
       let retryCount = 0
-      
+
       while (retryCount <= maxRetries) {
         try {
           return await asyncFunction()
         } catch (error) {
           retryCount++
-          
+
           if (retryCount > maxRetries) {
             throw new Error(`${maxRetries}번 재시도 후 실패: ${error.message}`)
           }
-          
+
           console.log(`재시도 ${retryCount}/${maxRetries}...`)
-          await new Promise(resolve => setTimeout(resolve, delayMs * retryCount))
+          await new Promise((resolve) =>
+            setTimeout(resolve, delayMs * retryCount)
+          )
         }
       }
     },
@@ -149,7 +151,7 @@ export const useUserStore = defineStore('user', {
     async executeWithAuth(asyncFunction, router = null) {
       // 먼저 인증 상태 확인
       const authResult = await this.initializeAuth(router)
-      
+
       if (!authResult.success) {
         return authResult
       }
@@ -159,10 +161,10 @@ export const useUserStore = defineStore('user', {
         return { success: true, data: result }
       } catch (error) {
         console.error('인증된 작업 실행 실패:', error)
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: error.message,
-          originalError: error 
+          originalError: error,
         }
       }
     },
@@ -174,11 +176,11 @@ export const useUserStore = defineStore('user', {
       this.isAuthenticated = false
       this.isInitialized = false
       this.initializationError = null
-      
+
       // localStorage 정리
       const keysToRemove = ['user_id', 'user_name', 'user_role']
-      keysToRemove.forEach(key => localStorage.removeItem(key))
-      
+      keysToRemove.forEach((key) => localStorage.removeItem(key))
+
       // 또는 전체 삭제: localStorage.clear()
     },
 

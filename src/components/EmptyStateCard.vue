@@ -4,10 +4,18 @@
       <v-icon size="80" color="grey-lighten-2">mdi-calendar-remove</v-icon>
     </div>
     <h3 class="empty-title">
-      {{ hasActiveFilters ? '필터 조건에 맞는 작업이 없습니다' : '등록된 작업이 없습니다' }}
+      {{
+        hasActiveFilters
+          ? '필터 조건에 맞는 작업이 없습니다'
+          : '등록된 작업이 없습니다'
+      }}
     </h3>
     <p class="empty-description">
-      {{ hasActiveFilters ? '필터를 조정하거나 초기화해보세요.' : '새 작업을 등록하여 시작해보세요!' }}
+      {{
+        hasActiveFilters
+          ? '필터를 조정하거나 초기화해보세요.'
+          : '새 작업을 등록하여 시작해보세요!'
+      }}
     </p>
     <v-btn
       v-if="hasActiveFilters"
@@ -25,8 +33,8 @@
 const props = defineProps({
   hasActiveFilters: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const emit = defineEmits(['reset-filters'])

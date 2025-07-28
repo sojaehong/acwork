@@ -1,8 +1,8 @@
 <template>
   <div class="date-navigation">
-    <v-btn 
-      icon 
-      size="large" 
+    <v-btn
+      icon
+      size="large"
       variant="text"
       class="date-nav-btn"
       @click="$emit('change-date', -1)"
@@ -11,15 +11,15 @@
     >
       <v-icon size="28">mdi-chevron-left</v-icon>
     </v-btn>
-    
+
     <div class="date-display">
       <h2 class="date-title">{{ displayDate }}</h2>
       <div class="date-badge">{{ ddayText }}</div>
     </div>
-    
-    <v-btn 
-      icon 
-      size="large" 
+
+    <v-btn
+      icon
+      size="large"
       variant="text"
       class="date-nav-btn"
       @click="$emit('change-date', 1)"
@@ -40,12 +40,12 @@ import { getTodayDateKST } from '@/utils/date.js'
 const props = defineProps({
   selectedDate: {
     type: Date,
-    required: true
+    required: true,
   },
   isChangingDate: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 defineEmits(['change-date'])
@@ -58,7 +58,7 @@ const ddayText = computed(() => {
   const todayStr = getTodayDateKST()
   const today = new Date(todayStr + 'T00:00:00+09:00')
   const diff = differenceInDays(props.selectedDate, today)
-  
+
   if (diff === 0) return '오늘'
   if (diff === 1) return '내일'
   if (diff === -1) return '어제'
@@ -127,24 +127,24 @@ const ddayText = computed(() => {
   .date-navigation {
     padding: 20px 16px;
   }
-  
+
   .date-nav-btn {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
     border-radius: 10px !important;
   }
-  
+
   .date-nav-btn .v-icon {
     font-size: 24px !important;
   }
-  
+
   .date-title {
     font-size: 22px;
     font-weight: 600;
     line-height: 1.3;
   }
-  
+
   .date-badge {
     padding: 3px 10px;
     border-radius: 10px;

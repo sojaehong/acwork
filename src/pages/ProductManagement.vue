@@ -118,115 +118,110 @@
           <div class="card-content">
             <!-- 로딩 상태 -->
             <template v-if="isLoading">
-              <div class="loading-skeleton">
-                <div v-for="i in 5" :key="i" class="skeleton-item">
-                  <div class="skeleton-name"></div>
-                  <div class="skeleton-spec"></div>
-                  <div class="skeleton-price"></div>
-                  <div class="skeleton-actions"></div>
+              <div class="products-grid">
+                <div v-for="i in 6" :key="i" class="skeleton-card">
+                  <div class="skeleton-line skeleton-name"></div>
+                  <div class="skeleton-line skeleton-spec"></div>
+                  <div class="skeleton-line skeleton-price"></div>
                 </div>
               </div>
             </template>
 
-            <!-- 품목 목록 -->
+            <!-- 품목 목록 - 카드 형태 -->
             <template v-else-if="products.length">
-              <div class="product-table">
-                <div class="table-header">
-                  <div class="header-cell name">품목명</div>
-                  <div class="header-cell spec">규격/사양</div>
-                  <div class="header-cell price">단가</div>
-                  <div class="header-cell actions">작업</div>
-                </div>
-                
-                <div class="table-body">
-                  <div 
-                    v-for="product in products" 
-                    :key="product.id" 
-                    class="table-row"
-                    :class="{ editing: editingId === product.id }"
-                  >
-                    <!-- 편집 모드 -->
-                    <template v-if="editingId === product.id">
-                      <div class="cell name">
+              <div class="products-grid">
+                <v-card 
+                  v-for="product in products" 
+                  :key="product.id" 
+                  class="product-item-card"
+                  :class="{ 'editing-card': editingId === product.id }"
+                  elevation="2"
+                >
+                  <!-- 편집 모드 -->
+                  <template v-if="editingId === product.id">
+                    <v-card-text class="pa-4">
+                      <div class="edit-form">
                         <v-text-field
                           v-model="editProduct.name"
+                          label="품목명"
                           variant="outlined"
                           density="compact"
-                          hide-details
+                          class="mb-3"
                         />
-                      </div>
-                      <div class="cell spec">
                         <v-text-field
                           v-model="editProduct.spec"
+                          label="규격/사양"
                           variant="outlined"
                           density="compact"
-                          hide-details
+                          class="mb-3"
                         />
-                      </div>
-                      <div class="cell price">
                         <v-text-field
                           v-model.number="editProduct.price"
                           type="number"
+                          label="단가"
                           variant="outlined"
                           density="compact"
-                          hide-details
+                          class="mb-3"
                         />
+                        <div class="edit-actions">
+                          <v-btn
+                            color="success"
+                            variant="flat"
+                            size="small"
+                            class="mr-2"
+                            :loading="isSaving"
+                            @click="saveEdit"
+                          >
+                            <v-icon start size="16">mdi-check</v-icon>
+                            저장
+                          </v-btn>
+                          <v-btn
+                            color="grey"
+                            variant="outlined"
+                            size="small"
+                            @click="cancelEdit"
+                          >
+                            <v-icon start size="16">mdi-close</v-icon>
+                            취소
+                          </v-btn>
+                        </div>
                       </div>
-                      <div class="cell actions">
-                        <v-btn
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                          class="mr-2"
-                          :loading="isSaving"
-                          @click="saveEdit"
-                        >
-                          <v-icon size="16">mdi-check</v-icon>
-                        </v-btn>
-                        <v-btn
-                          size="small"
-                          color="grey"
-                          variant="outlined"
-                          @click="cancelEdit"
-                        >
-                          <v-icon size="16">mdi-close</v-icon>
-                        </v-btn>
-                      </div>
-                    </template>
+                    </v-card-text>
+                  </template>
 
-                    <!-- 일반 표시 모드 -->
-                    <template v-else>
-                      <div class="cell name">
-                        <div class="product-name">{{ product.name }}</div>
-                      </div>
-                      <div class="cell spec">
-                        <div class="product-spec">{{ product.spec || '-' }}</div>
-                      </div>
-                      <div class="cell price">
+                  <!-- 일반 표시 모드 -->
+                  <template v-else>
+                    <v-card-text class="pa-4">
+                      <div class="product-info">
+                        <h4 class="product-name">{{ product.name }}</h4>
+                        <div class="product-spec">{{ product.spec || '규격 없음' }}</div>
                         <div class="product-price">{{ formatPrice(product.price) }}원</div>
                       </div>
-                      <div class="cell actions">
-                        <v-btn
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          class="mr-2"
-                          @click="startEdit(product)"
-                        >
-                          <v-icon size="16">mdi-pencil</v-icon>
-                        </v-btn>
-                        <v-btn
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          @click="confirmDelete(product)"
-                        >
-                          <v-icon size="16">mdi-delete</v-icon>
-                        </v-btn>
-                      </div>
-                    </template>
-                  </div>
-                </div>
+                    </v-card-text>
+                    <v-card-actions class="pa-4 pt-0">
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                        class="mr-2"
+                        @click="startEdit(product)"
+                      >
+                        <v-icon start size="16">mdi-pencil</v-icon>
+                        수정
+                      </v-btn>
+                      <v-btn
+                        color="error"
+                        variant="outlined"
+                        size="small"
+                        @click="confirmDelete(product)"
+                      >
+                        <v-icon start size="16">mdi-delete</v-icon>
+                        삭제
+                      </v-btn>
+                    </v-card-actions>
+                  </template>
+                </v-card>
               </div>
             </template>
 
@@ -812,26 +807,121 @@ onMounted(async () => {
   color: #1e293b !important;
 }
 
-/* 반응형 */
-@media (max-width: 768px) {
-  .floating-actions {
-    padding: 16px;
+/* 새로운 카드 기반 UI */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.product-item-card {
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.product-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.editing-card {
+  border: 2px solid #4f46e5 !important;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.product-spec {
+  font-size: 14px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #059669;
+  margin-top: 4px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* 로딩 스켈레톤 업데이트 */
+.skeleton-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+.skeleton-line {
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-name {
+  height: 20px;
+  width: 70%;
+}
+
+.skeleton-spec {
+  height: 16px;
+  width: 50%;
+}
+
+.skeleton-price {
+  height: 18px;
+  width: 30%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
   }
-  
-  .action-btn {
-    height: 52px;
-    font-size: 14px;
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .action-btn {
-    height: 48px;
-    font-size: 13px;
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
   
-  .action-btn .v-icon {
-    font-size: 16px !important;
+  .product-item-card {
+    margin: 0 4px;
   }
 }
 </style>

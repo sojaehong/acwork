@@ -12,7 +12,7 @@
             <div class="header-subtitle">스마트 작업 관리</div>
           </div>
         </div>
-        
+
         <div class="header-right">
           <div v-if="userStore.userId" class="user-info-chip">
             <v-avatar size="36" class="user-avatar">
@@ -20,8 +20,8 @@
             </v-avatar>
             <span class="user-name">{{ userStore.userName }}님</span>
           </div>
-          <v-btn 
-            icon 
+          <v-btn
+            icon
             size="large"
             class="logout-btn"
             @click="handleLogout"
@@ -35,10 +35,10 @@
 
     <v-main class="main-content">
       <!-- 에러 알림 -->
-      <v-alert 
-        v-if="error" 
-        type="error" 
-        class="ma-4" 
+      <v-alert
+        v-if="error"
+        type="error"
+        class="ma-4"
         prominent
         closable
         @click:close="clearError"
@@ -47,18 +47,21 @@
         {{ error }}
       </v-alert>
 
-      <v-container class="pa-6" style="padding-bottom: 280px !important; max-width: 1200px;">
+      <v-container
+        class="pa-6"
+        style="padding-bottom: 280px !important; max-width: 1200px"
+      >
         <!-- 날짜 선택 및 메타 정보 카드 -->
         <v-card class="date-meta-card mb-8" elevation="0">
           <!-- 날짜 네비게이션 컴포넌트 -->
-          <HomeDateNavigation 
+          <HomeDateNavigation
             :selected-date="selectedDateObj"
             :is-changing-date="isChangingDate"
             @change-date="changeDateHandler"
           />
 
           <!-- 메타 정보 컴포넌트 -->
-          <HomeMetaInfo 
+          <HomeMetaInfo
             :schedule-meta="scheduleMeta"
             :is-loading="isLoadingMeta"
             :current-user-name="userStore.userName"
@@ -68,8 +71,8 @@
 
         <!-- 작업 목록 섹션 -->
         <HomeScheduleSkeleton v-if="isLoadingSchedules" />
-        
-        <HomeScheduleList 
+
+        <HomeScheduleList
           v-else
           :schedules="scheduleStore.schedules || []"
           @item-click="handleItemClick"
@@ -91,18 +94,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch, defineAsyncComponent, nextTick, shallowRef } from 'vue'
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  computed,
+  watch,
+  defineAsyncComponent,
+  nextTick,
+  shallowRef,
+} from 'vue'
 import { useRouter } from 'vue-router'
 import { useScheduleStore } from '@/stores/schedule'
 import { useUserStore } from '@/stores/user'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 
-// 비동기 컴포넌트 로딩으로 성능 최적화  
-const HomeDateNavigation = defineAsyncComponent(() => import('@/components/home/HomeDateNavigation.vue'))
-const HomeMetaInfo = defineAsyncComponent(() => import('@/components/home/HomeMetaInfo.vue'))
-const HomeScheduleSkeleton = defineAsyncComponent(() => import('@/components/home/HomeScheduleSkeleton.vue'))
-const HomeScheduleList = defineAsyncComponent(() => import('@/components/home/HomeScheduleList.vue'))
-const FloatingActions = defineAsyncComponent(() => import('@/components/FloatingActions.vue'))
+// 비동기 컴포넌트 로딩으로 성능 최적화
+const HomeDateNavigation = defineAsyncComponent(
+  () => import('@/components/home/HomeDateNavigation.vue')
+)
+const HomeMetaInfo = defineAsyncComponent(
+  () => import('@/components/home/HomeMetaInfo.vue')
+)
+const HomeScheduleSkeleton = defineAsyncComponent(
+  () => import('@/components/home/HomeScheduleSkeleton.vue')
+)
+const HomeScheduleList = defineAsyncComponent(
+  () => import('@/components/home/HomeScheduleList.vue')
+)
+const FloatingActions = defineAsyncComponent(
+  () => import('@/components/FloatingActions.vue')
+)
 
 const auth = getAuth()
 const router = useRouter()
@@ -147,7 +169,7 @@ const changeDateHandler = async (direction) => {
     const currentDate = new Date(selectedDate.value)
     currentDate.setDate(currentDate.getDate() + direction)
     const newDate = currentDate.toISOString().split('T')[0]
-    
+
     selectedDate.value = newDate
     await loadData()
   } catch (err) {
@@ -186,9 +208,9 @@ const loadScheduleData = async (date) => {
 const loadData = async () => {
   const promises = [
     loadMetaData(selectedDate.value),
-    loadScheduleData(selectedDate.value)
+    loadScheduleData(selectedDate.value),
   ]
-  
+
   await Promise.allSettled(promises)
 }
 
@@ -247,7 +269,7 @@ const initializeAuth = async () => {
     if (!auth.currentUser) {
       await signInAnonymously(auth)
     }
-    
+
     if (!userStore.userId) {
       const restored = userStore.restoreUserFromLocalStorage()
       if (!restored) {
@@ -255,7 +277,7 @@ const initializeAuth = async () => {
         return
       }
     }
-    
+
     await loadData()
   } catch (err) {
     setError('인증 초기화에 실패했습니다.', err)

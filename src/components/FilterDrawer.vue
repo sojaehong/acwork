@@ -125,25 +125,25 @@
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    default: false
+    default: false,
   },
   filterGroups: {
     type: Object,
     required: true,
-    default: () => ({})
+    default: () => ({}),
   },
   filters: {
     type: Object,
     required: true,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits([
   'update:modelValue',
   'toggle-filter',
   'reset-filters',
-  'apply-filters'
+  'apply-filters',
 ])
 
 const closeDrawer = () => {
@@ -305,10 +305,9 @@ const updateFilter = (key, value) => {
   .filter-chip {
     transition: none;
   }
-  
+
   .filter-chip:hover {
     transform: none;
   }
 }
-
 </style>

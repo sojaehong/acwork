@@ -34,18 +34,18 @@ export function useResponsive() {
     isDesktop: () => windowWidth.value > 1024,
     isXSmall: () => windowWidth.value <= 480,
     isSmall: () => windowWidth.value > 480 && windowWidth.value <= 768,
-    
+
     // 컴포넌트별 크기 계산
     getBadgeSize: () => {
       if (windowWidth.value <= 480) return 'x-small'
-      if (windowWidth.value <= 768) return 'small' 
+      if (windowWidth.value <= 768) return 'small'
       return 'small'
     },
-    
+
     getIconSize: () => {
       if (windowWidth.value <= 480) return '12'
       if (windowWidth.value <= 768) return '14'
       return '14'
-    }
+    },
   }
 }

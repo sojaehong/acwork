@@ -18,46 +18,46 @@ const NotFound = () => import('@/pages/NotFound.vue')
 
 // 인증 관련 라우트
 const authRoutes = [
-  { 
-    path: '/login', 
-    name: 'Login', 
-    component: LoginView, 
-    meta: { requiresAuth: false } 
-  }
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginView,
+    meta: { requiresAuth: false },
+  },
 ]
 
 // 스케줄 관련 라우트
 const scheduleRoutes = [
-  { 
-    path: '/add', 
-    name: 'ScheduleAdd', 
+  {
+    path: '/add',
+    name: 'ScheduleAdd',
     component: ScheduleAdd,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/schedules', 
-    name: 'ScheduleList', 
+  {
+    path: '/schedules',
+    name: 'ScheduleList',
     component: ScheduleList,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/schedule/:id', 
-    name: 'ScheduleDetail', 
+  {
+    path: '/schedule/:id',
+    name: 'ScheduleDetail',
     component: ScheduleDetail,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/schedule/:id/edit', 
-    name: 'EditSchedule', 
+  {
+    path: '/schedule/:id/edit',
+    name: 'EditSchedule',
     component: EditSchedule,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/meta', 
-    name: 'SchedulesMeta', 
+  {
+    path: '/meta',
+    name: 'SchedulesMeta',
     component: SchedulesMeta,
-    meta: { requiresAuth: true }
-  }
+    meta: { requiresAuth: true },
+  },
 ]
 
 // 직원 관련 라우트
@@ -66,44 +66,44 @@ const workerRoutes = [
     path: '/worker-schedules',
     name: 'WorkerSchedules',
     component: WorkerSchedules,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/payroll', 
-    name: 'WorkerPayroll', 
+  {
+    path: '/payroll',
+    name: 'WorkerPayroll',
     component: WorkerPayroll,
-    meta: { requiresAuth: true }
-  }
+    meta: { requiresAuth: true },
+  },
 ]
 
 // 문서 관련 라우트
 const documentRoutes = [
-  { 
-    path: '/estimate', 
-    name: 'EstimateForm', 
+  {
+    path: '/estimate',
+    name: 'EstimateForm',
     component: EstimateForm,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/statement', 
-    name: 'StatementForm', 
+  {
+    path: '/statement',
+    name: 'StatementForm',
     component: StatementForm,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: '/product-management', 
-    name: 'ProductManagement', 
+  {
+    path: '/product-management',
+    name: 'ProductManagement',
     component: ProductManagement,
-    meta: { requiresAuth: true }
-  }
+    meta: { requiresAuth: true },
+  },
 ]
 
 const routes = [
-  { 
-    path: '/', 
-    name: 'Home', 
-    component: Home, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: true },
   },
   ...authRoutes,
   ...scheduleRoutes,
@@ -113,8 +113,8 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: NotFound,
-    meta: { requiresAuth: false }
-  }
+    meta: { requiresAuth: false },
+  },
 ]
 
 const router = createRouter({
@@ -125,13 +125,13 @@ const router = createRouter({
 // 개선된 인증 가드
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-  
+
   // store가 비어 있으면 localStorage 값으로 한 번만 복원
   if (!userStore.userId) {
     const storedId = localStorage.getItem('user_id')
     const storedName = localStorage.getItem('user_name')
     const storedRole = localStorage.getItem('user_role')
-    
+
     if (storedId) {
       userStore.setUser({
         id: storedId,
@@ -140,20 +140,20 @@ router.beforeEach((to, from, next) => {
       })
     }
   }
-  
+
   const isLoggedIn = !!userStore.userId
   const requiresAuth = to.meta.requiresAuth !== false // 기본값 true
-  
+
   // 비로그인 상태에서 보호된 페이지 접근 시 → 로그인 페이지로
   if (!isLoggedIn && requiresAuth) {
     return next('/login')
   }
-  
+
   // 로그인 상태인데 /login 접근 시 → 홈으로 리디렉션
   if (isLoggedIn && to.path === '/login') {
     return next('/')
   }
-  
+
   return next()
 })
 

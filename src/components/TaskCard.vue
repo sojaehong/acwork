@@ -22,7 +22,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 상태 뱃지들 - 항상 오른쪽에 가로로 배치 -->
         <div class="status-badges">
           <!-- 긴급도 뱃지 -->
@@ -33,11 +33,15 @@
             :variant="urgencyInfo.variant"
             class="urgency-chip"
           >
-            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ urgencyInfo.icon }}</v-icon>
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{
+              urgencyInfo.icon
+            }}</v-icon>
             <span v-if="!props.isMobile">{{ urgencyInfo.label }}</span>
-            <span v-else class="mobile-urgency-text">{{ urgencyInfo.label }}</span>
+            <span v-else class="mobile-urgency-text">{{
+              urgencyInfo.label
+            }}</span>
           </v-chip>
-          
+
           <!-- 상태 뱃지 -->
           <v-chip
             :color="statusInfo.color"
@@ -45,11 +49,15 @@
             :variant="statusInfo.variant || 'flat'"
             class="status-chip"
           >
-            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ statusInfo.icon }}</v-icon>
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{
+              statusInfo.icon
+            }}</v-icon>
             <span v-if="!props.isMobile">{{ statusInfo.shortStatus }}</span>
-            <span v-else class="mobile-status-text">{{ statusInfo.shortStatus }}</span>
+            <span v-else class="mobile-status-text">{{
+              statusInfo.shortStatus
+            }}</span>
           </v-chip>
-          
+
           <!-- 복잡도 뱃지 -->
           <v-chip
             v-if="complexityInfo.level > 1"
@@ -58,10 +66,12 @@
             variant="outlined"
             class="complexity-chip"
           >
-            <v-icon :start="!props.isMobile" :size="props.iconSize">{{ complexityInfo.icon }}</v-icon>
+            <v-icon :start="!props.isMobile" :size="props.iconSize">{{
+              complexityInfo.icon
+            }}</v-icon>
             <span v-if="!props.isMobile">{{ complexityInfo.label }}</span>
           </v-chip>
-          
+
           <!-- 세금계산서 뱃지 -->
           <v-chip
             :color="item.invoice ? 'blue' : 'grey-lighten-2'"
@@ -72,12 +82,15 @@
             <v-icon :start="!props.isMobile" :size="props.iconSize">{{
               item.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
             }}</v-icon>
-            <span v-if="!props.isMobile">{{ item.invoice ? '계산서' : '미발행' }}</span>
-            <span v-else class="mobile-invoice-text">{{ item.invoice ? '계산서' : '미발행' }}</span>
+            <span v-if="!props.isMobile">{{
+              item.invoice ? '계산서' : '미발행'
+            }}</span>
+            <span v-else class="mobile-invoice-text">{{
+              item.invoice ? '계산서' : '미발행'
+            }}</span>
           </v-chip>
         </div>
       </div>
-
 
       <v-divider class="my-3"></v-divider>
 
@@ -117,13 +130,13 @@
 
 <script setup>
 import { computed } from 'vue'
-import { 
+import {
   enrichScheduleData,
   calculateProgress,
   calculateUrgency,
   calculateComplexity,
   URGENCY_CONFIG,
-  COMPLEXITY_CONFIG
+  COMPLEXITY_CONFIG,
 } from '@/utils/statusUtils'
 
 const props = defineProps({
@@ -134,16 +147,16 @@ const props = defineProps({
   // 🚀 최적화: 외부에서 반응형 상태를 주입받아 성능 향상
   isMobile: {
     type: Boolean,
-    default: false
+    default: false,
   },
   badgeSize: {
     type: String,
-    default: 'small'
+    default: 'small',
   },
   iconSize: {
-    type: String, 
-    default: '14'
-  }
+    type: String,
+    default: '14',
+  },
 })
 
 defineEmits(['click'])
@@ -163,11 +176,22 @@ const enrichedItem = computed(() => {
         icon: 'mdi-help-circle',
         shortStatus: props.item.status,
         statusClass: 'status-unknown',
-        variant: 'outlined'
+        variant: 'outlined',
       },
-      urgencyInfo: { label: '', priority: 7, color: 'transparent', icon: '', variant: 'text' },
+      urgencyInfo: {
+        label: '',
+        priority: 7,
+        color: 'transparent',
+        icon: '',
+        variant: 'text',
+      },
       progress: 0,
-      complexityInfo: { label: '보통', color: 'warning', icon: 'mdi-circle-double', level: 2 }
+      complexityInfo: {
+        label: '보통',
+        color: 'warning',
+        icon: 'mdi-circle-double',
+        level: 2,
+      },
     }
   }
 })
@@ -180,14 +204,14 @@ const complexityInfo = computed(() => enrichedItem.value.complexityInfo)
 // 🚀 카드 스타일 클래스
 const statusClass = computed(() => {
   const classes = [statusInfo.value.statusClass]
-  
+
   // 긴급도에 따른 추가 클래스
   if (urgencyInfo.value.priority <= 2) {
     classes.push('card-urgent')
   } else if (urgencyInfo.value.priority <= 4) {
     classes.push('card-soon')
   }
-  
+
   return classes.join(' ')
 })
 </script>
@@ -270,7 +294,6 @@ const statusClass = computed(() => {
   white-space: nowrap;
 }
 
-
 /* 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 */
 .status-badges {
   display: flex;
@@ -298,8 +321,13 @@ const statusClass = computed(() => {
 }
 
 @keyframes urgent-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .mobile-status-text,
@@ -393,7 +421,7 @@ const statusClass = computed(() => {
     transform: none;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
-  
+
   .hover-indicator {
     display: none !important;
   }
@@ -416,7 +444,6 @@ const statusClass = computed(() => {
   .status-badges {
     gap: 3px;
   }
-
 
   .hover-indicator {
     display: none;
@@ -456,7 +483,6 @@ const statusClass = computed(() => {
     margin-top: 0;
   }
 
-
   .unit-info {
     font-size: 13px;
   }
@@ -488,7 +514,6 @@ const statusClass = computed(() => {
   .mobile-urgency-text {
     font-size: 9px;
   }
-
 
   .task-chip {
     font-size: 11px;

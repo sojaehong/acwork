@@ -1,6 +1,6 @@
 <template>
-  <div 
-    class="meta-info-section" 
+  <div
+    class="meta-info-section"
     @click="$emit('edit-meta')"
     tabindex="0"
     role="button"
@@ -29,7 +29,9 @@
         </div>
         <div class="meta-content">
           <div class="meta-label">시작 시간</div>
-          <div class="meta-value">{{ scheduleMeta?.startTime || '설정되지 않음' }}</div>
+          <div class="meta-value">
+            {{ scheduleMeta?.startTime || '설정되지 않음' }}
+          </div>
         </div>
       </div>
 
@@ -64,7 +66,9 @@
         </div>
         <div class="meta-content">
           <div class="meta-label">공지사항</div>
-          <div class="meta-value">{{ scheduleMeta?.notice || '공지사항이 없습니다' }}</div>
+          <div class="meta-value">
+            {{ scheduleMeta?.notice || '공지사항이 없습니다' }}
+          </div>
         </div>
       </div>
     </div>
@@ -75,16 +79,16 @@
 const props = defineProps({
   scheduleMeta: {
     type: Object,
-    default: null
+    default: null,
   },
   isLoading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   currentUserName: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 
 defineEmits(['edit-meta'])
@@ -200,7 +204,8 @@ defineEmits(['edit-meta'])
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -213,69 +218,69 @@ defineEmits(['edit-meta'])
   .meta-info-section {
     padding: 18px;
   }
-  
+
   .meta-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-  
+
   .meta-item {
     padding: 14px;
     gap: 14px;
   }
-  
+
   .meta-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
   }
-  
+
   .meta-icon .v-icon {
     font-size: 20px;
   }
-  
+
   .meta-label {
     font-size: 0.8rem;
     margin-bottom: 3px;
   }
-  
+
   .meta-value {
     font-size: 0.9rem;
     line-height: 1.3;
   }
-  
+
   .meta-value .v-chip {
     font-size: 0.7rem;
     height: 24px;
     margin: 2px;
   }
-  
+
   .meta-value .v-chip .v-icon {
     font-size: 14px;
   }
-  
+
   .meta-skeleton .meta-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-  
+
   .skeleton-item {
     padding: 14px;
     gap: 14px;
   }
-  
+
   .skeleton-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
   }
-  
+
   .skeleton-label {
     height: 14px;
     width: 70px;
     margin-bottom: 6px;
   }
-  
+
   .skeleton-value {
     height: 18px;
     width: 110px;

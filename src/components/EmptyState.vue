@@ -1,13 +1,17 @@
 <template>
   <div class="empty-state">
     <div class="empty-icon">
-      <v-icon size="80" color="grey-lighten-2">{{ icon || 'mdi-clipboard-text-off' }}</v-icon>
+      <v-icon size="80" color="grey-lighten-2">{{
+        icon || 'mdi-clipboard-text-off'
+      }}</v-icon>
     </div>
     <h3 class="empty-title">{{ title || '등록된 작업이 없습니다' }}</h3>
-    <p class="empty-description">{{ subtitle || '새 작업을 등록하여 시작해보세요!' }}</p>
-    <v-btn 
-      color="primary" 
-      size="large" 
+    <p class="empty-description">
+      {{ subtitle || '새 작업을 등록하여 시작해보세요!' }}
+    </p>
+    <v-btn
+      color="primary"
+      size="large"
       @click="handleAddTask"
       class="mt-4 add-task-btn"
       :aria-label="buttonText || '첫 작업 등록하기'"
@@ -23,20 +27,20 @@
 const props = defineProps({
   icon: {
     type: String,
-    default: 'mdi-clipboard-text-off'
+    default: 'mdi-clipboard-text-off',
   },
   title: {
     type: String,
-    default: '등록된 작업이 없습니다'
+    default: '등록된 작업이 없습니다',
   },
   subtitle: {
     type: String,
-    default: '새 작업을 등록하여 시작해보세요!'
+    default: '새 작업을 등록하여 시작해보세요!',
   },
   buttonText: {
     type: String,
-    default: '첫 작업 등록하기'
-  }
+    default: '첫 작업 등록하기',
+  },
 })
 
 // 🚀 emit 정의 수정 - 더 범용적인 이벤트명 사용
@@ -118,7 +122,7 @@ const handleAddTask = () => {
   .add-task-btn {
     transition: none;
   }
-  
+
   .add-task-btn:hover {
     transform: none;
   }

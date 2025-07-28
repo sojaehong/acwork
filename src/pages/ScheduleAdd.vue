@@ -13,7 +13,11 @@
           <div class="ml-3">
             <h2 class="header-title">작업 등록</h2>
             <div class="header-subtitle">
-              {{ route.query.from === 'detail' ? '추가 작업을 등록하세요' : '새로운 작업을 등록하세요' }}
+              {{
+                route.query.from === 'detail'
+                  ? '추가 작업을 등록하세요'
+                  : '새로운 작업을 등록하세요'
+              }}
             </div>
           </div>
         </div>
@@ -24,9 +28,14 @@
             <v-icon start size="14">{{ getFormCompletionIcon() }}</v-icon>
             {{ getFormCompletionText() }}
           </v-chip>
-          
+
           <!-- 디테일에서 온 경우 표시 -->
-          <v-chip v-if="route.query.from === 'detail'" color="success" size="small" class="ml-2">
+          <v-chip
+            v-if="route.query.from === 'detail'"
+            color="success"
+            size="small"
+            class="ml-2"
+          >
             <v-icon start size="14">mdi-content-copy</v-icon>
             자동완성됨
           </v-chip>
@@ -457,7 +466,7 @@ const dateConfig = {
 // 🚀 새로 추가: 쿼리 파라미터로부터 폼 초기화
 function initializeFromQuery() {
   const query = route.query
-  
+
   // 건물 정보 설정
   if (query.building) {
     if (buildings.includes(query.building)) {
@@ -467,7 +476,7 @@ function initializeFromQuery() {
       form.value.buildingEtc = query.building
     }
   }
-  
+
   // 동 정보 설정
   if (query.unit) {
     if (units.includes(query.unit)) {
@@ -482,16 +491,19 @@ function initializeFromQuery() {
   if (query.room) {
     form.value.room = query.room
   }
-  
+
   // 날짜 설정
   if (query.date) {
     form.value.date = parseDateParam(query.date)
   }
-  
+
   // 디테일 페이지에서 왔다면 성공 메시지 표시
   if (query.from === 'detail') {
     setTimeout(() => {
-      uiStore.showSnackbar('기존 작업 정보를 불러왔습니다. 작업 내용만 입력하세요!', 'success')
+      uiStore.showSnackbar(
+        '기존 작업 정보를 불러왔습니다. 작업 내용만 입력하세요!',
+        'success'
+      )
     }, 500)
   }
 }

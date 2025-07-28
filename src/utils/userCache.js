@@ -1,5 +1,12 @@
 import { db } from '@/firebase/config'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from 'firebase/firestore'
 
 // 사용자 정보 캐시
 class UserCache {
@@ -21,7 +28,7 @@ class UserCache {
   set(userId, userData) {
     this.cache.set(userId, {
       data: userData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
   }
 
@@ -31,7 +38,7 @@ class UserCache {
     userDataArray.forEach(({ userId, userData }) => {
       this.cache.set(userId, {
         data: userData,
-        timestamp
+        timestamp,
       })
     })
   }
@@ -98,7 +105,7 @@ class UserCache {
         // Firestore의 'in' 쿼리 사용 (최대 10개씩)
         const batchSize = 10
         const batches = []
-        
+
         for (let i = 0; i < uncachedIds.length; i += batchSize) {
           const batch = uncachedIds.slice(i, i + batchSize)
           batches.push(batch)
@@ -108,13 +115,13 @@ class UserCache {
           const usersRef = collection(db, 'users')
           const q = query(usersRef, where('__name__', 'in', batch))
           const snapshot = await getDocs(q)
-          
+
           const batchResults = []
           snapshot.forEach((doc) => {
             const userData = { ...doc.data(), uid: doc.id }
             batchResults.push({ userId: doc.id, userData })
           })
-          
+
           return batchResults
         })
 
@@ -126,7 +133,7 @@ class UserCache {
         results.push(...flatResults)
 
         // 4. 조회되지 않은 사용자 ID 처리
-        const foundIds = new Set(flatResults.map(r => r.userId))
+        const foundIds = new Set(flatResults.map((r) => r.userId))
         for (const userId of uncachedIds) {
           if (!foundIds.has(userId)) {
             // 존재하지 않는 사용자로 표시
@@ -135,16 +142,18 @@ class UserCache {
             results.push({ userId, userData })
           }
         }
-
       } catch (error) {
         console.error('Error fetching users in batch:', error)
-        
+
         // 에러 시 개별 조회 fallback
         const fallbackPromises = uncachedIds.map(async (userId) => {
           const userData = await this.getUser(userId)
-          return { userId, userData: userData || { name: '알 수 없음', uid: userId } }
+          return {
+            userId,
+            userData: userData || { name: '알 수 없음', uid: userId },
+          }
         })
-        
+
         const fallbackResults = await Promise.allSettled(fallbackPromises)
         for (const result of fallbackResults) {
           if (result.status === 'fulfilled') {
@@ -155,8 +164,8 @@ class UserCache {
     }
 
     // 5. 원본 순서 유지하여 반환
-    return userIds.map(userId => {
-      const found = results.find(r => r.userId === userId)
+    return userIds.map((userId) => {
+      const found = results.find((r) => r.userId === userId)
       return found?.userData || { name: '알 수 없음', uid: userId }
     })
   }
@@ -164,7 +173,7 @@ class UserCache {
   // 사용자 이름만 가져오기 (경량화)
   async getUserNames(userIds) {
     const users = await this.getUsers(userIds)
-    return users.map(user => user.name || '알 수 없음')
+    return users.map((user) => user.name || '알 수 없음')
   }
 }
 
@@ -172,8 +181,11 @@ class UserCache {
 const userCache = new UserCache()
 
 // 정기적인 캐시 정리 (5분마다)
-setInterval(() => {
-  userCache.cleanup()
-}, 5 * 60 * 1000)
+setInterval(
+  () => {
+    userCache.cleanup()
+  },
+  5 * 60 * 1000
+)
 
 export default userCache

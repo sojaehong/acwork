@@ -41,10 +41,10 @@
         style="padding-bottom: 120px !important; max-width: 1200px"
       >
         <!-- 🚨 에러 알림 -->
-        <v-alert 
-          v-if="error" 
-          type="error" 
-          class="mb-6" 
+        <v-alert
+          v-if="error"
+          type="error"
+          class="mb-6"
           prominent
           closable
           @click:close="clearError"
@@ -204,7 +204,9 @@
                 >
                   <div class="card-content">
                     <div class="card-main-info">
-                      <div class="date-badge unpaid-badge">D+{{ item.dday }}</div>
+                      <div class="date-badge unpaid-badge">
+                        D+{{ item.dday }}
+                      </div>
                       <div class="date-info">
                         <h4 class="work-date">{{ formatDate(item.date) }}</h4>
                         <div class="work-details">
@@ -453,7 +455,7 @@ async function fetchUsers() {
       name: doc.data().name || doc.id,
     }))
     userMap.value = Object.fromEntries(workers.value.map((u) => [u.id, u.name]))
-    
+
     // 현재 사용자 자동 선택
     if (!selectedWorker.value && workers.value.length > 0) {
       const currentUserId = userStore.userId
@@ -521,35 +523,37 @@ function togglePaid(id) {
 // 🚀 개선된 정산 처리 함수
 async function markAsPaid() {
   if (updating.value || selectedUnpaid.value.length === 0) return
-  
-  const confirm = window.confirm(`선택한 ${selectedUnpaid.value.length}건의 정산을 처리하시겠습니까?`)
+
+  const confirm = window.confirm(
+    `선택한 ${selectedUnpaid.value.length}건의 정산을 처리하시겠습니까?`
+  )
   if (!confirm) return
-  
+
   updating.value = true
   error.value = ''
-  
+
   try {
     for (const id of selectedUnpaid.value) {
       const docRef = doc(db, 'schedulesMeta', id)
       const snap = await getDoc(docRef)
-      
+
       if (!snap.exists()) {
         throw new Error(`문서 ID ${id}를 찾을 수 없습니다.`)
       }
-      
+
       const data = snap.data()
       const paidMap = data.paidMap || {}
       paidMap[selectedWorker.value] = true
-      
+
       await updateDoc(docRef, { paidMap })
-      
+
       // 로컬 상태 업데이트
       const metaItem = meta.value.find((m) => m.id === id)
       if (metaItem) {
         metaItem.paidMap[selectedWorker.value] = true
       }
     }
-    
+
     selectedUnpaid.value = []
     uiStore.showSnackbar('정산 처리가 완료되었습니다!', 'success')
   } catch (err) {
@@ -562,35 +566,37 @@ async function markAsPaid() {
 
 async function cancelPaid() {
   if (updating.value || selectedPaid.value.length === 0) return
-  
-  const confirm = window.confirm(`선택한 ${selectedPaid.value.length}건의 정산을 취소하시겠습니까?`)
+
+  const confirm = window.confirm(
+    `선택한 ${selectedPaid.value.length}건의 정산을 취소하시겠습니까?`
+  )
   if (!confirm) return
-  
+
   updating.value = true
   error.value = ''
-  
+
   try {
     for (const id of selectedPaid.value) {
       const docRef = doc(db, 'schedulesMeta', id)
       const snap = await getDoc(docRef)
-      
+
       if (!snap.exists()) {
         throw new Error(`문서 ID ${id}를 찾을 수 없습니다.`)
       }
-      
+
       const data = snap.data()
       const paidMap = data.paidMap || {}
       paidMap[selectedWorker.value] = false
-      
+
       await updateDoc(docRef, { paidMap })
-      
+
       // 로컬 상태 업데이트
       const metaItem = meta.value.find((m) => m.id === id)
       if (metaItem) {
         metaItem.paidMap[selectedWorker.value] = false
       }
     }
-    
+
     selectedPaid.value = []
     uiStore.showSnackbar('정산이 취소되었습니다!', 'success')
   } catch (err) {
@@ -604,7 +610,7 @@ async function cancelPaid() {
 // 🚀 개선된 초기화 함수
 onMounted(async () => {
   loading.value = true
-  
+
   try {
     // 인증 초기화
     const authResult = await userStore.initializeAuth(router)
@@ -618,7 +624,6 @@ onMounted(async () => {
       await fetchUsers()
       await fetchMeta()
     })
-    
   } catch (err) {
     console.error('초기화 실패:', err)
     error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다.'
@@ -1212,14 +1217,14 @@ onMounted(async () => {
   .skeleton-status-chip {
     animation: none !important;
   }
-  
+
   .payroll-card,
   .worker-btn,
   .action-btn,
   .home-btn {
     transition: none;
   }
-  
+
   .payroll-card:hover,
   .worker-btn:hover,
   .action-btn:hover,
