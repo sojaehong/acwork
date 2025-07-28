@@ -13,6 +13,7 @@ const WorkerSchedules = () => import('@/pages/WorkerSchedules.vue')
 const WorkerPayroll = () => import('@/pages/WorkerPayroll.vue')
 const EstimateForm = () => import('@/pages/EstimateForm.vue')
 const StatementForm = () => import('@/pages/StatementForm.vue')
+const ProductManagement = () => import('@/pages/ProductManagement.vue')
 const NotFound = () => import('@/pages/NotFound.vue')
 
 // 인증 관련 라우트
@@ -87,6 +88,12 @@ const documentRoutes = [
     path: '/statement', 
     name: 'StatementForm', 
     component: StatementForm,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/product-management', 
+    name: 'ProductManagement', 
+    component: ProductManagement,
     meta: { requiresAuth: true }
   }
 ]
