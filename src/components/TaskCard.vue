@@ -78,20 +78,6 @@
         </div>
       </div>
 
-      <!-- 진행률 표시 -->
-      <div class="progress-section" v-if="progress > 0">
-        <div class="progress-header">
-          <span class="progress-label">진행률</span>
-          <span class="progress-value">{{ progress }}%</span>
-        </div>
-        <v-progress-linear
-          :model-value="progress"
-          :color="progressColor"
-          height="6"
-          rounded
-          class="progress-bar"
-        />
-      </div>
 
       <v-divider class="my-3"></v-divider>
 
@@ -190,17 +176,6 @@ const enrichedItem = computed(() => {
 const statusInfo = computed(() => enrichedItem.value.statusInfo)
 const urgencyInfo = computed(() => enrichedItem.value.urgencyInfo)
 const complexityInfo = computed(() => enrichedItem.value.complexityInfo)
-const progress = computed(() => enrichedItem.value.progress)
-
-// 🚀 진행률 색상 계산
-const progressColor = computed(() => {
-  const p = progress.value
-  if (p >= 90) return 'success'
-  if (p >= 70) return 'primary'
-  if (p >= 40) return 'warning'
-  if (p >= 20) return 'orange'
-  return 'error'
-})
 
 // 🚀 카드 스타일 클래스
 const statusClass = computed(() => {
@@ -295,36 +270,6 @@ const statusClass = computed(() => {
   white-space: nowrap;
 }
 
-/* 진행률 섹션 */
-.progress-section {
-  margin: 16px 0;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.progress-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.progress-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.progress-bar {
-  border-radius: 3px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
 
 /* 상태 뱃지들 - 항상 가로로 나란히 오른쪽 끝에 */
 .status-badges {
@@ -472,17 +417,6 @@ const statusClass = computed(() => {
     gap: 3px;
   }
 
-  .progress-section {
-    margin: 12px 0;
-  }
-
-  .progress-label {
-    font-size: 11px;
-  }
-
-  .progress-value {
-    font-size: 13px;
-  }
 
   .hover-indicator {
     display: none;
@@ -522,21 +456,6 @@ const statusClass = computed(() => {
     margin-top: 0;
   }
 
-  .progress-section {
-    margin: 10px 0;
-  }
-
-  .progress-header {
-    margin-bottom: 6px;
-  }
-
-  .progress-label {
-    font-size: 10px;
-  }
-
-  .progress-value {
-    font-size: 12px;
-  }
 
   .unit-info {
     font-size: 13px;
@@ -570,17 +489,6 @@ const statusClass = computed(() => {
     font-size: 9px;
   }
 
-  .progress-section {
-    margin: 8px 0;
-  }
-
-  .progress-label {
-    font-size: 9px;
-  }
-
-  .progress-value {
-    font-size: 11px;
-  }
 
   .task-chip {
     font-size: 11px;

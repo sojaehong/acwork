@@ -575,9 +575,12 @@ const setToday = () => {
 
 const setTomorrow = () => {
   const todayKST = getTodayDateKST()
-  const today = new Date(todayKST + 'T00:00:00+09:00')
-  today.setDate(today.getDate() + 1)
-  form.value.date = today.toISOString().split('T')[0]
+  const [year, month, day] = todayKST.split('-').map(Number)
+  const tomorrow = new Date(year, month - 1, day + 1)
+  const tomorrowStr = tomorrow.getFullYear() + '-' + 
+    String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(tomorrow.getDate()).padStart(2, '0')
+  form.value.date = tomorrowStr
   handleDateChange()
 }
 
