@@ -705,25 +705,27 @@ const handleFilterByBuilding = (buildingName) => {
 
 const handleFilterByUrgency = (urgencyLabel) => {
   // 긴급도는 날짜 기반 필터링이므로 기존 날짜 필터를 교체
-  const today = new Date()
-  const todayStr = today.toISOString().split('T')[0]
+  const todayStr = getTodayDateKST()
 
   switch (urgencyLabel) {
     case '오늘':
-      // 오늘 날짜로 필터링
+      // 오늘 날짜로 필터링 (한국 시간대 적용) + 진행/보류 상태 필터 추가
       store.setFilters({
         ...store.filters,
         startDate: todayStr,
         endDate: todayStr,
+        status: ['진행', '보류'],
       })
       break
     case '기한초과':
-      // 어제까지의 미완료 작업
-      const yesterday = new Date(today)
+      // 어제까지의 미완료 작업 (한국 시간대 기준)
+      const kstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
+      const yesterday = new Date(kstNow)
       yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
       store.setFilters({
         ...store.filters,
-        endDate: yesterday.toISOString().split('T')[0],
+        endDate: yesterdayStr,
         startDate: null,
         status: [
           ...(store.filters.status || []),
@@ -736,7 +738,8 @@ const handleFilterByUrgency = (urgencyLabel) => {
       })
       break
     case '내일':
-      const tomorrow = new Date(today)
+      const kstToday = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
+      const tomorrow = new Date(kstToday)
       tomorrow.setDate(tomorrow.getDate() + 1)
       const tomorrowStr = tomorrow.toISOString().split('T')[0]
       store.setFilters({
@@ -746,12 +749,14 @@ const handleFilterByUrgency = (urgencyLabel) => {
       })
       break
     case '이번 주':
-      const weekLater = new Date(today)
+      const kstTodayForWeek = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
+      const weekLater = new Date(kstTodayForWeek)
       weekLater.setDate(weekLater.getDate() + 7)
+      const weekLaterStr = weekLater.toISOString().split('T')[0]
       store.setFilters({
         ...store.filters,
         startDate: todayStr,
-        endDate: weekLater.toISOString().split('T')[0],
+        endDate: weekLaterStr,
       })
       break
   }
