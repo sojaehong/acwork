@@ -247,6 +247,13 @@ export const useScheduleStore = defineStore('schedule', {
       this.clearError()
 
       try {
+        // 먼저 메모리에서 찾기
+        const existingSchedule = this.getScheduleById(id)
+        if (existingSchedule) {
+          this.setSelectedSchedule(existingSchedule)
+          return existingSchedule
+        }
+
         const docRef = doc(db, 'schedules', id)
         const docSnap = await getDoc(docRef)
         if (docSnap.exists()) {
@@ -261,7 +268,12 @@ export const useScheduleStore = defineStore('schedule', {
           throw new Error('해당 ID의 일정을 찾을 수 없습니다.')
         }
       } catch (err) {
-        this.setError(err, '일정 조회')
+        // 권한 오류의 경우 특별히 처리
+        if (err.code === 'permission-denied') {
+          this.setError('Firebase 접근 권한이 없습니다. 로그인을 다시 확인해주세요.', '일정 조회')
+        } else {
+          this.setError(err, '일정 조회')
+        }
         return null
       } finally {
         this.isLoading = false
