@@ -241,7 +241,7 @@
                   <span class="summary-value">{{ format(item.supply) }}원</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-label">세액</span>
+                  <span class="summary-label">부가세</span>
                   <span class="summary-value">{{ format(item.vat) }}원</span>
                 </div>
               </div>
@@ -1099,6 +1099,9 @@ const loadDocumentData = (doc) => {
   form.client = doc.client || ''
   form.items = doc.items || []
   includeVAT.value = doc.includeVAT ?? true
+
+  // 총액 재계산
+  recalculateAll()
 
   // 다이얼로그 닫기
   showDocumentList.value = false
