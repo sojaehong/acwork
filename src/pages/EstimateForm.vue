@@ -609,6 +609,10 @@
                     <v-icon size="16" class="mr-2">mdi-clock</v-icon>
                     <span>{{ formatDateTime(doc.createdAt) }}</span>
                   </div>
+                  <div class="detail-row">
+                    <v-icon size="16" class="mr-2">mdi-account</v-icon>
+                    <span>{{ doc.creatorName || '알 수 없음' }}</span>
+                  </div>
                   <div
                     class="detail-row items-row"
                     v-if="doc.items && doc.items.length"
@@ -715,6 +719,7 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { useUiStore } from '@/stores/ui'
 import { useUserStore } from '@/stores/user'
+import userCache from '@/utils/userCache'
 
 const router = useRouter()
 const loading = ref(false)
@@ -1032,7 +1037,7 @@ const loadDocuments = async () => {
     const authResult = await userStore.executeWithAuth(async () => {
       const q = query(
         collection(db, 'documents'),
-        where('createdBy', '==', userStore.userId)
+        orderBy('createdAt', 'desc')
       )
       return await getDocs(q)
     }, router)
@@ -1052,7 +1057,7 @@ const loadDocuments = async () => {
 
     console.log('모든 문서:', allDocs)
 
-    documents.value = allDocs
+    const estimateDocs = allDocs
       .filter((doc) => doc.documentType === 'estimate')
       .sort((a, b) => {
         // createdAt이 Firebase Timestamp인 경우를 처리
@@ -1064,6 +1069,19 @@ const loadDocuments = async () => {
           : new Date(b.createdAt || 0)
         return bTime - aTime // 최신순 정렬
       })
+
+    // 등록자 정보 가져오기
+    const creatorIds = [...new Set(estimateDocs.map(doc => doc.createdBy).filter(Boolean))]
+    const creators = await userCache.getUsers(creatorIds)
+    
+    // 문서에 등록자 이름 추가
+    documents.value = estimateDocs.map(doc => {
+      const creator = creators.find(user => user.uid === doc.createdBy)
+      return {
+        ...doc,
+        creatorName: creator?.name || '알 수 없음'
+      }
+    })
 
     console.log('필터링된 견적서 문서:', documents.value.length, '개')
   } catch (err) {
