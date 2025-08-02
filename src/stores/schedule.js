@@ -270,7 +270,10 @@ export const useScheduleStore = defineStore('schedule', {
       } catch (err) {
         // 권한 오류의 경우 특별히 처리
         if (err.code === 'permission-denied') {
-          this.setError('Firebase 접근 권한이 없습니다. 로그인을 다시 확인해주세요.', '일정 조회')
+          this.setError(
+            'Firebase 접근 권한이 없습니다. 로그인을 다시 확인해주세요.',
+            '일정 조회'
+          )
         } else {
           this.setError(err, '일정 조회')
         }
@@ -373,7 +376,7 @@ export const useScheduleStore = defineStore('schedule', {
       switch (type) {
         case 'status':
         case 'building':
-        case 'task':
+        case 'task': {
           const currentArray = this.filters[type] || []
           const index = currentArray.indexOf(value)
           if (index === -1) {
@@ -382,6 +385,7 @@ export const useScheduleStore = defineStore('schedule', {
             this.filters[type] = currentArray.filter((item) => item !== value)
           }
           break
+        }
         case 'invoice':
           // 세금계산서는 단일 선택 (O/X)
           this.filters.invoice = this.filters.invoice === value ? null : value

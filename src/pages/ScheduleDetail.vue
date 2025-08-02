@@ -49,7 +49,11 @@
 
       <v-container
         class="pa-6"
-        style="padding-top: 100px !important; padding-bottom: 140px !important; max-width: 800px"
+        style="
+          padding-top: 100px !important;
+          padding-bottom: 140px !important;
+          max-width: 800px;
+        "
         v-if="!scheduleStore.isLoading && schedule"
       >
         <!-- 🏢 메인 정보 카드 -->
@@ -65,13 +69,13 @@
                 <div class="unit-room">{{ getLocationText() }}</div>
               </div>
             </div>
-            
+
             <div class="date-section">
               <div class="date-main">{{ formatDateShort(schedule?.date) }}</div>
               <div class="date-day">{{ getDateDay(schedule?.date) }}</div>
-              <v-chip 
-                :color="getDdayColor()" 
-                size="small" 
+              <v-chip
+                :color="getDdayColor()"
+                size="small"
                 class="dday-chip"
                 variant="flat"
               >
@@ -79,7 +83,7 @@
               </v-chip>
             </div>
           </div>
-          
+
           <!-- 콘텐츠: 작업 & 정보 -->
           <div class="main-content">
             <!-- 작업 내용 -->
@@ -91,11 +95,11 @@
                   {{ schedule?.tasks?.length || 0 }}개
                 </v-chip>
               </div>
-              
+
               <div v-if="schedule?.tasks?.length" class="work-chips">
-                <div 
-                  v-for="(task, i) in schedule.tasks" 
-                  :key="`${task.name}-${i}`" 
+                <div
+                  v-for="(task, i) in schedule.tasks"
+                  :key="`${task.name}-${i}`"
                   class="work-chip"
                 >
                   <div class="chip-icon">
@@ -107,39 +111,50 @@
                   </div>
                 </div>
               </div>
-              
+
               <div v-else class="empty-work">
-                <v-icon color="grey-lighten-1" size="24">mdi-wrench-outline</v-icon>
+                <v-icon color="grey-lighten-1" size="24"
+                  >mdi-wrench-outline</v-icon
+                >
                 <span class="empty-text">등록된 작업이 없습니다</span>
               </div>
             </div>
-            
+
             <!-- 추가 정보 -->
-            <div class="additional-info" :class="{'single-item': !schedule?.memo}">
+            <div
+              class="additional-info"
+              :class="{ 'single-item': !schedule?.memo }"
+            >
               <!-- 세금계산서 (항상 표시) -->
               <div class="invoice-card">
                 <div class="invoice-header">
-                  <v-icon 
-                    size="18" 
+                  <v-icon
+                    size="18"
                     :color="schedule?.invoice ? 'green' : 'grey'"
                   >
-                    {{ schedule?.invoice ? 'mdi-receipt' : 'mdi-receipt-outline' }}
+                    {{
+                      schedule?.invoice ? 'mdi-receipt' : 'mdi-receipt-outline'
+                    }}
                   </v-icon>
                   <span class="invoice-title">세금계산서</span>
                 </div>
-                <v-chip 
-                  :color="schedule?.invoice ? 'success' : 'grey'" 
-                  size="small" 
+                <v-chip
+                  :color="schedule?.invoice ? 'success' : 'grey'"
+                  size="small"
                   :variant="schedule?.invoice ? 'flat' : 'tonal'"
                   class="invoice-status"
                 >
                   <v-icon start size="14">
-                    {{ schedule?.invoice ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                    {{
+                      schedule?.invoice
+                        ? 'mdi-check-circle'
+                        : 'mdi-close-circle'
+                    }}
                   </v-icon>
                   {{ schedule?.invoice ? '발행완료' : '미발행' }}
                 </v-chip>
               </div>
-              
+
               <!-- 메모 (있을 때만 표시) -->
               <div v-if="schedule?.memo" class="memo-card">
                 <div class="memo-header">
@@ -153,9 +168,9 @@
         </v-card>
 
         <!-- 📅 같은 장소의 다른 작업들 -->
-        <v-card 
-          class="related-works-card mb-4" 
-          elevation="1" 
+        <v-card
+          class="related-works-card mb-4"
+          elevation="1"
           v-if="relatedWorks && relatedWorks.length > 0"
         >
           <div class="related-header">
@@ -164,7 +179,9 @@
                 <v-icon color="white" size="16">mdi-history</v-icon>
               </div>
               <div class="related-title">
-                <div class="title-main">{{ schedule?.building }} {{ getLocationText() }}</div>
+                <div class="title-main">
+                  {{ schedule?.building }} {{ getLocationText() }}
+                </div>
                 <div class="title-sub">이 장소의 다른 작업 내역</div>
               </div>
             </div>
@@ -172,65 +189,72 @@
               {{ relatedWorks?.length || 0 }}건
             </v-chip>
           </div>
-          
+
           <div class="related-content">
-            <div 
-              v-for="(work, index) in relatedWorks" 
-              :key="work.id" 
+            <div
+              v-for="(work, index) in relatedWorks"
+              :key="work.id"
               class="related-item"
               @click="goToRelatedWork(work.id)"
             >
               <div class="item-number">{{ index + 1 }}</div>
-              
+
               <div class="item-main">
                 <div class="item-header">
                   <div class="item-date">
                     <v-icon size="12" color="blue-grey">mdi-calendar</v-icon>
                     {{ formatDateShort(work.date) }}
                   </div>
-                  <v-chip 
-                    :color="getStatusColor(work.status)" 
+                  <v-chip
+                    :color="getStatusColor(work.status)"
                     size="x-small"
                     variant="flat"
                   >
                     {{ work.status }}
                   </v-chip>
                 </div>
-                
+
                 <div class="item-tasks">
                   <div class="task-preview">
-                    <span 
-                      v-for="(task, i) in (work.tasks || []).slice(0, 3)" 
+                    <span
+                      v-for="(task, i) in (work.tasks || []).slice(0, 3)"
                       :key="i"
                       class="task-name"
                     >
-                      {{ task.name }}<span v-if="i < Math.min((work.tasks || []).length, 3) - 1">, </span>
+                      {{ task.name
+                      }}<span
+                        v-if="i < Math.min((work.tasks || []).length, 3) - 1"
+                        >,
+                      </span>
                     </span>
-                    <span v-if="work.tasks && work.tasks.length > 3" class="more-indicator">
+                    <span
+                      v-if="work.tasks && work.tasks.length > 3"
+                      class="more-indicator"
+                    >
                       외 {{ work.tasks.length - 3 }}건
                     </span>
                   </div>
                 </div>
               </div>
-              
+
               <div class="item-arrow">
                 <v-icon size="16" color="grey">mdi-chevron-right</v-icon>
               </div>
             </div>
           </div>
         </v-card>
-        
+
         <!-- 리스트가 비어있을 때 메시지 -->
-        <v-card 
-          class="no-related-card mb-4" 
-          elevation="0" 
-          v-else
-        >
+        <v-card class="no-related-card mb-4" elevation="0" v-else>
           <div class="no-related-content">
             <v-icon size="32" color="grey-lighten-2">mdi-history</v-icon>
             <div class="no-related-text">
-              <div class="no-related-title">{{ schedule?.building }} {{ getLocationText() }}</div>
-              <div class="no-related-sub">이 장소의 다른 작업 내역이 없습니다</div>
+              <div class="no-related-title">
+                {{ schedule?.building }} {{ getLocationText() }}
+              </div>
+              <div class="no-related-sub">
+                이 장소의 다른 작업 내역이 없습니다
+              </div>
             </div>
           </div>
         </v-card>
@@ -246,17 +270,19 @@
             </div>
             <div class="current-status">
               <span class="current-label">현재 상태</span>
-              <v-chip 
-                :color="getStatusColor(schedule?.status)" 
-                size="small" 
+              <v-chip
+                :color="getStatusColor(schedule?.status)"
+                size="small"
                 variant="flat"
               >
-                <v-icon start size="14">{{ getStatusIcon(schedule?.status) }}</v-icon>
+                <v-icon start size="14">{{
+                  getStatusIcon(schedule?.status)
+                }}</v-icon>
                 {{ schedule?.status }}
               </v-chip>
             </div>
           </div>
-          
+
           <div class="status-content">
             <div class="status-change-section">
               <div class="change-label">상태 변경</div>
@@ -501,7 +527,10 @@ const getDdayText = (dateStr) => {
 
 const getDdayColor = () => {
   if (!schedule.value?.date) return 'grey'
-  const diffDays = Math.ceil((new Date(schedule.value.date) - new Date(getTodayDateKST())) / (1000 * 60 * 60 * 24))
+  const diffDays = Math.ceil(
+    (new Date(schedule.value.date) - new Date(getTodayDateKST())) /
+      (1000 * 60 * 60 * 24)
+  )
   if (diffDays === 0) return 'warning'
   if (diffDays < 0) return 'error'
   if (diffDays === 1) return 'orange'
@@ -519,7 +548,7 @@ const getLocationText = () => {
 onMounted(async () => {
   const id = route.params.id
   let currentSchedule = scheduleStore.getScheduleById(id)
-  
+
   // 스케줄이 스토어에 없으면 개별 조회 대신 전체 스케줄을 먼저 로드해보기
   if (!currentSchedule) {
     try {
@@ -539,7 +568,7 @@ onMounted(async () => {
       }
     }
   }
-  
+
   if (currentSchedule) {
     scheduleStore.setSelectedSchedule(currentSchedule)
     // 같은 장소의 다른 작업들 로드 (이미 전체 스케줄이 로드되어 있으므로 추가 fetch 불필요)
@@ -555,94 +584,99 @@ async function loadRelatedWorks(currentSchedule) {
   try {
     console.log('=== 관련 작업 로드 시작 ===')
     console.log('현재 스케줄 전체 정보:', currentSchedule)
-    
+
     if (!currentSchedule) {
       console.log('❌ 현재 스케줄이 없음')
       relatedWorks.value = []
       return
     }
-    
+
     // 현재 작업의 위치 정보
     const currentBuilding = currentSchedule.building || ''
     const currentUnit = currentSchedule.unit || ''
     const currentRoom = currentSchedule.room || ''
-    
+
     console.log('현재 작업 위치 정보:', {
       building: currentBuilding,
       unit: currentUnit,
       room: currentRoom,
-      id: currentSchedule.id
+      id: currentSchedule.id,
     })
-    
+
     // 전체 스케줄 로드
     await scheduleStore.fetchAllSchedules()
     const allSchedules = scheduleStore.schedules || []
     console.log('전체 스케줄 수:', allSchedules.length)
-    
+
     if (allSchedules.length === 0) {
       console.log('❌ 로드된 스케줄이 없음')
       relatedWorks.value = []
       return
     }
-    
+
     console.log('전체 스케줄 리스트:')
-    allSchedules.forEach(schedule => {
-      console.log(`- ID: ${schedule.id}, 건물: "${schedule.building}", 동: "${schedule.unit || ''}", 호: "${schedule.room || ''}", 날짜: ${schedule.date}`)
+    allSchedules.forEach((schedule) => {
+      console.log(
+        `- ID: ${schedule.id}, 건물: "${schedule.building}", 동: "${schedule.unit || ''}", 호: "${schedule.room || ''}", 날짜: ${schedule.date}`
+      )
     })
-    
+
     // 필터링 시작
     console.log('\\n=== 필터링 시작 ===')
     const filteredWorks = []
-    
+
     for (const work of allSchedules) {
       // 자기 자신 제외
       if (work.id === currentSchedule.id) {
         console.log(`⏭️ 자기 자신 제외: ${work.id}`)
         continue
       }
-      
+
       // 취소된 작업 제외
       if (work.status === '취소됨') {
         console.log(`⏭️ 취소된 작업 제외: ${work.id}`)
         continue
       }
-      
+
       // 건물 비교
       const workBuilding = work.building || ''
       const workUnit = work.unit || ''
       const workRoom = work.room || ''
-      
+
       const buildingMatch = workBuilding === currentBuilding
       const unitMatch = workUnit === currentUnit
       const roomMatch = workRoom === currentRoom
-      
+
       console.log(`작업 ${work.id} 비교:`)
-      console.log(`  건물: "${workBuilding}" === "${currentBuilding}" → ${buildingMatch}`)
+      console.log(
+        `  건물: "${workBuilding}" === "${currentBuilding}" → ${buildingMatch}`
+      )
       console.log(`  동: "${workUnit}" === "${currentUnit}" → ${unitMatch}`)
       console.log(`  호: "${workRoom}" === "${currentRoom}" → ${roomMatch}`)
-      
+
       const isMatch = buildingMatch && unitMatch && roomMatch
       console.log(`  최종 매치: ${isMatch}`)
-      
+
       if (isMatch) {
         filteredWorks.push(work)
         console.log(`✅ 매치된 작업 추가: ${work.id}`)
       }
     }
-    
+
     console.log('\\n=== 필터링 결과 ===')
     console.log('매치된 작업 수:', filteredWorks.length)
-    
+
     // 날짜순 정렬하고 최대 5개만
     relatedWorks.value = filteredWorks
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5)
-    
+
     console.log('최종 관련 작업들:')
-    relatedWorks.value.forEach(work => {
-      console.log(`- ${work.id}: ${work.building} ${work.unit || ''}동 ${work.room || ''}호 (${work.date})`)
+    relatedWorks.value.forEach((work) => {
+      console.log(
+        `- ${work.id}: ${work.building} ${work.unit || ''}동 ${work.room || ''}호 (${work.date})`
+      )
     })
-    
   } catch (error) {
     console.error('❌ 관련 작업 로드 실패:', error)
     relatedWorks.value = []
@@ -662,36 +696,40 @@ watch(schedule, (newVal) => {
 })
 
 // route 파라미터 변화 감지
-watch(() => route.params.id, async (newId, oldId) => {
-  if (newId && newId !== oldId) {
-    console.log('Route ID 변경됨:', oldId, '->', newId)
-    
-    // 새로운 스케줄 로드
-    let currentSchedule = scheduleStore.getScheduleById(newId)
-    
-    if (!currentSchedule) {
-      try {
-        await scheduleStore.fetchAllSchedules()
-        currentSchedule = scheduleStore.getScheduleById(newId)
-      } catch (error) {
-        console.error('스케줄 로드 오류:', error)
+watch(
+  () => route.params.id,
+  async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      console.log('Route ID 변경됨:', oldId, '->', newId)
+
+      // 새로운 스케줄 로드
+      let currentSchedule = scheduleStore.getScheduleById(newId)
+
+      if (!currentSchedule) {
         try {
-          await scheduleStore.fetchScheduleById(newId)
+          await scheduleStore.fetchAllSchedules()
           currentSchedule = scheduleStore.getScheduleById(newId)
-        } catch (individualError) {
-          console.error('개별 스케줄 로드 오류:', individualError)
-          uiStore.showSnackbar('작업 정보를 불러올 수 없습니다.', 'error')
-          return
+        } catch (error) {
+          console.error('스케줄 로드 오류:', error)
+          try {
+            await scheduleStore.fetchScheduleById(newId)
+            currentSchedule = scheduleStore.getScheduleById(newId)
+          } catch (individualError) {
+            console.error('개별 스케줄 로드 오류:', individualError)
+            uiStore.showSnackbar('작업 정보를 불러올 수 없습니다.', 'error')
+            return
+          }
         }
       }
+
+      if (currentSchedule) {
+        scheduleStore.setSelectedSchedule(currentSchedule)
+        await loadRelatedWorks(currentSchedule)
+      }
     }
-    
-    if (currentSchedule) {
-      scheduleStore.setSelectedSchedule(currentSchedule)
-      await loadRelatedWorks(currentSchedule)
-    }
-  }
-}, { immediate: false })
+  },
+  { immediate: false }
+)
 
 function formatDateToYYYYMMDD(date) {
   if (typeof date === 'string') return date
@@ -1066,7 +1104,8 @@ function addMoreWork() {
   max-width: 200px;
 }
 
-.memo-card, .invoice-card {
+.memo-card,
+.invoice-card {
   padding: 12px;
   background: #f8fafc;
   border-radius: 10px;
@@ -1081,14 +1120,16 @@ function addMoreWork() {
   border-left-color: #10b981;
 }
 
-.memo-header, .invoice-header {
+.memo-header,
+.invoice-header {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.memo-title, .invoice-title {
+.memo-title,
+.invoice-title {
   font-size: 13px;
   font-weight: 600;
   color: #475569;
@@ -1105,7 +1146,8 @@ function addMoreWork() {
 }
 
 /* 관련 작업들 카드 */
-.related-works-card, .no-related-card {
+.related-works-card,
+.no-related-card {
   background: white;
   border-radius: 16px;
   overflow: hidden;
@@ -1714,41 +1756,41 @@ function addMoreWork() {
     gap: 12px;
     text-align: center;
   }
-  
+
   .date-section {
     align-items: center;
   }
-  
+
   .additional-info {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .additional-info.single-item {
     flex-direction: row;
   }
-  
+
   .additional-info.single-item .invoice-card {
     width: 100%;
     max-width: none;
   }
-  
+
   .work-chips {
     flex-direction: column;
   }
-  
+
   .work-chip {
     max-width: none;
   }
-  
+
   .status-buttons {
     flex-direction: column;
   }
-  
+
   .status-btn {
     width: 100%;
   }
-  
+
   .related-item {
     padding: 8px;
   }

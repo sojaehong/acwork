@@ -5,7 +5,9 @@
       "Bash(find:*)",
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }

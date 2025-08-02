@@ -12,7 +12,9 @@
           </div>
           <div class="ml-3">
             <h2 class="header-title">품목 관리</h2>
-            <div class="header-subtitle">견적서/거래명세서 품목 등록 및 관리</div>
+            <div class="header-subtitle">
+              견적서/거래명세서 품목 등록 및 관리
+            </div>
           </div>
         </div>
       </div>
@@ -20,10 +22,10 @@
 
     <v-main class="main-content">
       <!-- 에러 메시지 -->
-      <v-alert 
-        v-if="error" 
-        type="error" 
-        class="ma-4" 
+      <v-alert
+        v-if="error"
+        type="error"
+        class="ma-4"
         prominent
         closable
         @click:close="clearError"
@@ -33,10 +35,10 @@
       </v-alert>
 
       <!-- 성공 메시지 -->
-      <v-alert 
-        v-if="successMessage" 
-        type="success" 
-        class="ma-4" 
+      <v-alert
+        v-if="successMessage"
+        type="success"
+        class="ma-4"
         prominent
         closable
         @click:close="successMessage = ''"
@@ -45,7 +47,10 @@
         {{ successMessage }}
       </v-alert>
 
-      <v-container class="pa-6" style="max-width: 1200px; padding-bottom: 120px !important;">
+      <v-container
+        class="pa-6"
+        style="max-width: 1200px; padding-bottom: 120px !important"
+      >
         <!-- 새 품목 추가 카드 -->
         <v-card class="add-item-card mb-6" elevation="0">
           <div class="card-header">
@@ -130,9 +135,9 @@
             <!-- 품목 목록 - 카드 형태 -->
             <template v-else-if="products.length">
               <div class="products-grid">
-                <v-card 
-                  v-for="product in products" 
-                  :key="product.id" 
+                <v-card
+                  v-for="product in products"
+                  :key="product.id"
                   class="product-item-card"
                   :class="{ 'editing-card': editingId === product.id }"
                   elevation="2"
@@ -194,8 +199,12 @@
                     <v-card-text class="pa-4">
                       <div class="product-info">
                         <h4 class="product-name">{{ product.name }}</h4>
-                        <div class="product-spec">{{ product.spec || '규격 없음' }}</div>
-                        <div class="product-price">{{ formatPrice(product.price) }}원</div>
+                        <div class="product-spec">
+                          {{ product.spec || '규격 없음' }}
+                        </div>
+                        <div class="product-price">
+                          {{ formatPrice(product.price) }}원
+                        </div>
                       </div>
                     </v-card-text>
                     <v-card-actions class="pa-4 pt-0">
@@ -228,7 +237,9 @@
             <!-- 빈 상태 -->
             <template v-else>
               <div class="empty-state">
-                <v-icon size="64" color="grey-lighten-1">mdi-package-variant-closed</v-icon>
+                <v-icon size="64" color="grey-lighten-1"
+                  >mdi-package-variant-closed</v-icon
+                >
                 <h4 class="empty-title">등록된 품목이 없습니다</h4>
                 <p class="empty-subtitle">첫 번째 품목을 추가해보세요!</p>
               </div>
@@ -261,16 +272,12 @@
         </v-card-title>
         <v-card-text>
           <strong>{{ deleteTarget?.name }}</strong> 품목을 삭제하시겠습니까?
-          <br>삭제된 품목은 복구할 수 없습니다.
+          <br />삭제된 품목은 복구할 수 없습니다.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="showDeleteDialog = false">
-            취소
-          </v-btn>
-          <v-btn color="error" @click="deleteProduct">
-            삭제
-          </v-btn>
+          <v-btn variant="text" @click="showDeleteDialog = false"> 취소 </v-btn>
+          <v-btn color="error" @click="deleteProduct"> 삭제 </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -282,7 +289,14 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { db } from '@/firebase/config'
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from 'firebase/firestore'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -298,7 +312,7 @@ const successMessage = ref('')
 const newProduct = ref({
   name: '',
   spec: '',
-  price: 0
+  price: 0,
 })
 
 // 편집 관련
@@ -314,13 +328,13 @@ const form = ref(null)
 
 // 유효성 검사 규칙
 const nameRules = [
-  v => !!v || '품목명을 입력해주세요',
-  v => (v && v.length >= 2) || '품목명은 2자 이상 입력해주세요'
+  (v) => !!v || '품목명을 입력해주세요',
+  (v) => (v && v.length >= 2) || '품목명은 2자 이상 입력해주세요',
 ]
 
 const priceRules = [
-  v => v !== null && v !== undefined && v !== '' || '단가를 입력해주세요',
-  v => v >= 0 || '단가는 0 이상이어야 합니다'
+  (v) => (v !== null && v !== undefined && v !== '') || '단가를 입력해주세요',
+  (v) => v >= 0 || '단가는 0 이상이어야 합니다',
 ]
 
 // 메서드
@@ -350,11 +364,12 @@ const loadProducts = async () => {
     }
 
     const snap = authResult.data
-    products.value = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })).sort((a, b) => a.name.localeCompare(b.name))
-
+    products.value = snap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   } catch (err) {
     console.error('품목 로딩 오류:', err)
     error.value = '품목 목록을 불러오는데 실패했습니다.'
@@ -376,7 +391,7 @@ const addProduct = async () => {
         spec: newProduct.value.spec,
         price: newProduct.value.price,
         createdAt: new Date(),
-        createdBy: userStore.userId
+        createdBy: userStore.userId,
       })
     }, router)
 
@@ -386,11 +401,11 @@ const addProduct = async () => {
     }
 
     successMessage.value = '품목이 성공적으로 추가되었습니다.'
-    
+
     // 폼 초기화
     newProduct.value = { name: '', spec: '', price: 0 }
     form.value.reset()
-    
+
     // 목록 새로고침
     await loadProducts()
 
@@ -398,7 +413,6 @@ const addProduct = async () => {
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-
   } catch (err) {
     console.error('품목 추가 오류:', err)
     error.value = '품목 추가 중 오류가 발생했습니다.'
@@ -434,7 +448,7 @@ const saveEdit = async () => {
         spec: editProduct.value.spec,
         price: editProduct.value.price,
         updatedAt: new Date(),
-        updatedBy: userStore.userId
+        updatedBy: userStore.userId,
       })
     }, router)
 
@@ -444,11 +458,11 @@ const saveEdit = async () => {
     }
 
     successMessage.value = '품목이 성공적으로 수정되었습니다.'
-    
+
     // 편집 모드 종료
     editingId.value = null
     editProduct.value = {}
-    
+
     // 목록 새로고침
     await loadProducts()
 
@@ -456,7 +470,6 @@ const saveEdit = async () => {
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-
   } catch (err) {
     console.error('품목 수정 오류:', err)
     error.value = '품목 수정 중 오류가 발생했습니다.'
@@ -486,11 +499,11 @@ const deleteProduct = async () => {
     }
 
     successMessage.value = '품목이 성공적으로 삭제되었습니다.'
-    
+
     // 다이얼로그 닫기
     showDeleteDialog.value = false
     deleteTarget.value = null
-    
+
     // 목록 새로고침
     await loadProducts()
 
@@ -498,7 +511,6 @@ const deleteProduct = async () => {
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-
   } catch (err) {
     console.error('품목 삭제 오류:', err)
     error.value = '품목 삭제 중 오류가 발생했습니다.'
@@ -735,17 +747,17 @@ onMounted(async () => {
     grid-template-columns: 1fr;
     gap: 0;
   }
-  
+
   .header-cell,
   .cell {
     padding: 12px;
     border-bottom: 1px solid #f1f5f9;
   }
-  
+
   .header-cell {
     display: none;
   }
-  
+
   .cell:before {
     content: attr(data-label);
     font-weight: 600;
@@ -755,11 +767,19 @@ onMounted(async () => {
     font-size: 12px;
     text-transform: uppercase;
   }
-  
-  .cell.name:before { content: "품목명"; }
-  .cell.spec:before { content: "규격/사양"; }
-  .cell.price:before { content: "단가"; }
-  .cell.actions:before { content: "작업"; }
+
+  .cell.name:before {
+    content: '품목명';
+  }
+  .cell.spec:before {
+    content: '규격/사양';
+  }
+  .cell.price:before {
+    content: '단가';
+  }
+  .cell.actions:before {
+    content: '작업';
+  }
 }
 
 /* 하단 고정 액션 버튼 */
@@ -898,7 +918,8 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -919,7 +940,7 @@ onMounted(async () => {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
+
   .product-item-card {
     margin: 0 4px;
   }

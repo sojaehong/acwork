@@ -1109,10 +1109,7 @@ const loadDocuments = async () => {
     }
 
     const authResult = await userStore.executeWithAuth(async () => {
-      const q = query(
-        collection(db, 'documents'),
-        orderBy('createdAt', 'desc')
-      )
+      const q = query(collection(db, 'documents'), orderBy('createdAt', 'desc'))
       return await getDocs(q)
     }, router)
 
@@ -1145,15 +1142,17 @@ const loadDocuments = async () => {
       })
 
     // 등록자 정보 가져오기
-    const creatorIds = [...new Set(statementDocs.map(doc => doc.createdBy).filter(Boolean))]
+    const creatorIds = [
+      ...new Set(statementDocs.map((doc) => doc.createdBy).filter(Boolean)),
+    ]
     const creators = await userCache.getUsers(creatorIds)
-    
+
     // 문서에 등록자 이름 추가
-    documents.value = statementDocs.map(doc => {
-      const creator = creators.find(user => user.uid === doc.createdBy)
+    documents.value = statementDocs.map((doc) => {
+      const creator = creators.find((user) => user.uid === doc.createdBy)
       return {
         ...doc,
-        creatorName: creator?.name || '알 수 없음'
+        creatorName: creator?.name || '알 수 없음',
       }
     })
 

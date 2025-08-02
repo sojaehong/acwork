@@ -250,8 +250,12 @@ export function calculateUrgency(schedule) {
 
   const statusInfo = getStatusInfo(schedule.status, schedule.date)
 
-  // 완료된 작업은 긴급도 없음
-  if (statusInfo.category === 'completed') return 'none'
+  // 완료된 작업이나 취소된 작업은 긴급도 없음
+  if (
+    statusInfo.category === 'completed' ||
+    statusInfo.category === 'cancelled'
+  )
+    return 'none'
 
   if (diffDays < 0) return 'overdue' // 기한 초과
   if (diffDays === 0) return 'today' // 오늘

@@ -35,6 +35,17 @@
             {{ activeFilterChips.length }}개 필터 적용됨
           </v-chip>
 
+          <!-- 통계 페이지 이동 버튼 -->
+          <v-btn
+            icon
+            size="large"
+            class="stats-btn mr-2"
+            @click="goToStatistics"
+            aria-label="통계 페이지로 이동"
+          >
+            <v-icon>mdi-chart-line</v-icon>
+          </v-btn>
+
           <!-- 필터 토글 버튼 -->
           <v-btn
             icon
@@ -197,7 +208,7 @@ import {
   watch,
   defineAsyncComponent,
 } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useScheduleStore } from '@/stores/schedule'
 import { useDebounceFn, useThrottleFn } from '@vueuse/core'
@@ -222,6 +233,7 @@ const FilterDrawer = defineAsyncComponent(
 )
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const store = useScheduleStore()
 
@@ -296,8 +308,7 @@ const filteredSchedules = computed(() => {
       return true
     })
   } catch (err) {
-    console.error('필터링 오류:', err)
-    error.value = '데이터 필터링 중 오류가 발생했습니다.'
+    // 오류 발생 시 빈 배열 반환 (computed에서 side effect 제거)
     return []
   }
 })
@@ -340,8 +351,7 @@ const paginatedScheduleData = computed(() => {
       remainingCount: Math.max(0, sortedGroups.length - paginatedGroups.length),
     }
   } catch (err) {
-    console.error('페이지네이션 오류:', err)
-    error.value = '데이터 페이지네이션 중 오류가 발생했습니다.'
+    // 오류 발생 시 기본값 반환 (computed에서 side effect 제거)
     return {
       groupedItems: [],
       totalItems: 0,
@@ -354,32 +364,26 @@ const paginatedScheduleData = computed(() => {
 
 // 🚀 고도화된 통계 계산
 const computedStats = computed(() => {
+  // 필터링된 데이터를 기반으로 통계 계산 (대시보드 필터링 기능 복원)
   const items = filteredSchedules.value
 
-  // 새로운 statusUtils 사용
-  try {
-    return calculateAdvancedStats(items)
-  } catch (err) {
-    console.error('통계 계산 오류:', err)
-    // 기존 방식으로 fallback
-    const statusCounts = items.reduce((acc, item) => {
-      acc[item.status] = (acc[item.status] || 0) + 1
-      return acc
-    }, {})
+  // 새로운 statusUtils 사용 - fallback 제거하고 정확한 계산 보장
+  // Debug logging 제거 (ESLint rule: vue/no-side-effects-in-computed-properties)
 
+  if (!items || items.length === 0) {
     return {
-      total: items.length,
-      byStatus: statusCounts,
+      total: 0,
+      byStatus: {},
       byUrgency: {},
       byComplexity: {},
       byCategory: {
         upcoming: 0,
-        active: statusCounts['진행'] || 0,
+        active: 0,
         paused: 0,
         delayed: 0,
-        completed: statusCounts['완료'] || 0,
-        hold: statusCounts['보류'] || 0,
-        cancelled: statusCounts['취소됨'] || 0,
+        completed: 0,
+        hold: 0,
+        cancelled: 0,
         rework: 0,
         waiting: 0,
         pending: 0,
@@ -388,64 +392,16 @@ const computedStats = computed(() => {
       overdue: 0,
       today: 0,
       thisWeek: 0,
-      efficiency:
-        ((statusCounts['완료'] || 0) / Math.max(items.length, 1)) * 100,
-      byWorkType: items.reduce((acc, item) => {
-        if (item.tasks && item.tasks.length > 0) {
-          item.tasks.forEach((task) => {
-            const taskName = task.name || '기타'
-
-            // 더 안전한 count 파싱 (동일한 로직)
-            let taskCount = 1
-            if (
-              task.count !== undefined &&
-              task.count !== null &&
-              task.count !== ''
-            ) {
-              if (typeof task.count === 'string') {
-                const trimmed = task.count.trim()
-                if (/^\d+$/.test(trimmed)) {
-                  taskCount = parseInt(trimmed, 10)
-                } else {
-                  console.warn('Fallback: 문자열 count 파싱 실패:', {
-                    item: item.id,
-                    taskName,
-                    originalCount: task.count,
-                    type: typeof task.count,
-                  })
-                }
-              } else if (typeof task.count === 'number' && !isNaN(task.count)) {
-                taskCount = Math.floor(task.count)
-              }
-            }
-
-            // 안전성 검증
-            if (taskCount <= 0) {
-              taskCount = 1
-            } else if (taskCount > 100) {
-              console.warn(`Fallback: 비정상적으로 큰 작업 카운트 (제한됨):`, {
-                item: item.id,
-                building: item.building,
-                taskName,
-                originalCount: task.count,
-                parsedCount: taskCount,
-              })
-              taskCount = Math.min(taskCount, 10)
-            }
-
-            acc[taskName] = (acc[taskName] || 0) + taskCount
-          })
-        }
-        return acc
-      }, {}),
-      byBuilding: items.reduce((acc, item) => {
-        if (item.building) {
-          acc[item.building] = (acc[item.building] || 0) + 1
-        }
-        return acc
-      }, {}),
+      efficiency: 0,
+      byWorkType: {},
+      byBuilding: {},
     }
   }
+
+  const stats = calculateAdvancedStats(items)
+  // Debug logging 제거 (ESLint rule: vue/no-side-effects-in-computed-properties)
+
+  return stats
 })
 
 // 🚀 필터 상태
@@ -627,6 +583,12 @@ const toggleFilters = () => {
 const goHome = () => {
   router.push('/').catch((err) => console.error('홈 이동 오류:', err))
 }
+
+const goToStatistics = () => {
+  router
+    .push('/statistics')
+    .catch((err) => console.error('통계 페이지 이동 오류:', err))
+}
 const clearError = () => {
   error.value = ''
 }
@@ -717,7 +679,7 @@ const handleFilterByUrgency = (urgencyLabel) => {
         status: ['진행', '보류'],
       })
       break
-    case '기한초과':
+    case '기한초과': {
       // 어제까지의 미완료 작업 (한국 시간대 기준)
       const kstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
       const yesterday = new Date(kstNow)
@@ -737,7 +699,8 @@ const handleFilterByUrgency = (urgencyLabel) => {
         ].filter((v, i, a) => a.indexOf(v) === i),
       })
       break
-    case '내일':
+    }
+    case '내일': {
       const kstToday = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
       const tomorrow = new Date(kstToday)
       tomorrow.setDate(tomorrow.getDate() + 1)
@@ -748,8 +711,11 @@ const handleFilterByUrgency = (urgencyLabel) => {
         endDate: tomorrowStr,
       })
       break
-    case '이번 주':
-      const kstTodayForWeek = new Date(new Date().getTime() + 9 * 60 * 60 * 1000)
+    }
+    case '이번 주': {
+      const kstTodayForWeek = new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000
+      )
       const weekLater = new Date(kstTodayForWeek)
       weekLater.setDate(weekLater.getDate() + 7)
       const weekLaterStr = weekLater.toISOString().split('T')[0]
@@ -759,9 +725,73 @@ const handleFilterByUrgency = (urgencyLabel) => {
         endDate: weekLaterStr,
       })
       break
+    }
   }
 
   currentPage.value = 1
+}
+
+// 🔗 URL 쿼리 파라미터 처리
+const applyQueryFilters = () => {
+  const { building, filter, status, workType, urgency } = route.query
+
+  if (building) {
+    // 건물 필터 적용
+    store.setFilters({
+      ...store.filters,
+      building: [building],
+    })
+  }
+
+  if (status) {
+    // 상태 필터 적용
+    store.setFilters({
+      ...store.filters,
+      status: [status],
+    })
+  }
+
+  if (workType) {
+    // 작업 종류 필터 적용
+    store.setFilters({
+      ...store.filters,
+      task: [workType],
+    })
+  }
+
+  if (urgency) {
+    // 긴급도 필터 적용 (날짜 기반)
+    switch (urgency) {
+      case 'overdue':
+        handleQuickFilter('기한초과')
+        break
+      case 'today':
+        handleQuickFilter('오늘')
+        break
+      case 'tomorrow':
+        handleQuickFilter('내일')
+        break
+      case 'thisWeek':
+        handleQuickFilter('이번 주')
+        break
+      default:
+        console.log('Unknown urgency filter:', urgency)
+    }
+  }
+
+  if (filter) {
+    // 기타 필터 적용 (기존 필터 시스템과 호환)
+    switch (filter) {
+      case 'overdue':
+        handleQuickFilter('기한초과')
+        break
+      case 'today':
+        handleQuickFilter('오늘')
+        break
+      default:
+        console.log('Unknown filter:', filter)
+    }
+  }
 }
 
 // 🚀 라이프사이클
@@ -776,6 +806,9 @@ onMounted(async () => {
     await userStore.withRetry(() => store.fetchAllSchedules())
     updateResponsiveState()
     window.addEventListener('resize', updateResponsiveState)
+
+    // URL 쿼리 파라미터 기반 필터 적용
+    applyQueryFilters()
   } catch (err) {
     console.error('초기화 실패:', err)
     error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다.'
@@ -783,6 +816,15 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// 🔍 URL 쿼리 변경 감시
+watch(
+  () => route.query,
+  () => {
+    applyQueryFilters()
+  },
+  { deep: true }
+)
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateResponsiveState)
@@ -812,14 +854,16 @@ watch(
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 .back-btn,
-.filter-toggle-btn {
+.filter-toggle-btn,
+.stats-btn {
   background: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
   border-radius: 12px !important;
   transition: all 0.3s ease !important;
 }
 .back-btn:hover,
-.filter-toggle-btn:hover {
+.filter-toggle-btn:hover,
+.stats-btn:hover {
   background: rgba(255, 255, 255, 0.2) !important;
   transform: translateY(-1px);
 }

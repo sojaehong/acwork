@@ -14,6 +14,7 @@ const WorkerPayroll = () => import('@/pages/WorkerPayroll.vue')
 const EstimateForm = () => import('@/pages/EstimateForm.vue')
 const StatementForm = () => import('@/pages/StatementForm.vue')
 const ProductManagement = () => import('@/pages/ProductManagement.vue')
+const Statistics = () => import('@/pages/Statistics.vue')
 const NotFound = () => import('@/pages/NotFound.vue')
 
 // 인증 관련 라우트
@@ -98,6 +99,16 @@ const documentRoutes = [
   },
 ]
 
+// 통계 관련 라우트
+const statisticsRoutes = [
+  {
+    path: '/statistics',
+    name: 'Statistics',
+    component: Statistics,
+    meta: { requiresAuth: true },
+  },
+]
+
 const routes = [
   {
     path: '/',
@@ -109,6 +120,7 @@ const routes = [
   ...scheduleRoutes,
   ...workerRoutes,
   ...documentRoutes,
+  ...statisticsRoutes,
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
