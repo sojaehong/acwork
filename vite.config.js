@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
+import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'url'
 
 export default defineConfig({
@@ -13,6 +14,30 @@ export default defineConfig({
         defaultTheme: 'light',
       },
     }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']
+      },
+      includeAssets: ['vite.svg'],
+      manifest: {
+        name: 'AC Work',
+        short_name: 'ACWork',
+        description: '현장 작업자 일정 관리 및 급여 계산 시스템',
+        theme_color: '#1976d2',
+        background_color: '#ffffff',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: 'vite.svg',
+            sizes: '144x144',
+            type: 'image/svg+xml'
+          }
+        ]
+      }
+    })
   ],
   resolve: {
     alias: {

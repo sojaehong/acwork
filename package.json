@@ -37,6 +37,7 @@
     "sass": "^1.89.0",
     "sass-loader": "^16.0.5",
     "vite": "^6.3.5",
+    "vite-plugin-pwa": "^1.0.3",
     "vuetify": "^3.8.7"
   }
 }
