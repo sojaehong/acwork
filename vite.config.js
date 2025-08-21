@@ -21,10 +21,10 @@ export default defineConfig({
       },
       includeAssets: ['vite.svg'],
       manifest: {
-        name: 'AC Work',
-        short_name: 'ACWork',
+        name: '공조플러스',
+        short_name: '공조플러스',
         description: '현장 작업자 일정 관리 및 급여 계산 시스템',
-        theme_color: '#1976d2',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',
