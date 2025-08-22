@@ -28,13 +28,13 @@
         <div class="d-flex align-center">
           <!-- 선택된 작업자 표시 -->
           <v-chip
-            v-if="selectedWorkerName"
+            v-if="selectedWorkers.length > 0"
             color="warning"
             size="small"
             class="mr-2"
-            :prepend-icon="selectedWorker ? 'mdi-account-check' : 'mdi-account'"
+            :prepend-icon="selectedWorkers.length > 0 ? 'mdi-account-check' : 'mdi-account'"
           >
-            {{ selectedWorkerName }}
+            {{ selectedWorkers.length }}명 선택됨
           </v-chip>
 
           <!-- 새로고침 버튼 -->
@@ -90,54 +90,21 @@
           네트워크 연결을 확인해주세요. 오프라인 상태입니다.
         </v-alert>
 
-        <!-- 👥 작업자 선택 카드 -->
-        <v-card class="worker-selection-card mb-8" elevation="0">
-          <div class="card-header">
-            <div class="header-icon">
-              <v-icon color="primary">mdi-account-group</v-icon>
-            </div>
-            <h3 class="card-title">작업자 선택</h3>
-            <v-chip color="info" size="small" class="ml-2">
-              {{ workers.length }}명
-            </v-chip>
-          </div>
-
-          <!-- 🦴 작업자 선택 스켈레톤 -->
-          <div v-if="loadingWorkers" class="worker-skeleton-container">
-            <v-skeleton-loader
-              v-for="i in 6"
-              :key="`skeleton-${i}`"
-              type="button"
-              class="worker-skeleton"
-            />
-          </div>
-
-          <!-- 작업자 그리드 -->
-          <div v-else class="worker-grid">
-            <v-btn
-              v-for="worker in workers"
-              :key="worker.id"
-              :variant="selectedWorker === worker.id ? 'flat' : 'outlined'"
-              :color="selectedWorker === worker.id ? 'primary' : 'grey'"
-              class="worker-btn"
-              @click="selectWorker(worker.id)"
-              :loading="workerSwitching === worker.id"
-            >
-              <v-icon start>
-                {{
-                  selectedWorker === worker.id
-                    ? 'mdi-account-check'
-                    : 'mdi-account'
-                }}
-              </v-icon>
-              {{ worker.name }}
-            </v-btn>
-          </div>
-        </v-card>
+        <!-- 👥 작업자 필터 카드 -->
+        <WorkerFilter
+          :workers="workers"
+          :selected-workers="selectedWorkers"
+          :loading="loadingWorkers"
+          :get-worker-color="getWorkerColor"
+          :get-worker-schedule-count="getWorkerScheduleCount"
+          @select-all="selectAllWorkers"
+          @deselect-all="deselectAllWorkers"
+          @toggle-worker="toggleWorker"
+        />
 
         <!-- 📋 작업자 미선택 상태 -->
         <div
-          v-if="!selectedWorker && !loading && !loadingWorkers"
+          v-if="selectedWorkers.length === 0 && !loading && !loadingWorkers"
           class="empty-state"
         >
           <div class="empty-icon">
@@ -147,88 +114,59 @@
           </div>
           <h3 class="empty-title">작업자를 선택해주세요</h3>
           <p class="empty-description">
-            일정을 확인할 작업자를 선택하면 상세 정보를 볼 수 있습니다.
+            일정을 확인할 작업자를 체크하시면 스케줄을 볼 수 있습니다.
           </p>
         </div>
 
         <!-- 📊 일정 현황 -->
-        <div v-if="selectedWorker">
-          <!-- 🦴 통계 스켈레톤 -->
-          <div v-if="loadingMeta" class="stats-skeleton-container mb-8">
-            <v-skeleton-loader type="card" class="stats-skeleton" />
-          </div>
-
-          <!-- 📈 통계 요약 -->
-          <v-card v-else class="stats-card mb-8" elevation="0">
-            <div class="stats-header">
-              <div class="stats-icon">
-                <v-icon color="primary">mdi-chart-timeline</v-icon>
+        <div v-if="selectedWorkers.length > 0">
+          <!-- 🔄 뷰 전환 버튼 -->
+          <v-card class="view-toggle-card mb-6" elevation="0">
+            <div class="view-toggle-header">
+              <div class="toggle-icon">
+                <v-icon color="primary">mdi-view-dashboard</v-icon>
               </div>
-              <h3 class="stats-title">{{ selectedWorkerName }} 일정 현황</h3>
+              <h3 class="toggle-title">화면 보기</h3>
               <v-spacer />
-              <div class="stats-meta">
-                <v-chip size="x-small" color="grey-lighten-3">
-                  마지막 업데이트: {{ lastUpdateTime }}
-                </v-chip>
-              </div>
-            </div>
-
-            <div class="stats-grid">
-              <div class="stat-item upcoming" @click="scrollToUpcoming">
-                <div class="stat-number">{{ upcomingMeta.length }}</div>
-                <div class="stat-label">예정된 작업</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-clock</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="upcomingMeta.length > 0 ? 100 : 0"
-                    color="warning"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
-
-              <div class="stat-item completed" @click="scrollToCompleted">
-                <div class="stat-number">{{ pastMeta.length }}</div>
-                <div class="stat-label">완료된 작업</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-check</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="pastMeta.length > 0 ? 100 : 0"
-                    color="success"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
-
-              <div class="stat-item total">
-                <div class="stat-number">
-                  {{ upcomingMeta.length + pastMeta.length }}
-                </div>
-                <div class="stat-label">총 작업 수</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-multiple</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="
-                      upcomingMeta.length + pastMeta.length > 0 ? 100 : 0
-                    "
-                    color="primary"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
+              <v-btn-toggle
+                v-model="viewMode"
+                mandatory
+                class="view-toggle-buttons"
+                color="primary"
+                variant="outlined"
+              >
+                <v-btn value="calendar" size="small">
+                  <v-icon start>mdi-calendar</v-icon>
+                  달력
+                </v-btn>
+                <v-btn value="list" size="small">
+                  <v-icon start>mdi-view-list</v-icon>
+                  리스트
+                </v-btn>
+              </v-btn-toggle>
             </div>
           </v-card>
 
-          <!-- 📅 예정된 일정 -->
+
+          <!-- 📅 달력 뷰 -->
+          <div v-if="viewMode === 'calendar'" class="calendar-view">
+            <ScheduleCalendar
+              :current-date="currentDate"
+              :calendar-dates="calendarDates"
+              :get-worker-color="getWorkerColor"
+              :get-schedule-worker-names="getScheduleWorkerNames"
+              :get-worker-name="getWorkerName"
+              @previous-month="goToPreviousMonth"
+              @next-month="goToNextMonth"
+              @go-to-today="goToToday"
+              @date-click="showDateDetail"
+              @schedule-click="showScheduleDetail"
+            />
+          </div>
+
+          <!-- 📋 리스트 뷰 -->
+          <div v-else class="list-view">
+            <!-- 📅 예정된 일정 -->
           <div ref="upcomingSection" class="schedule-section">
             <div class="section-header">
               <div class="section-icon upcoming">
@@ -236,15 +174,15 @@
               </div>
               <h3 class="section-title">예정된 일정</h3>
               <v-chip
-                :color="upcomingMeta.length > 0 ? 'warning' : 'grey'"
+                :color="allUpcomingMeta.length > 0 ? 'warning' : 'grey'"
                 size="small"
                 class="ml-2"
               >
-                {{ upcomingMeta.length }}건
+                {{ allUpcomingMeta.length }}건
               </v-chip>
               <v-spacer />
               <v-btn
-                v-if="upcomingMeta.length > 0"
+                v-if="allUpcomingMeta.length > 0"
                 size="small"
                 variant="text"
                 @click="sortUpcoming = !sortUpcoming"
@@ -270,7 +208,7 @@
 
             <!-- 예정된 일정 없음 -->
             <v-alert
-              v-else-if="upcomingMeta.length === 0"
+              v-else-if="allUpcomingMeta.length === 0"
               type="info"
               class="info-alert"
               prominent
@@ -282,10 +220,11 @@
             <!-- 예정된 일정 카드들 -->
             <div v-else>
               <v-card
-                v-for="(item, index) in sortedUpcomingMeta"
+                v-for="(item, index) in sortedAllUpcomingMeta"
                 :key="`upcoming-${item.id}`"
                 class="schedule-card upcoming-card schedule-fade-item"
                 :class="{ urgent: item.dday <= 1 }"
+                :style="{ borderLeftColor: getWorkerColor(item.mainWorker) }"
                 @click="showScheduleDetail(item)"
               >
                 <div class="card-content">
@@ -348,11 +287,11 @@
               </div>
               <h3 class="section-title">지난 일정</h3>
               <v-chip color="success" size="small" class="ml-2">
-                {{ pastMeta.length }}건
+                {{ allPastMeta.length }}건
               </v-chip>
               <v-spacer />
               <v-btn
-                v-if="pastMeta.length > 0"
+                v-if="allPastMeta.length > 0"
                 size="small"
                 variant="text"
                 @click="showAllPast = !showAllPast"
@@ -376,7 +315,7 @@
 
             <!-- 지난 일정 없음 -->
             <v-alert
-              v-else-if="pastMeta.length === 0"
+              v-else-if="allPastMeta.length === 0"
               type="info"
               class="info-alert"
               prominent
@@ -388,9 +327,10 @@
             <!-- 지난 일정 카드들 -->
             <div v-else>
               <v-card
-                v-for="(item, index) in displayedPastMeta"
+                v-for="(item, index) in displayedAllPastMeta"
                 :key="`past-${item.id}`"
                 class="schedule-card past-card schedule-fade-item"
+                :style="{ borderLeftColor: getWorkerColor(item.mainWorker) }"
                 @click="showScheduleDetail(item)"
               >
                 <div class="card-content">
@@ -430,6 +370,77 @@
               </v-card>
             </div>
           </div>
+          </div>
+
+          <!-- 📈 통계 요약 (하단) -->
+          <v-card class="stats-card mt-8" elevation="0">
+            <div class="stats-header">
+              <div class="stats-icon">
+                <v-icon color="primary">mdi-chart-timeline</v-icon>
+              </div>
+              <h3 class="stats-title">선택된 작업자 일정 현황</h3>
+              <v-spacer />
+              <div class="stats-meta">
+                <v-chip size="x-small" color="grey-lighten-3">
+                  마지막 업데이트: {{ lastUpdateTime }}
+                </v-chip>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-item upcoming" @click="scrollToUpcoming">
+                <div class="stat-number">{{ allUpcomingMeta.length }}</div>
+                <div class="stat-label">예정된 작업</div>
+                <div class="stat-icon">
+                  <v-icon>mdi-calendar-clock</v-icon>
+                </div>
+                <div class="stat-progress">
+                  <v-progress-linear
+                    :model-value="allUpcomingMeta.length > 0 ? 100 : 0"
+                    color="warning"
+                    height="4"
+                    rounded
+                  />
+                </div>
+              </div>
+
+              <div class="stat-item completed" @click="scrollToCompleted">
+                <div class="stat-number">{{ allPastMeta.length }}</div>
+                <div class="stat-label">완료된 작업</div>
+                <div class="stat-icon">
+                  <v-icon>mdi-calendar-check</v-icon>
+                </div>
+                <div class="stat-progress">
+                  <v-progress-linear
+                    :model-value="allPastMeta.length > 0 ? 100 : 0"
+                    color="success"
+                    height="4"
+                    rounded
+                  />
+                </div>
+              </div>
+
+              <div class="stat-item total">
+                <div class="stat-number">
+                  {{ allUpcomingMeta.length + allPastMeta.length }}
+                </div>
+                <div class="stat-label">총 작업 수</div>
+                <div class="stat-icon">
+                  <v-icon>mdi-calendar-multiple</v-icon>
+                </div>
+                <div class="stat-progress">
+                  <v-progress-linear
+                    :model-value="
+                      allUpcomingMeta.length + allPastMeta.length > 0 ? 100 : 0
+                    "
+                    color="primary"
+                    height="4"
+                    rounded
+                  />
+                </div>
+              </div>
+            </div>
+          </v-card>
         </div>
       </v-container>
 
@@ -482,7 +493,7 @@
             <div class="detail-info">
               <div class="detail-label">참여 작업자</div>
               <div class="detail-value">
-                {{ selectedSchedule.workerNames.join(', ') }}
+                {{ getScheduleWorkerNames(selectedSchedule).join(', ') }}
               </div>
             </div>
           </div>
@@ -543,18 +554,39 @@ import { collection, getDocs } from 'firebase/firestore'
 import { getAuth, signInAnonymously } from 'firebase/auth'
 import { useUserStore } from '@/stores/user'
 import { getTodayDateKST } from '@/utils/date.js'
+import WorkerFilter from '@/components/WorkerFilter.vue'
+import ScheduleCalendar from '@/components/ScheduleCalendar.vue'
 
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 
 // 반응형 상태 관리
-const selectedWorker = ref(null)
+const selectedWorkers = ref([])
 const workers = ref([])
 const metaList = ref([])
 const userMap = ref({})
 const error = ref('')
 const today = getTodayDateKST()
+
+// 뷰 모드 상태
+const viewMode = ref('calendar')
+const currentDate = ref(new Date())
+const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+
+// 작업자별 색상 팔레트
+const workerColors = [
+  '#3B82F6', // Blue
+  '#EF4444', // Red  
+  '#10B981', // Green
+  '#F59E0B', // Amber
+  '#8B5CF6', // Violet
+  '#EC4899', // Pink
+  '#06B6D4', // Cyan
+  '#84CC16', // Lime
+  '#F97316', // Orange
+  '#6366F1', // Indigo
+]
 
 // 로딩 상태들
 const loading = ref(false)
@@ -629,30 +661,40 @@ function showNotification(message, color = 'success', timeout = 3000) {
 }
 
 // 컴퓨티드 속성들
-const selectedWorkerName = computed(() => {
-  if (!selectedWorker.value) return ''
-  const worker = workers.value.find((w) => w.id === selectedWorker.value)
-  return worker?.name || ''
-})
-
-const upcomingMeta = computed(() => {
-  if (!selectedWorker.value || !metaList.value.length) return []
+const allUpcomingMeta = computed(() => {
+  if (!selectedWorkers.value.length || !metaList.value.length) return []
   return metaList.value
-    .filter((m) => m.workers?.includes(selectedWorker.value) && m.date >= today)
-    .map((m) => ({ ...m, dday: dateDiff(today, m.date) }))
+    .filter((m) => {
+      if (!m.workers || m.date < today) return false
+      return m.workers.some(workerId => selectedWorkers.value.includes(workerId))
+    })
+    .map((m) => ({ 
+      ...m, 
+      dday: dateDiff(today, m.date),
+      mainWorker: m.workers.find(workerId => selectedWorkers.value.includes(workerId)) || m.workers[0],
+      workerNames: m.workers.map(id => userMap.value[id] || '알 수 없음')
+    }))
     .sort((a, b) => new Date(a.date) - new Date(b.date))
 })
 
-const pastMeta = computed(() => {
-  if (!selectedWorker.value || !metaList.value.length) return []
+const allPastMeta = computed(() => {
+  if (!selectedWorkers.value.length || !metaList.value.length) return []
   return metaList.value
-    .filter((m) => m.workers?.includes(selectedWorker.value) && m.date < today)
-    .map((m) => ({ ...m, dday: dateDiff(m.date, today) }))
+    .filter((m) => {
+      if (!m.workers || m.date >= today) return false
+      return m.workers.some(workerId => selectedWorkers.value.includes(workerId))
+    })
+    .map((m) => ({ 
+      ...m, 
+      dday: dateDiff(m.date, today),
+      mainWorker: m.workers.find(workerId => selectedWorkers.value.includes(workerId)) || m.workers[0],
+      workerNames: m.workers.map(id => userMap.value[id] || '알 수 없음')
+    }))
     .sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
-const sortedUpcomingMeta = computed(() => {
-  const upcoming = upcomingMeta.value
+const sortedAllUpcomingMeta = computed(() => {
+  const upcoming = allUpcomingMeta.value
   if (!upcoming?.length) return []
 
   if (!sortUpcoming.value) {
@@ -661,14 +703,144 @@ const sortedUpcomingMeta = computed(() => {
   return [...upcoming].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
-const displayedPastMeta = computed(() => {
-  const past = pastMeta.value
+const displayedAllPastMeta = computed(() => {
+  const past = allPastMeta.value
   if (!past?.length) return []
 
   if (showAllPast.value) {
     return past
   }
   return past.slice(0, 3)
+})
+
+
+const calendarDates = computed(() => {
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
+  
+  // 현재 월의 첫 번째 날과 마지막 날
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  
+  // 달력 시작일 (이전 월의 마지막 주 포함)
+  const startDate = new Date(firstDay)
+  startDate.setDate(startDate.getDate() - firstDay.getDay())
+  
+  // 달력 종료일 (다음 월의 첫 주 포함)
+  const endDate = new Date(lastDay)
+  endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()))
+  
+  const dates = []
+  const currentDateObj = new Date(startDate)
+  
+  // 먼저 모든 날짜의 기본 데이터 생성
+  while (currentDateObj <= endDate) {
+    const dateStr = currentDateObj.toISOString().split('T')[0]
+    const isCurrentMonth = currentDateObj.getMonth() === month
+    const isToday = dateStr === today
+    const isWeekend = currentDateObj.getDay() === 0 || currentDateObj.getDay() === 6
+    
+    // 해당 날짜의 스케줄 찾기 (선택된 작업자들의 스케줄)
+    const schedules = metaList.value.filter(m => {
+      if (!m.workers || m.date !== dateStr) return false
+      return m.workers.some(workerId => selectedWorkers.value.includes(workerId))
+    }).map(m => ({
+      ...m,
+      mainWorker: m.workers.find(workerId => selectedWorkers.value.includes(workerId)) || m.workers[0],
+      workerNames: m.workers.map(id => userMap.value[id] || '알 수 없음')
+    }))
+    
+    dates.push({
+      date: dateStr,
+      day: currentDateObj.getDate(),
+      isCurrentMonth,
+      isToday,
+      isWeekend,
+      schedules,
+      workerLines: [] // 작업자별 라인 데이터 (나중에 계산)
+    })
+    
+    currentDateObj.setDate(currentDateObj.getDate() + 1)
+  }
+  
+  // 작업자별 라인 시스템 구현 - 일관된 위치 보장
+  const selectedWorkerIds = selectedWorkers.value
+  const workerLineMap = new Map()
+  
+  // 선택된 작업자들에게 순서대로 라인 인덱스 할당
+  selectedWorkerIds.forEach((workerId, index) => {
+    workerLineMap.set(workerId, index)
+  })
+  
+  // 각 날짜에 대해 작업자별 라인 할당
+  dates.forEach((date, dateIndex) => {
+    const dateWorkerLines = []
+    
+    // 해당 날짜에 스케줄이 있는 작업자들을 찾음
+    const workersWithSchedules = new Set()
+    date.schedules.forEach(schedule => {
+      schedule.workers
+        .filter(workerId => selectedWorkers.value.includes(workerId))
+        .forEach(workerId => workersWithSchedules.add(workerId))
+    })
+    
+    // 스케줄이 있는 작업자들만 라인 생성
+    workersWithSchedules.forEach(workerId => {
+      const lineIndex = workerLineMap.get(workerId)
+      
+      // 해당 작업자의 스케줄 찾기
+      const workerSchedule = date.schedules.find(s => s.workers.includes(workerId))
+      
+      if (workerSchedule) {
+        // 연속된 일정인지 확인
+        const isStart = !dates[dateIndex - 1]?.schedules.some(s => 
+          s.workers.includes(workerId)
+        )
+        const isEnd = !dates[dateIndex + 1]?.schedules.some(s => 
+          s.workers.includes(workerId)
+        )
+        const isContinue = !isStart && !isEnd
+        
+        // 이벤트 바의 너비와 위치 계산
+        let width = 96
+        let left = 2
+        
+        // 연속된 일정의 경우 완전히 연결되도록 조정
+        if (!isStart) {
+          left = 0
+          width = 98
+        }
+        if (!isEnd) {
+          width = 98
+        }
+        if (!isStart && !isEnd) {
+          left = 0
+          width = 100
+        }
+        
+        dateWorkerLines.push({
+          workerId,
+          lineIndex,
+          event: {
+            schedule: workerSchedule,
+            isStart,
+            isEnd,
+            isContinue,
+            width,
+            left
+          }
+        })
+      }
+    })
+    
+    // 라인 인덱스 순으로 정렬
+    dateWorkerLines.sort((a, b) => a.lineIndex - b.lineIndex)
+    
+    date.workerLines = dateWorkerLines
+    date.overflowCount = 0
+  })
+  
+  return dates
 })
 
 // 이벤트 핸들러들
@@ -689,29 +861,60 @@ const goHome = async () => {
   }
 }
 
-const selectWorker = async (id) => {
-  if (workerSwitching.value) return
+const selectAllWorkers = () => {
+  selectedWorkers.value = workers.value.map(w => w.id)
+  showNotification('모든 작업자를 선택했습니다.')
+}
 
-  const newWorkerId = selectedWorker.value === id ? null : id
-  workerSwitching.value = id
+const deselectAllWorkers = () => {
+  selectedWorkers.value = []
+  showNotification('모든 작업자 선택을 해제했습니다.')
+}
 
-  try {
-    selectedWorker.value = newWorkerId
-
-    // 안전한 라우터 업데이트
-    await nextTick()
-    await router.replace({ query: { worker: newWorkerId || undefined } })
-
-    const workerName = workers.value.find((w) => w.id === newWorkerId)?.name
-    if (workerName) {
-      showNotification(`${workerName}님의 일정을 확인합니다.`)
+const toggleWorker = (workerId, checked) => {
+  if (checked) {
+    if (!selectedWorkers.value.includes(workerId)) {
+      selectedWorkers.value.push(workerId)
     }
-  } catch (err) {
-    console.error('작업자 선택 중 오류:', err)
-    showNotification('작업자 선택 중 오류가 발생했습니다.', 'error')
-  } finally {
-    workerSwitching.value = null
+  } else {
+    selectedWorkers.value = selectedWorkers.value.filter(id => id !== workerId)
   }
+}
+
+const getWorkerColor = (workerId) => {
+  const index = workers.value.findIndex(w => w.id === workerId)
+  return workerColors[index % workerColors.length]
+}
+
+const getWorkerScheduleCount = (workerId) => {
+  return metaList.value.filter(m => m.workers?.includes(workerId)).length
+}
+
+const getWorkerName = (workerId) => {
+  return userMap.value[workerId] || '알 수 없음'
+}
+
+const getScheduleWorkerNames = (schedule) => {
+  return schedule.workers
+    .filter(workerId => selectedWorkers.value.includes(workerId))
+    .map(id => userMap.value[id] || '알 수 없음')
+}
+
+const getDarkerColor = (color) => {
+  // 색상을 어둡게 만드는 함수
+  const colorMap = {
+    '#3B82F6': '#1E40AF', // Blue -> Blue-700
+    '#EF4444': '#B91C1C', // Red -> Red-700
+    '#10B981': '#047857', // Green -> Green-700
+    '#F59E0B': '#B45309', // Amber -> Amber-700
+    '#8B5CF6': '#6D28D9', // Violet -> Violet-700
+    '#EC4899': '#BE185D', // Pink -> Pink-700
+    '#06B6D4': '#0E7490', // Cyan -> Cyan-700
+    '#84CC16': '#4D7C0F', // Lime -> Lime-700
+    '#F97316': '#C2410C', // Orange -> Orange-700
+    '#6366F1': '#4338CA', // Indigo -> Indigo-700
+  }
+  return colorMap[color] || color
 }
 
 const scrollToUpcoming = () => {
@@ -725,6 +928,34 @@ const scrollToCompleted = () => {
 const showScheduleDetail = (schedule) => {
   selectedSchedule.value = schedule
   scheduleDialog.value = true
+}
+
+const showDateDetail = (date) => {
+  if (date.schedules.length === 0) return
+  
+  // 스케줄이 하나면 바로 상세 보기
+  if (date.schedules.length === 1) {
+    showScheduleDetail(date.schedules[0])
+  } else {
+    // 여러 스케줄이 있으면 첫 번째 스케줄 표시 (추후 개선 가능)
+    showScheduleDetail(date.schedules[0])
+  }
+}
+
+const goToPreviousMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() - 1)
+  currentDate.value = newDate
+}
+
+const goToNextMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() + 1)
+  currentDate.value = newDate
+}
+
+const goToToday = () => {
+  currentDate.value = new Date()
 }
 
 const refreshData = async () => {
@@ -849,14 +1080,9 @@ async function initializeData() {
           await fetchUsers()
         }
 
-        // URL 쿼리에서 작업자 선택 또는 현재 사용자로 기본 설정
-        const queryId = route.query.worker
-        const currentUserId = userStore.userId
-        if (queryId && workers.value.find((w) => w.id === queryId)) {
-          selectedWorker.value = queryId
-        } else if (!selectedWorker.value && currentUserId) {
-          const match = workers.value.find((w) => w.id === currentUserId)
-          selectedWorker.value = match ? match.id : null
+        // 기본적으로 모든 작업자 선택
+        if (selectedWorkers.value.length === 0) {
+          selectedWorkers.value = workers.value.map(w => w.id)
         }
 
         // 메타데이터 로딩
@@ -1029,82 +1255,6 @@ onUnmounted(() => {
   height: 150px;
 }
 
-/* 👥 작업자 선택 카드 */
-.worker-selection-card {
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: white;
-}
-
-.header-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 12px;
-}
-
-.card-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: white;
-}
-
-.worker-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  padding: 24px;
-}
-
-.worker-btn {
-  height: 60px;
-  border-radius: 16px;
-  font-weight: 600;
-  text-transform: none;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.worker-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.worker-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.worker-btn:hover::before {
-  left: 100%;
-}
 
 /* 📋 빈 상태 */
 .empty-state {
@@ -1454,6 +1604,228 @@ onUnmounted(() => {
   border: 1px solid #3b82f6;
 }
 
+/* 🔄 뷰 토글 카드 */
+.view-toggle-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.view-toggle-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.toggle-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.toggle-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.view-toggle-buttons {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.view-toggle-buttons .v-btn {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.view-toggle-buttons .v-btn--active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+}
+
+/* 📅 달력 뷰 스타일 */
+.calendar-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.calendar-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  padding: 24px;
+}
+
+.calendar-header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-month {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  min-width: 120px;
+  text-align: center;
+}
+
+.calendar-controls .v-btn {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.calendar-content {
+  padding: 0;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.weekday-header {
+  padding: 16px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.weekday-header.weekend {
+  color: #ef4444;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-date {
+  min-height: 100px;
+  padding: 8px;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: white;
+}
+
+.calendar-date:hover {
+  background: #f8fafc;
+}
+
+.calendar-date.other-month {
+  background: #f9fafb;
+  color: #9ca3af;
+}
+
+.calendar-date.today {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #3b82f6;
+}
+
+.calendar-date.has-schedule {
+  background: linear-gradient(135deg, #fef3cd 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+}
+
+.calendar-date.weekend {
+  background: #fefcfb;
+}
+
+.calendar-date.weekend.other-month {
+  background: #f7f6f5;
+}
+
+.date-number {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.calendar-date.other-month .date-number {
+  color: #9ca3af;
+}
+
+.calendar-date.today .date-number {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.calendar-date.weekend .date-number {
+  color: #ef4444;
+}
+
+.schedule-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+}
+
+.schedule-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.schedule-dot.upcoming {
+  background: #f59e0b;
+}
+
+.schedule-dot.past {
+  background: #10b981;
+}
+
+.schedule-more {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
 /* 🏠 플로팅 홈 버튼 */
 .floating-actions {
   position: fixed;
@@ -1548,6 +1920,73 @@ onUnmounted(() => {
   .stat-item:hover,
   .home-btn:hover {
     transform: none;
+  }
+}
+
+/* 📅 달력 반응형 */
+@media (max-width: 1024px) {
+  .calendar-date {
+    min-height: 80px;
+  }
+  
+  .calendar-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .current-month {
+    min-width: 100px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header {
+    padding: 20px;
+  }
+  
+  .calendar-header-content {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .calendar-controls {
+    align-self: stretch;
+    justify-content: center;
+  }
+  
+  .calendar-date {
+    min-height: 60px;
+    padding: 4px;
+  }
+  
+  .date-number {
+    font-size: 12px;
+  }
+  
+  .schedule-dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .schedule-more {
+    font-size: 9px;
+  }
+  
+  .weekday-header {
+    padding: 12px 4px;
+    font-size: 12px;
+  }
+  
+  .view-toggle-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .view-toggle-buttons {
+    align-self: stretch;
   }
 }
 
@@ -1670,4 +2109,5 @@ onUnmounted(() => {
   background: rgba(255, 200, 0, 0.9) !important;
   color: #1a1a1a !important;
 }
+
 </style>
