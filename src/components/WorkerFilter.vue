@@ -115,16 +115,17 @@ const emit = defineEmits(['selectAll', 'deselectAll', 'toggleWorker'])
 .card-header {
   display: flex;
   align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: white;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #475569;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .header-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(100, 116, 139, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,10 +133,10 @@ const emit = defineEmits(['selectAll', 'deselectAll', 'toggleWorker'])
 }
 
 .card-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   margin: 0;
-  color: white;
+  color: #475569;
 }
 
 .filter-actions {
@@ -146,9 +147,9 @@ const emit = defineEmits(['selectAll', 'deselectAll', 'toggleWorker'])
 
 .worker-checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 8px;
-  padding: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+  padding: 20px;
 }
 
 .worker-checkbox {
@@ -196,34 +197,93 @@ const emit = defineEmits(['selectAll', 'deselectAll', 'toggleWorker'])
 
 /* 🎯 반응형 디자인 */
 @media (max-width: 768px) {
+  .card-header {
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-title {
+    font-size: 16px;
+  }
+
+  .header-icon {
+    width: 32px;
+    height: 32px;
+  }
+
   .worker-checkbox-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 6px;
-    padding: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 4px;
+    padding: 16px;
   }
 
   .worker-skeleton-container {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 6px;
-    padding: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 4px;
+    padding: 16px;
   }
 
   .filter-actions {
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
+    flex-direction: row;
+    gap: 6px;
+    width: auto;
+  }
+
+  .filter-actions .v-btn {
+    font-size: 12px;
+    height: 32px;
+    padding: 0 12px;
   }
 }
 
 @media (max-width: 480px) {
+  .card-header {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .header-icon {
+    width: 28px;
+    height: 28px;
+  }
+
   .worker-checkbox-grid {
-    grid-template-columns: 1fr;
-    padding: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 3px;
+    padding: 12px;
   }
 
   .worker-skeleton-container {
-    grid-template-columns: 1fr;
-    padding: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 3px;
+    padding: 12px;
+  }
+
+  .filter-actions {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .filter-actions .v-btn {
+    font-size: 11px;
+    height: 28px;
+    flex: 1;
+    margin: 0 2px;
+  }
+
+  .worker-checkbox {
+    padding: 6px 8px;
+  }
+
+  .worker-name {
+    font-size: 13px;
   }
 }
 </style>

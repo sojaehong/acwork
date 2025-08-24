@@ -161,9 +161,10 @@ const currentMonthText = computed(() => {
 }
 
 .calendar-header {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: white;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #475569;
   padding: 24px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .calendar-header-content {
@@ -176,7 +177,7 @@ const currentMonthText = computed(() => {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(100, 116, 139, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +187,7 @@ const currentMonthText = computed(() => {
   font-size: 20px;
   font-weight: 700;
   margin: 0;
-  color: white;
+  color: #475569;
 }
 
 .calendar-controls {
@@ -198,14 +199,14 @@ const currentMonthText = computed(() => {
 .current-month {
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: #475569;
   min-width: 120px;
   text-align: center;
 }
 
 .calendar-controls .v-btn {
-  color: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: rgba(71, 85, 105, 0.8) !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
 }
 
 .calendar-content {
@@ -258,22 +259,20 @@ const currentMonthText = computed(() => {
 }
 
 .calendar-date.today {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-color: #60a5fa;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  background: white;
+  border: 1px solid #cbd5e1;
 }
 
 .calendar-date.has-schedule {
-  background: linear-gradient(135deg, #fefcfb 0%, #fef7ed 100%);
-  border-color: #fed7aa;
+  background: white;
 }
 
 .calendar-date.weekend {
-  background: #fefcfb;
+  background: white;
 }
 
 .calendar-date.weekend.other-month {
-  background: #f7f6f5;
+  background: #f9fafb;
 }
 
 .date-number {
@@ -289,7 +288,7 @@ const currentMonthText = computed(() => {
 }
 
 .calendar-date.today .date-number {
-  background: #3b82f6;
+  background: #64748b;
   color: white;
   border-radius: 50%;
   width: 24px;
@@ -318,60 +317,67 @@ const currentMonthText = computed(() => {
   position: absolute;
   left: 0;
   right: 0;
-  height: 24px;
+  height: 22px;
   z-index: 1;
 }
 
 
-/* 연속된 일정 스타일 - 완전히 이어진 연결감 */
+/* 연속된 일정 스타일 - 완전한 연결감 */
 .schedule-event-bar.event-start {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  margin-right: -1px;
 }
 
 .schedule-event-bar.event-end {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-left: -1px;
 }
 
 .schedule-event-bar.event-middle {
   border-radius: 0;
+  margin-left: -1px;
+  margin-right: -1px;
 }
 
 .schedule-event-bar.event-start.event-end {
-  border-radius: 12px;
+  border-radius: 10px;
+  margin-left: 0;
+  margin-right: 0;
 }
 
-/* 완전히 연결된 라인을 위한 절대 위치 */
+/* 연결성 있는 라인 */
 .worker-line {
   position: absolute;
   left: -8px;
   right: -8px;
-  height: 24px;
-  z-index: 10;
+  height: 22px;
+  z-index: 8;
 }
 
 .schedule-event-bar {
   position: absolute;
-  height: 22px;
-  border-radius: 4px;
-  font-size: 12px;
-  line-height: 1.3;
-  color: #ffffff;
+  height: 20px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #374151;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: var(--event-color, #3B82F6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--event-color, #bfdbfe);
   overflow: hidden;
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  min-height: 22px;
+  padding: 0 8px;
+  min-height: 20px;
+  opacity: 0.9;
 }
 
 .event-content {
@@ -383,14 +389,15 @@ const currentMonthText = computed(() => {
 }
 
 .event-title {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 500;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: none;
   line-height: 1;
   flex: 1;
+  opacity: 1;
 }
 
 .schedule-events {
@@ -418,10 +425,10 @@ const currentMonthText = computed(() => {
 
 /* 호버 효과 */
 .schedule-event-bar:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   z-index: 20;
-  filter: brightness(1.1);
+  opacity: 1;
 }
 
 .schedule-event-bar:active {

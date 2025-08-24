@@ -120,36 +120,10 @@
 
         <!-- 📊 일정 현황 -->
         <div v-if="selectedWorkers.length > 0">
-          <!-- 🔄 뷰 전환 버튼 -->
-          <v-card class="view-toggle-card mb-6" elevation="0">
-            <div class="view-toggle-header">
-              <div class="toggle-icon">
-                <v-icon color="primary">mdi-view-dashboard</v-icon>
-              </div>
-              <h3 class="toggle-title">화면 보기</h3>
-              <v-spacer />
-              <v-btn-toggle
-                v-model="viewMode"
-                mandatory
-                class="view-toggle-buttons"
-                color="primary"
-                variant="outlined"
-              >
-                <v-btn value="calendar" size="small">
-                  <v-icon start>mdi-calendar</v-icon>
-                  달력
-                </v-btn>
-                <v-btn value="list" size="small">
-                  <v-icon start>mdi-view-list</v-icon>
-                  리스트
-                </v-btn>
-              </v-btn-toggle>
-            </div>
-          </v-card>
 
 
           <!-- 📅 달력 뷰 -->
-          <div v-if="viewMode === 'calendar'" class="calendar-view">
+          <div class="calendar-view">
             <ScheduleCalendar
               :current-date="currentDate"
               :calendar-dates="calendarDates"
@@ -164,283 +138,6 @@
             />
           </div>
 
-          <!-- 📋 리스트 뷰 -->
-          <div v-else class="list-view">
-            <!-- 📅 예정된 일정 -->
-          <div ref="upcomingSection" class="schedule-section">
-            <div class="section-header">
-              <div class="section-icon upcoming">
-                <v-icon color="white">mdi-calendar-clock</v-icon>
-              </div>
-              <h3 class="section-title">예정된 일정</h3>
-              <v-chip
-                :color="allUpcomingMeta.length > 0 ? 'warning' : 'grey'"
-                size="small"
-                class="ml-2"
-              >
-                {{ allUpcomingMeta.length }}건
-              </v-chip>
-              <v-spacer />
-              <v-btn
-                v-if="allUpcomingMeta.length > 0"
-                size="small"
-                variant="text"
-                @click="sortUpcoming = !sortUpcoming"
-              >
-                <v-icon>{{
-                  sortUpcoming
-                    ? 'mdi-sort-calendar-ascending'
-                    : 'mdi-sort-calendar-descending'
-                }}</v-icon>
-                정렬
-              </v-btn>
-            </div>
-
-            <!-- 🦴 예정된 일정 스켈레톤 -->
-            <div v-if="loadingMeta" class="schedule-skeleton-container">
-              <v-skeleton-loader
-                v-for="i in 3"
-                :key="`upcoming-skeleton-${i}`"
-                type="card"
-                class="schedule-skeleton mb-3"
-              />
-            </div>
-
-            <!-- 예정된 일정 없음 -->
-            <v-alert
-              v-else-if="allUpcomingMeta.length === 0"
-              type="info"
-              class="info-alert"
-              prominent
-            >
-              <v-icon start>mdi-calendar-remove</v-icon>
-              예정된 일정이 없습니다.
-            </v-alert>
-
-            <!-- 예정된 일정 카드들 -->
-            <div v-else>
-              <v-card
-                v-for="(item, index) in sortedAllUpcomingMeta"
-                :key="`upcoming-${item.id}`"
-                class="schedule-card upcoming-card schedule-fade-item"
-                :class="{ urgent: item.dday <= 1 }"
-                :style="{ borderLeftColor: getWorkerColor(item.mainWorker) }"
-                @click="showScheduleDetail(item)"
-              >
-                <div class="card-content">
-                  <div class="card-main-info">
-                    <div class="date-badge upcoming-badge">
-                      <v-icon v-if="item.dday === 0" size="14"
-                        >mdi-alert</v-icon
-                      >
-                      D-{{ item.dday }}
-                    </div>
-                    <div class="date-info">
-                      <h4 class="work-date">{{ formatDate(item.date) }}</h4>
-                      <div class="work-details">
-                        <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1"
-                            >mdi-clock-outline</v-icon
-                          >
-                          <span>{{ item.startTime || '시간 미정' }}</span>
-                        </div>
-                        <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1"
-                            >mdi-account-group</v-icon
-                          >
-                          <span>{{ item.workerNames.join(', ') }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-if="item.notice" class="notice-section">
-                    <v-icon size="16" color="info">mdi-information</v-icon>
-                    <span class="notice-text">{{ item.notice }}</span>
-                  </div>
-
-                  <div class="status-section">
-                    <v-chip
-                      :color="item.dday <= 1 ? 'error' : 'warning'"
-                      size="small"
-                      variant="flat"
-                      :class="{ pulse: item.dday === 0 }"
-                    >
-                      <v-icon start size="14">
-                        {{
-                          item.dday === 0 ? 'mdi-alert' : 'mdi-calendar-clock'
-                        }}
-                      </v-icon>
-                      {{ getDdayText(item.dday) }}
-                    </v-chip>
-                  </div>
-                </div>
-              </v-card>
-            </div>
-          </div>
-
-          <!-- 📜 지난 일정 -->
-          <div ref="completedSection" class="schedule-section">
-            <div class="section-header">
-              <div class="section-icon completed">
-                <v-icon color="white">mdi-calendar-check</v-icon>
-              </div>
-              <h3 class="section-title">지난 일정</h3>
-              <v-chip color="success" size="small" class="ml-2">
-                {{ allPastMeta.length }}건
-              </v-chip>
-              <v-spacer />
-              <v-btn
-                v-if="allPastMeta.length > 0"
-                size="small"
-                variant="text"
-                @click="showAllPast = !showAllPast"
-              >
-                <v-icon>{{
-                  showAllPast ? 'mdi-chevron-up' : 'mdi-chevron-down'
-                }}</v-icon>
-                {{ showAllPast ? '접기' : '더보기' }}
-              </v-btn>
-            </div>
-
-            <!-- 🦴 지난 일정 스켈레톤 -->
-            <div v-if="loadingMeta" class="schedule-skeleton-container">
-              <v-skeleton-loader
-                v-for="i in 2"
-                :key="`past-skeleton-${i}`"
-                type="card"
-                class="schedule-skeleton mb-3"
-              />
-            </div>
-
-            <!-- 지난 일정 없음 -->
-            <v-alert
-              v-else-if="allPastMeta.length === 0"
-              type="info"
-              class="info-alert"
-              prominent
-            >
-              <v-icon start>mdi-calendar-remove</v-icon>
-              지난 일정이 없습니다.
-            </v-alert>
-
-            <!-- 지난 일정 카드들 -->
-            <div v-else>
-              <v-card
-                v-for="(item, index) in displayedAllPastMeta"
-                :key="`past-${item.id}`"
-                class="schedule-card past-card schedule-fade-item"
-                :style="{ borderLeftColor: getWorkerColor(item.mainWorker) }"
-                @click="showScheduleDetail(item)"
-              >
-                <div class="card-content">
-                  <div class="card-main-info">
-                    <div class="date-badge past-badge">D+{{ item.dday }}</div>
-                    <div class="date-info">
-                      <h4 class="work-date">{{ formatDate(item.date) }}</h4>
-                      <div class="work-details">
-                        <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1"
-                            >mdi-clock-outline</v-icon
-                          >
-                          <span>{{ item.startTime || '시간 미정' }}</span>
-                        </div>
-                        <div class="detail-item">
-                          <v-icon size="16" color="grey-darken-1"
-                            >mdi-account-group</v-icon
-                          >
-                          <span>{{ item.workerNames.join(', ') }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-if="item.notice" class="notice-section">
-                    <v-icon size="16" color="info">mdi-information</v-icon>
-                    <span class="notice-text">{{ item.notice }}</span>
-                  </div>
-
-                  <div class="status-section">
-                    <v-chip color="success" size="small" variant="flat">
-                      <v-icon start size="14">mdi-check</v-icon>
-                      {{ item.dday }}일 전 완료
-                    </v-chip>
-                  </div>
-                </div>
-              </v-card>
-            </div>
-          </div>
-          </div>
-
-          <!-- 📈 통계 요약 (하단) -->
-          <v-card class="stats-card mt-8" elevation="0">
-            <div class="stats-header">
-              <div class="stats-icon">
-                <v-icon color="primary">mdi-chart-timeline</v-icon>
-              </div>
-              <h3 class="stats-title">선택된 작업자 일정 현황</h3>
-              <v-spacer />
-              <div class="stats-meta">
-                <v-chip size="x-small" color="grey-lighten-3">
-                  마지막 업데이트: {{ lastUpdateTime }}
-                </v-chip>
-              </div>
-            </div>
-
-            <div class="stats-grid">
-              <div class="stat-item upcoming" @click="scrollToUpcoming">
-                <div class="stat-number">{{ allUpcomingMeta.length }}</div>
-                <div class="stat-label">예정된 작업</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-clock</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="allUpcomingMeta.length > 0 ? 100 : 0"
-                    color="warning"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
-
-              <div class="stat-item completed" @click="scrollToCompleted">
-                <div class="stat-number">{{ allPastMeta.length }}</div>
-                <div class="stat-label">완료된 작업</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-check</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="allPastMeta.length > 0 ? 100 : 0"
-                    color="success"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
-
-              <div class="stat-item total">
-                <div class="stat-number">
-                  {{ allUpcomingMeta.length + allPastMeta.length }}
-                </div>
-                <div class="stat-label">총 작업 수</div>
-                <div class="stat-icon">
-                  <v-icon>mdi-calendar-multiple</v-icon>
-                </div>
-                <div class="stat-progress">
-                  <v-progress-linear
-                    :model-value="
-                      allUpcomingMeta.length + allPastMeta.length > 0 ? 100 : 0
-                    "
-                    color="primary"
-                    height="4"
-                    rounded
-                  />
-                </div>
-              </div>
-            </div>
-          </v-card>
         </div>
       </v-container>
 
@@ -569,23 +266,23 @@ const userMap = ref({})
 const error = ref('')
 const today = getTodayDateKST()
 
-// 뷰 모드 상태
+// 뷰 모드 상태 (달력 뷰 고정)
 const viewMode = ref('calendar')
 const currentDate = ref(new Date())
 const weekdays = ['일', '월', '화', '수', '목', '금', '토']
 
 // 작업자별 색상 팔레트
 const workerColors = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red  
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#8B5CF6', // Violet
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#F97316', // Orange
-  '#6366F1', // Indigo
+  '#bfdbfe', // Blue pastel
+  '#fecaca', // Red pastel
+  '#bbf7d0', // Green pastel
+  '#fde68a', // Amber pastel
+  '#ddd6fe', // Violet pastel
+  '#fbcfe8', // Pink pastel
+  '#a7f3d0', // Emerald pastel
+  '#fed7aa', // Orange pastel
+  '#c7d2fe', // Indigo pastel
+  '#e9d5ff', // Purple pastel
 ]
 
 // 로딩 상태들
@@ -735,7 +432,9 @@ const calendarDates = computed(() => {
   
   // 먼저 모든 날짜의 기본 데이터 생성
   while (currentDateObj <= endDate) {
-    const dateStr = currentDateObj.toISOString().split('T')[0]
+    const dateStr = currentDateObj.getFullYear() + '-' + 
+      String(currentDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(currentDateObj.getDate()).padStart(2, '0')
     const isCurrentMonth = currentDateObj.getMonth() === month
     const isToday = dateStr === today
     const isWeekend = currentDateObj.getDay() === 0 || currentDateObj.getDay() === 6
@@ -901,18 +600,18 @@ const getScheduleWorkerNames = (schedule) => {
 }
 
 const getDarkerColor = (color) => {
-  // 색상을 어둡게 만드는 함수
+  // 파스텔 색상을 어둡게 만드는 함수
   const colorMap = {
-    '#3B82F6': '#1E40AF', // Blue -> Blue-700
-    '#EF4444': '#B91C1C', // Red -> Red-700
-    '#10B981': '#047857', // Green -> Green-700
-    '#F59E0B': '#B45309', // Amber -> Amber-700
-    '#8B5CF6': '#6D28D9', // Violet -> Violet-700
-    '#EC4899': '#BE185D', // Pink -> Pink-700
-    '#06B6D4': '#0E7490', // Cyan -> Cyan-700
-    '#84CC16': '#4D7C0F', // Lime -> Lime-700
-    '#F97316': '#C2410C', // Orange -> Orange-700
-    '#6366F1': '#4338CA', // Indigo -> Indigo-700
+    '#bfdbfe': '#93c5fd', // Blue pastel -> Blue-300
+    '#fecaca': '#fca5a5', // Red pastel -> Red-300
+    '#bbf7d0': '#86efac', // Green pastel -> Green-300
+    '#fde68a': '#fcd34d', // Amber pastel -> Amber-300
+    '#ddd6fe': '#c4b5fd', // Violet pastel -> Violet-300
+    '#fbcfe8': '#f9a8d4', // Pink pastel -> Pink-300
+    '#a7f3d0': '#6ee7b7', // Emerald pastel -> Emerald-300
+    '#fed7aa': '#fdba74', // Orange pastel -> Orange-300
+    '#c7d2fe': '#a5b4fc', // Indigo pastel -> Indigo-300
+    '#e9d5ff': '#d8b4fe', // Purple pastel -> Purple-300
   }
   return colorMap[color] || color
 }
@@ -1153,13 +852,13 @@ onUnmounted(() => {
 <style scoped>
 /* 🎨 기본 헤더 스타일 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
 }
 
 .v-app-bar.custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
 }
 
 .v-app-bar.custom-header .v-toolbar__content {
@@ -1167,49 +866,53 @@ onUnmounted(() => {
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
   border-radius: 12px !important;
   transition: all 0.3s ease !important;
 }
 
 .back-btn:hover,
 .back-btn:focus {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.2) !important;
   transform: translateY(-1px);
 }
 
 .refresh-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
   border-radius: 8px !important;
   transition: all 0.3s ease !important;
 }
 
 .refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.2) !important;
 }
 
 .header-icon-wrapper {
   width: 48px !important;
   height: 48px !important;
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.15) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   backdrop-filter: blur(10px) !important;
 }
 
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
+}
+
 .header-title {
-  color: white !important;
+  color: #475569 !important;
   font-weight: 700 !important;
   font-size: 24px !important;
   margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(71, 85, 105, 0.7) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
 }
@@ -1992,48 +1695,21 @@ onUnmounted(() => {
 
 /* 🎯 반응형 디자인 */
 @media (max-width: 768px) {
-  .worker-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    padding: 20px;
+  .header-title {
+    font-size: 18px !important;
   }
 
-  .worker-skeleton-container {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    padding: 20px;
+  .header-subtitle {
+    font-size: 11px !important;
   }
 
-  .worker-btn {
-    height: 52px;
-    font-size: 14px;
+  .header-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 20px;
-  }
-
-  .stat-number {
-    font-size: 28px;
-  }
-
-  .card-main-info {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .date-badge {
-    align-self: flex-start;
-  }
-
-  .section-title {
-    font-size: 20px;
-  }
-
-  .work-date {
-    font-size: 16px;
+  .header-icon-wrapper .v-icon {
+    font-size: 20px !important;
   }
 
   .floating-actions {
@@ -2043,37 +1719,20 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .header-title {
-    font-size: 20px;
+    font-size: 16px !important;
   }
 
-  .worker-grid {
-    grid-template-columns: 1fr;
-    padding: 16px;
+  .header-subtitle {
+    font-size: 10px !important;
   }
 
-  .worker-skeleton-container {
-    grid-template-columns: 1fr;
-    padding: 16px;
+  .header-icon-wrapper {
+    width: 32px !important;
+    height: 32px !important;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-item {
-    padding: 16px;
-  }
-
-  .stat-number {
-    font-size: 24px;
-  }
-
-  .schedule-card {
-    padding: 16px;
-  }
-
-  .card-header {
-    padding: 20px;
+  .header-icon-wrapper .v-icon {
+    font-size: 18px !important;
   }
 
   .floating-actions {
@@ -2097,17 +1756,14 @@ onUnmounted(() => {
 }
 
 /* 추가 스타일링 */
-.custom-header * {
-  color: white !important;
-}
-
 .custom-header .v-btn--icon {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(100, 116, 139, 0.1) !important;
 }
 
 .custom-header .v-chip {
-  background: rgba(255, 200, 0, 0.9) !important;
-  color: #1a1a1a !important;
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #5b21b6 !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
 }
 
 </style>
