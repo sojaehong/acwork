@@ -62,86 +62,107 @@
           {{ successMessage }}
         </v-alert>
 
-        <!-- 📅 기존 일정 목록 - 스켈레톤 로딩 적용 -->
+        <!-- 📅 기존 일정 달력 -->
         <template v-if="!isInitialLoading">
           <v-card
             v-if="existingDatesDisplay.length"
-            class="schedule-list-card mb-8"
+            class="calendar-card mb-8"
             elevation="0"
           >
-            <div class="card-header">
-              <div class="header-icon">
-                <v-icon color="primary">mdi-calendar-multiple</v-icon>
+            <div class="calendar-header">
+              <div class="calendar-header-content">
+                <div class="calendar-icon">
+                  <v-icon color="white">mdi-calendar</v-icon>
+                </div>
+                <div>
+                  <h3 class="calendar-title">기존 일정 달력</h3>
+                  <div class="calendar-subtitle">총 {{ existingDatesDisplay.length }}개 일정</div>
+                </div>
               </div>
-              <h3 class="card-title">기존 일정 목록</h3>
-              <v-chip color="info" size="small" class="ml-2">
-                {{ existingDatesDisplay.length }}개
-              </v-chip>
-              <!-- 정렬 옵션 -->
-              <v-spacer />
-              <v-btn-toggle
-                v-model="sortOption"
-                dense
-                size="small"
-                class="ml-2"
-              >
-                <v-btn value="date" size="small">
-                  <v-icon size="14">mdi-calendar</v-icon>
-                  날짜순
+              
+              <div class="calendar-controls">
+                <v-btn
+                  variant="outlined"
+                  size="small"
+                  @click="goToPreviousMonth"
+                  :disabled="isInitialLoading"
+                >
+                  <v-icon>mdi-chevron-left</v-icon>
                 </v-btn>
-                <v-btn value="future" size="small">
-                  <v-icon size="14">mdi-trending-up</v-icon>
-                  예정순
+                <div class="current-month">
+                  {{ currentDate.getFullYear() }}년 {{ currentDate.getMonth() + 1 }}월
+                </div>
+                <v-btn
+                  variant="outlined"
+                  size="small"
+                  @click="goToNextMonth"
+                  :disabled="isInitialLoading"
+                >
+                  <v-icon>mdi-chevron-right</v-icon>
                 </v-btn>
-              </v-btn-toggle>
+                <v-btn
+                  variant="outlined"
+                  size="small"
+                  @click="goToToday"
+                  :disabled="isInitialLoading"
+                >
+                  <v-icon start size="14">mdi-home</v-icon>
+                  오늘
+                </v-btn>
+              </div>
             </div>
 
-            <div class="card-content">
-              <div class="schedule-scroll">
+            <div class="calendar-content">
+              <!-- 요일 헤더 -->
+              <div class="calendar-weekdays">
                 <div
-                  v-for="item in sortedExistingDates"
-                  :key="`${item.date}-${metaMap[item.date]?.startTime || ''}`"
-                  class="schedule-item"
-                  :class="{
-                    selected: selectedDate === item.date,
-                    'past-schedule': isPastDate(item.date),
-                  }"
-                  @click="handleDateSelect(item.date)"
+                  v-for="(day, index) in weekdays"
+                  :key="day"
+                  class="weekday-header"
+                  :class="{ weekend: index === 0 || index === 6 }"
                 >
-                  <div class="schedule-date">{{ item.display }}</div>
-                  <div class="schedule-details">
-                    <div class="detail-row">
-                      <v-icon size="14" color="grey-darken-1"
-                        >mdi-clock-outline</v-icon
-                      >
-                      <span>{{
-                        metaMap[item.date]?.startTime || '시간 미정'
-                      }}</span>
-                    </div>
-                    <div class="detail-row">
-                      <v-icon size="14" color="grey-darken-1"
-                        >mdi-account-group</v-icon
-                      >
-                      <span>{{
-                        metaMap[item.date]?.workerNames?.join(', ') ||
-                        '인원 미정'
-                      }}</span>
-                    </div>
-                    <div class="detail-row">
-                      <v-chip
-                        :color="isPastDate(item.date) ? 'grey' : 'success'"
-                        size="x-small"
-                        variant="flat"
-                      >
-                        {{ isPastDate(item.date) ? '완료' : '예정' }}
-                      </v-chip>
-                    </div>
+                  {{ day }}
+                </div>
+              </div>
+
+              <!-- 달력 그리드 -->
+              <div class="calendar-grid">
+                <div
+                  v-for="date in calendarDates"
+                  :key="date.date"
+                  class="calendar-date"
+                  :class="{
+                    'other-month': !date.isCurrentMonth,
+                    'today': date.isToday,
+                    'weekend': date.isWeekend,
+                    'has-schedule': date.hasSchedule,
+                    'selected': selectedDate === date.date
+                  }"
+                  @click="handleCalendarDateClick(date)"
+                >
+                  <div class="date-number">{{ date.day }}</div>
+                  
+                  <!-- 일정 표시 -->
+                  <div v-if="date.hasSchedule" class="schedule-indicators">
+                    <div
+                      class="schedule-dot"
+                      :class="{
+                        upcoming: !isPastDate(date.date),
+                        past: isPastDate(date.date)
+                      }"
+                    ></div>
+                    <span class="schedule-time">
+                      {{ metaMap[date.date]?.startTime || '미정' }}
+                    </span>
                   </div>
-                  <div
-                    v-if="selectedDate === item.date"
-                    class="selected-indicator"
-                  >
-                    <v-icon color="primary">mdi-check-circle</v-icon>
+                  
+                  <!-- 작업자 이름 -->
+                  <div v-if="date.hasSchedule" class="worker-names">
+                    <span
+                      v-for="workerName in metaMap[date.date]?.workerNames || []"
+                      :key="workerName"
+                      class="worker-name"
+                    >{{ workerName }}</span>
                   </div>
                 </div>
               </div>
@@ -549,6 +570,10 @@ const sortOption = ref('future')
 const timePresets = ['09:00', '10:00', '13:00', '14:00', '16:00', '18:00']
 const selectedTimePreset = ref(null)
 
+// 달력 관련
+const currentDate = ref(new Date())
+const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+
 // 유효성 검사 규칙
 const dateRules = [(v) => !!v || '날짜를 선택해주세요']
 
@@ -578,6 +603,50 @@ const sortedExistingDates = computed(() => {
       return isAFuture ? -1 : 1
     })
   }
+})
+
+// 달력 데이터 computed 속성
+const calendarDates = computed(() => {
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
+  
+  // 현재 월의 첫 번째 날과 마지막 날
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  
+  // 달력 시작일 (이전 월의 마지막 주 포함)
+  const startDate = new Date(firstDay)
+  startDate.setDate(startDate.getDate() - firstDay.getDay())
+  
+  // 달력 종료일 (다음 월의 첫 주 포함)
+  const endDate = new Date(lastDay)
+  endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()))
+  
+  const dates = []
+  const currentDateObj = new Date(startDate)
+  
+  while (currentDateObj <= endDate) {
+    const dateStr = currentDateObj.getFullYear() + '-' + 
+      String(currentDateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(currentDateObj.getDate()).padStart(2, '0')
+    const isCurrentMonth = currentDateObj.getMonth() === month
+    const isToday = dateStr === TODAY_KST
+    const isWeekend = currentDateObj.getDay() === 0 || currentDateObj.getDay() === 6
+    const hasSchedule = !!metaMap.value[dateStr]
+    
+    dates.push({
+      date: dateStr,
+      day: currentDateObj.getDate(),
+      isCurrentMonth,
+      isToday,
+      isWeekend,
+      hasSchedule
+    })
+    
+    currentDateObj.setDate(currentDateObj.getDate() + 1)
+  }
+  
+  return dates
 })
 
 // 🚀 최적화: 메서드 간소화
@@ -835,6 +904,27 @@ async function cancelSchedule() {
 
 function goHome() {
   router.push('/')
+}
+
+// 달력 네비게이션 메서드들
+const goToPreviousMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() - 1)
+  currentDate.value = newDate
+}
+
+const goToNextMonth = () => {
+  const newDate = new Date(currentDate.value)
+  newDate.setMonth(newDate.getMonth() + 1)
+  currentDate.value = newDate
+}
+
+const goToToday = () => {
+  currentDate.value = new Date()
+}
+
+const handleCalendarDateClick = (date) => {
+  handleDateSelect(date.date)
 }
 
 // 🚀 최적화: 초기화 로직 - 순차 로딩
@@ -1449,12 +1539,226 @@ watch(
   }
 }
 
+/* 📅 달력 스타일 */
+.calendar-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.calendar-header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.calendar-header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.calendar-subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+  color: white;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-month {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  min-width: 120px;
+  text-align: center;
+}
+
+.calendar-controls .v-btn {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.calendar-content {
+  padding: 0;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.weekday-header {
+  padding: 16px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.weekday-header.weekend {
+  color: #ef4444;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-date {
+  min-height: 80px;
+  padding: 8px;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: white;
+}
+
+.calendar-date:hover {
+  background: #f8fafc;
+}
+
+.calendar-date.other-month {
+  background: #f9fafb;
+  color: #9ca3af;
+}
+
+.calendar-date.today {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #3b82f6;
+}
+
+.calendar-date.weekend {
+  background: #fefcfb;
+}
+
+.calendar-date.weekend.other-month {
+  background: #f7f6f5;
+}
+
+.calendar-date.has-schedule {
+  background: linear-gradient(135deg, #fef3cd 0%, #fde68a 100%) !important;
+  border-left: 4px solid #f59e0b !important;
+}
+
+.calendar-date.selected {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%) !important;
+  border-color: #4f46e5 !important;
+  border-width: 2px !important;
+}
+
+.date-number {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.calendar-date.other-month .date-number {
+  color: #9ca3af;
+}
+
+.calendar-date.today .date-number {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.calendar-date.weekend .date-number {
+  color: #ef4444;
+}
+
+.schedule-indicators {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.schedule-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.schedule-dot.upcoming {
+  background: #f59e0b;
+}
+
+.schedule-dot.past {
+  background: #10b981;
+}
+
+.schedule-time {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 작업자 이름 스타일 */
+.worker-names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 3px;
+}
+
+.worker-name {
+  font-size: 8px;
+  font-weight: 500;
+  color: #333;
+  background: transparent;
+  border: 1px solid #333;
+  padding: 1px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+
+/* 달력 날짜 셀에서 작업자 이름이 잘 보이도록 최소 높이 조정 */
+.calendar-date.has-schedule {
+  min-height: 85px !important;
+}
+
 /* 성능 최적화 */
 @media (prefers-reduced-motion: reduce) {
   .schedule-item,
   .worker-item,
   .action-btn,
-  .v-chip {
+  .v-chip,
+  .calendar-date {
     transition: none;
   }
 
@@ -1467,8 +1771,61 @@ watch(
 @media (hover: none) and (pointer: coarse) {
   .schedule-item:hover,
   .worker-item:hover,
-  .action-btn:hover {
+  .action-btn:hover,
+  .calendar-date:hover {
     transform: none;
+  }
+}
+
+/* 📱 달력 반응형 */
+@media (max-width: 768px) {
+  .calendar-header {
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .calendar-controls {
+    align-self: stretch;
+    justify-content: center;
+  }
+  
+  .calendar-date {
+    min-height: 60px;
+    padding: 4px;
+  }
+  
+  .calendar-date.has-schedule {
+    min-height: 70px !important;
+  }
+  
+  .date-number {
+    font-size: 12px;
+  }
+  
+  .schedule-dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .schedule-time {
+    font-size: 8px;
+  }
+  
+  .worker-name {
+    font-size: 7px;
+    padding: 1px 4px;
+    border-radius: 8px;
+  }
+  
+  .weekday-header {
+    padding: 12px 4px;
+    font-size: 12px;
+  }
+  
+  .current-month {
+    min-width: 100px;
+    font-size: 14px;
   }
 }
 </style>
