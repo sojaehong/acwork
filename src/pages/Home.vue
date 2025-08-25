@@ -398,39 +398,39 @@ onUnmounted(() => {
 /* 📱 반응형 디자인 */
 @media (max-width: 768px) {
   .header-title {
-    font-size: 18px !important;
+    font-size: 22px !important;
   }
 
   .header-subtitle {
-    font-size: 11px !important;
+    font-size: 13px !important;
   }
 
   .header-icon-wrapper {
-    width: 36px !important;
-    height: 36px !important;
+    width: 44px !important;
+    height: 44px !important;
   }
 
   .header-icon-wrapper .v-icon {
-    font-size: 20px !important;
+    font-size: 28px !important;
   }
 }
 
 @media (max-width: 480px) {
   .header-title {
-    font-size: 16px !important;
+    font-size: 20px !important;
   }
 
   .header-subtitle {
-    font-size: 10px !important;
+    font-size: 12px !important;
   }
 
   .header-icon-wrapper {
-    width: 32px !important;
-    height: 32px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
 
   .header-icon-wrapper .v-icon {
-    font-size: 18px !important;
+    font-size: 24px !important;
   }
 }
 </style>
