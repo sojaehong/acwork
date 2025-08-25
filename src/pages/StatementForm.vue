@@ -1901,20 +1901,20 @@ onMounted(async () => {
   }
 
   .header-title {
-    font-size: 20px;
+    font-size: 20px !important;
   }
 
   .header-subtitle {
-    font-size: 11px;
+    font-size: 14px !important;
   }
 
   .header-icon-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 40px !important;
+    height: 40px !important;
   }
 
-  .header-icon-wrapper v-icon {
-    font-size: 24px;
+  .header-icon-wrapper .v-icon {
+    font-size: 20px !important;
   }
 }
 
@@ -1934,14 +1934,14 @@ onMounted(async () => {
   }
 
   .header-title {
-    font-size: 16px;
+    font-size: 18px !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .header-subtitle {
-    display: none;
+    font-size: 12px !important;
   }
 
   .header-right {
@@ -1962,8 +1962,12 @@ onMounted(async () => {
   }
 
   .header-icon-wrapper {
-    width: 36px;
-    height: 36px;
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .header-icon-wrapper .v-icon {
+    font-size: 18px !important;
   }
 
   .btn-text {

@@ -954,6 +954,23 @@ async function submit() {
 
 /* 🎯 반응형 디자인 */
 @media (max-width: 768px) {
+  .header-title {
+    font-size: 20px !important;
+  }
+  
+  .header-subtitle {
+    font-size: 14px !important;
+  }
+  
+  .header-icon-wrapper {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .header-icon-wrapper .v-icon {
+    font-size: 20px !important;
+  }
+
   .option-grid {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 8px;
@@ -1001,7 +1018,20 @@ async function submit() {
 
 @media (max-width: 480px) {
   .header-title {
-    font-size: 20px;
+    font-size: 18px !important;
+  }
+  
+  .header-subtitle {
+    font-size: 12px !important;
+  }
+  
+  .header-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .header-icon-wrapper .v-icon {
+    font-size: 18px !important;
   }
 
   .card-header {

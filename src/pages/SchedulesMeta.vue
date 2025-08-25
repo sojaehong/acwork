@@ -1719,7 +1719,7 @@ watch(
 }
 
 .schedule-time {
-  font-size: 9px;
+  font-size: 12px;
   color: #64748b;
   font-weight: 500;
 }
@@ -1772,6 +1772,45 @@ watch(
   .action-btn:hover,
   .calendar-date:hover {
     transform: none;
+  }
+}
+
+/* 📱 헤더 반응형 디자인 */
+@media (max-width: 768px) {
+  .header-title {
+    font-size: 18px !important;
+  }
+
+  .header-subtitle {
+    font-size: 11px !important;
+  }
+
+  .header-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .header-icon-wrapper .v-icon {
+    font-size: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 16px !important;
+  }
+
+  .header-subtitle {
+    font-size: 10px !important;
+  }
+
+  .header-icon-wrapper {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .header-icon-wrapper .v-icon {
+    font-size: 18px !important;
   }
 }
 

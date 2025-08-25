@@ -1983,12 +1983,36 @@ watch(trendPeriod, () => {
 }
 
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 16px;
+  .custom-header .px-6 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  .header-title {
+    font-size: 16px !important;
+  }
+  
+  .header-subtitle {
+    font-size: 10px !important;
+    display: none !important;
+  }
+  
+  .header-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .header-icon-wrapper .v-icon {
+    font-size: 18px !important;
+  }
+  
+  .date-chip {
+    font-size: 11px !important;
+    padding: 0 8px !important;
   }
 
-  .header-title {
-    font-size: 24px;
+  .dashboard-container {
+    padding: 16px;
   }
 
   .section-title {
@@ -2025,23 +2049,35 @@ watch(trendPeriod, () => {
 }
 
 @media (max-width: 480px) {
+  .custom-header .px-6 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .header-title {
+    font-size: 14px !important;
+  }
+  
+  .header-subtitle {
+    font-size: 9px !important;
+  }
+  
+  .header-icon-wrapper {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .header-icon-wrapper .v-icon {
+    font-size: 16px !important;
+  }
+  
+  .date-chip {
+    font-size: 10px !important;
+    padding: 0 6px !important;
+  }
+  
   .dashboard-container {
     padding: 12px;
-  }
-
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .header-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .header-title {
-    font-size: 20px;
   }
 
   .kpi-card {
