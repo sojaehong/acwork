@@ -155,15 +155,6 @@
                       {{ metaMap[date.date]?.startTime || '미정' }}
                     </span>
                   </div>
-                  
-                  <!-- 작업자 이름 -->
-                  <div v-if="date.hasSchedule" class="worker-names">
-                    <span
-                      v-for="workerName in metaMap[date.date]?.workerNames || []"
-                      :key="workerName"
-                      class="worker-name"
-                    >{{ workerName }}</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1117,49 +1108,56 @@ watch(
 
 /* 🎨 헤더 스타일 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
 }
 
-.custom-header .v-toolbar__content {
-  padding: 0 !important;
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
   border-radius: 12px !important;
+  transition: all 0.3s ease !important;
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-
-.back-btn .v-icon {
-  color: white !important;
+.back-btn:hover,
+.back-btn:focus {
+  background: rgba(100, 116, 139, 0.2) !important;
+  transform: translateY(-1px);
 }
 
 .header-icon-wrapper {
   width: 48px !important;
   height: 48px !important;
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.15) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   backdrop-filter: blur(10px) !important;
 }
 
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
+}
+
 .header-title {
-  color: white !important;
+  color: #475569 !important;
   font-weight: 700 !important;
   font-size: 24px !important;
   margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: rgba(71, 85, 105, 0.7) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
 }
@@ -1619,10 +1617,10 @@ watch(
 }
 
 .weekday-header {
-  padding: 16px 8px;
+  padding: 12px 6px;
   text-align: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
 }
 
@@ -1636,8 +1634,8 @@ watch(
 }
 
 .calendar-date {
-  min-height: 80px;
-  padding: 8px;
+  min-height: 60px;
+  padding: 6px;
   border: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1679,9 +1677,9 @@ watch(
 }
 
 .date-number {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   color: #1e293b;
 }
 
@@ -1721,7 +1719,7 @@ watch(
 }
 
 .schedule-time {
-  font-size: 10px;
+  font-size: 9px;
   color: #64748b;
   font-weight: 500;
 }

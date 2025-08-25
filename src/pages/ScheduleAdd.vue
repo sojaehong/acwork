@@ -8,7 +8,7 @@
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
-            <v-icon size="32" color="white">mdi-plus-circle</v-icon>
+            <v-icon size="32">mdi-plus-circle</v-icon>
           </div>
           <div class="ml-3">
             <h2 class="header-title">작업 등록</h2>
@@ -658,43 +658,58 @@ onMounted(() => {
 <style scoped>
 /* 🎨 헤더 스타일 - 일관성 유지 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 12px;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.back-btn:hover,
+.back-btn:focus {
+  background: rgba(100, 116, 139, 0.2) !important;
+  transform: translateY(-1px);
 }
 
 .header-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
 }
 
 .header-title {
-  color: white;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
+  color: rgba(71, 85, 105, 0.7) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
 }
 
 /* 🌀 메인 컨텐츠 */

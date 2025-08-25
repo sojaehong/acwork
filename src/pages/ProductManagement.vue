@@ -8,7 +8,7 @@
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
           <div class="header-icon-wrapper">
-            <v-icon size="32" color="white">mdi-package-variant</v-icon>
+            <v-icon size="32">mdi-package-variant</v-icon>
           </div>
           <div class="ml-3">
             <h2 class="header-title">품목 관리</h2>
@@ -533,41 +533,48 @@ onMounted(async () => {
 <style scoped>
 /* 헤더 스타일 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #475569 !important;
   border-radius: 12px !important;
+  transition: all 0.2s ease !important;
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .header-icon-wrapper {
   width: 48px !important;
   height: 48px !important;
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(100, 116, 139, 0.1) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   backdrop-filter: blur(10px) !important;
 }
 
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
+}
+
 .header-title {
-  color: white !important;
+  color: #1e293b !important;
   font-weight: 700 !important;
   font-size: 24px !important;
   margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #64748b !important;
   font-size: 12px !important;
   font-weight: 500 !important;
 }

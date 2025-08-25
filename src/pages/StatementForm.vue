@@ -7,7 +7,7 @@
       >
         <div class="d-flex align-center header-left">
           <div class="header-icon-wrapper">
-            <v-icon size="32" color="white">mdi-receipt</v-icon>
+            <v-icon size="32">mdi-receipt</v-icon>
           </div>
           <div class="ml-3 header-text">
             <h2 class="header-title">거래명세서 작성</h2>
@@ -614,9 +614,6 @@
           <v-icon class="mr-2" color="white">mdi-file-document-multiple</v-icon>
           저장된 거래명세서 목록
           <v-spacer />
-          <v-btn icon size="small" @click="showDocumentList = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
         </v-card-title>
 
         <v-card-text class="pa-0">
@@ -1294,66 +1291,77 @@ onMounted(async () => {
 <style scoped>
 /* 🎨 헤더 스타일 - :deep() 선택자 사용하여 v-app-bar에 적용 */
 :deep(.custom-header) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
 }
 
 .header-icon-wrapper {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(100, 116, 139, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
 }
 
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
+}
+
 .header-title {
-  color: white;
+  color: #1e293b;
   font-weight: 700;
   font-size: 24px;
   margin: 0;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: #64748b;
   font-size: 12px;
   font-weight: 500;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 12px;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #475569 !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
 }
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(100, 116, 139, 0.15) !important;
+  transform: translateY(-1px) !important;
 }
 
 .product-manage-btn {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
   border-radius: 12px !important;
   backdrop-filter: blur(10px);
+  transition: all 0.2s ease !important;
 }
 .product-manage-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+  transform: translateY(-1px) !important;
 }
 
 .document-list-btn {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
   border-radius: 12px !important;
   backdrop-filter: blur(10px);
+  transition: all 0.2s ease !important;
 }
 .document-list-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* 🌀 로딩 오버레이 */

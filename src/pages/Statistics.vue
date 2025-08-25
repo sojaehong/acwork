@@ -1,27 +1,25 @@
 <template>
   <v-app>
     <!-- 🎨 새로운 현대적 헤더 -->
-    <v-app-bar :elevation="0" class="modern-header" height="72">
+    <v-app-bar :elevation="0" class="custom-header" height="80">
       <div class="d-flex align-center justify-space-between w-100 px-6">
         <div class="d-flex align-center">
           <v-btn
             icon
             size="large"
-            class="header-btn mr-4"
+            class="back-btn mr-3"
             @click="goBack"
             aria-label="뒤로가기"
           >
-            <v-icon size="20">mdi-arrow-left</v-icon>
+            <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
 
-          <div class="header-content">
-            <div class="header-icon">
-              <v-icon size="28" color="white">mdi-chart-multiple</v-icon>
-            </div>
-            <div class="header-text ml-4">
-              <h1 class="header-title">데이터 인사이트</h1>
-              <p class="header-subtitle">실시간 비즈니스 분석 대시보드</p>
-            </div>
+          <div class="header-icon-wrapper">
+            <v-icon size="32">mdi-chart-multiple</v-icon>
+          </div>
+          <div class="ml-3">
+            <h2 class="header-title">데이터 인사이트</h2>
+            <div class="header-subtitle">실시간 비즈니스 분석 대시보드</div>
           </div>
         </div>
 
@@ -39,12 +37,12 @@
           <v-btn
             icon
             size="large"
-            class="header-btn"
+            class="refresh-btn"
             @click="refreshData"
             :loading="isLoading"
             aria-label="새로고침"
           >
-            <v-icon size="20">mdi-refresh</v-icon>
+            <v-icon>mdi-refresh</v-icon>
           </v-btn>
         </div>
       </div>
@@ -1005,63 +1003,69 @@ watch(trendPeriod, () => {
 }
 
 /* 📱 헤더 스타일 */
-.modern-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  backdrop-filter: blur(20px) !important;
-  border-bottom: none !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-}
-
-.header-btn {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border-radius: 12px !important;
+.custom-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   backdrop-filter: blur(10px) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
 }
 
-.header-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
 }
 
-.header-content {
-  display: flex;
-  align-items: center;
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
-.header-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
+.back-btn,
+.refresh-btn {
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.back-btn:hover,
+.refresh-btn:hover,
+.back-btn:focus,
+.refresh-btn:focus {
+  background: rgba(100, 116, 139, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+.header-icon-wrapper {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
 }
 
 .header-title {
-  color: white;
-  font-weight: 800;
-  font-size: 28px;
-  margin: 0;
-  letter-spacing: -0.5px;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0;
+  color: rgba(71, 85, 105, 0.7) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
 }
 
 .date-chip {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
   backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
 }
 
 /* 🌍 메인 컨테이너 */

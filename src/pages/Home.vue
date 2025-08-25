@@ -1,20 +1,20 @@
 <template>
   <v-app>
-    <!-- 헤더 컴포넌트 -->
-    <div class="custom-header">
-      <div class="header-container">
-        <div class="header-left">
+    <!-- 🎨 일관된 헤더 디자인 -->
+    <v-app-bar :elevation="0" class="custom-header" height="80">
+      <div class="d-flex align-center justify-space-between w-100 px-4">
+        <div class="d-flex align-center">
           <div class="header-icon-wrapper">
-            <v-icon size="32" color="white">mdi-wrench</v-icon>
+            <v-icon size="32">mdi-wrench</v-icon>
           </div>
-          <div class="header-text">
-            <h1 class="header-title">공조+</h1>
+          <div class="ml-3">
+            <h2 class="header-title">공조+</h2>
             <div class="header-subtitle">스마트 작업 관리</div>
           </div>
         </div>
 
-        <div class="header-right">
-          <div v-if="userStore.userId" class="user-info-chip">
+        <div class="d-flex align-center">
+          <div v-if="userStore.userId" class="user-info-chip mr-3">
             <v-avatar size="36" class="user-avatar">
               <v-icon color="primary">mdi-account</v-icon>
             </v-avatar>
@@ -27,11 +27,11 @@
             @click="handleLogout"
             aria-label="로그아웃"
           >
-            <v-icon color="white">mdi-logout</v-icon>
+            <v-icon>mdi-logout</v-icon>
           </v-btn>
         </div>
       </div>
-    </div>
+    </v-app-bar>
 
     <v-main class="main-content">
       <!-- 에러 알림 -->
@@ -318,76 +318,57 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* 🎨 헤더 스타일 */
 .custom-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  height: 80px;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
 }
 
-.header-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 0 24px;
-  max-width: 100%;
+.v-app-bar.custom-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.v-app-bar.custom-header .v-toolbar__content {
+  background: transparent !important;
 }
 
 .header-icon-wrapper {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 8px;
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: rgba(100, 116, 139, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(10px) !important;
 }
 
-.header-text {
-  display: flex;
-  flex-direction: column;
+.header-icon-wrapper .v-icon {
+  color: #64748b !important;
 }
 
 .header-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  color: white;
-  line-height: 1.2;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 24px !important;
+  margin: 0 !important;
 }
 
 .header-subtitle {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1;
+  color: rgba(71, 85, 105, 0.7) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
 }
 
 .user-info-chip {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 4px 12px 4px 4px;
-  display: flex;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  gap: 8px;
+  background: rgba(100, 116, 139, 0.1) !important;
+  border-radius: 20px !important;
+  padding: 4px 12px 4px 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  backdrop-filter: blur(10px) !important;
+  gap: 8px !important;
 }
 
 .user-avatar {
@@ -395,14 +376,22 @@ onUnmounted(() => {
 }
 
 .user-name {
-  font-weight: 500;
-  font-size: 0.9rem;
-  color: white;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  color: #64748b !important;
   white-space: nowrap;
 }
 
 .logout-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(10px);
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #64748b !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.logout-btn:hover,
+.logout-btn:focus {
+  background: rgba(100, 116, 139, 0.2) !important;
+  transform: translateY(-1px);
 }
 </style>
