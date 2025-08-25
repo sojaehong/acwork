@@ -21,8 +21,8 @@ export default defineConfig({
       },
       includeAssets: ['vite.svg'],
       manifest: {
-        name: '공조플러스',
-        short_name: '공조플러스',
+        name: '공조+',
+        short_name: '공조+',
         description: '현장 작업자 일정 관리 및 급여 계산 시스템',
         theme_color: '#ffffff',
         background_color: '#ffffff',
